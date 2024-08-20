@@ -1,1 +1,3 @@
 Makefile.rules
+.vscode/
+.cache/
