@@ -1,0 +1,18 @@
+#!/bin/sh
+
+DEBUG=0
+
+CFLAGS="-W -Wall -Werror -std=c++17 -pedantic"
+
+if [ $# -eq 1 ] && [ "$1" = "DEBUG" ]; then
+	DEBUG=1
+	CFLAGS="$CFLAGS -g -ggdb -fsanitize=address"
+fi
+
+if [ $DEBUG -eq 1 ]; then
+	echo "DEBUG mode"
+fi
+
+echo "CFLAGS=${CFLAGS}" >Makefile.rules
+
+echo "CFLAGS=$CFLAGS"

@@ -1,0 +1,1 @@
+CFLAGS=-W -Wall -Werror -std=c++17 -pedantic -g -ggdb -fsanitize=address
