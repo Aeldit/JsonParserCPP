@@ -3,7 +3,6 @@
 CC=g++
 CFILES=src/main.cpp \
 	src/json.cpp \
-	src/items.cpp \
 	src/parser.cpp
 
 OBJS=${CFILES:.c=.o}

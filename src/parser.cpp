@@ -7,7 +7,6 @@
 #include <string.h>
 #include <string>
 
-#include "items.hpp"
 #include "json.hpp"
 
 using namespace std;
@@ -276,7 +275,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     return size == 0 ? 0 : size + 1;
 }
 
-/*JSONDict *parse_array(JSONDict *jd, FILE *f, uint64_t *pos)
+JSONDict *parse_array(JSONDict *jd, FILE *f, uint64_t *pos)
 {
     if (jd == NULL || f == NULL || pos == NULL)
     {
@@ -341,7 +340,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     }
     --(*pos);
     return ja;
-}*/
+}
 
 uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 {

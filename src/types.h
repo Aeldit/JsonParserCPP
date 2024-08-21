@@ -9,7 +9,7 @@
 #define TYPE_BOOL 2
 #define TYPE_NULL 3
 #define TYPE_ARR 4
-#define TYPE_OBJ 5
+#define TYPE_DICT 5
 
 // Errors
 #define TYPE_ERROR 6
