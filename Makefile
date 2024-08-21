@@ -2,14 +2,13 @@
 
 CC=g++
 CFILES=src/main.cpp \
-	src/json.cpp
+	src/json.cpp \
+	src/parser.cpp
 
 OBJS=${CFILES:.c=.o}
 
-JSONFILES=*.json
-
 all: json-parser
-	./json-parser
+	./json-parser t.json
 
 .PHONY:
 json-parser: $(OBJS)

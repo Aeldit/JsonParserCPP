@@ -1,7 +1,6 @@
 #ifndef JSON_HPP
 #define JSON_HPP
 
-#include <any>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -142,10 +141,20 @@ public:
 class JSONDict
 {
 private:
-    size_t nb_elts = 0;
-    Item *items[ARRAY_SIZE];
+    size_t nb_elts;
+    Item **items;
+    size_t insert_idx = 0;
 
 public:
+    JSONDict(size_t nb_elts)
+        : nb_elts(nb_elts)
+    {
+#ifdef DEBUG
+        cout << "Initializing " << nb_elts << " items" << endl;
+#endif
+        items = (Item **)calloc(nb_elts, sizeof(Item));
+    }
+
     size_t getNbElts()
     {
         return nb_elts;
@@ -169,12 +178,13 @@ public:
 
     void addItem(Item *item)
     {
-        if (nb_elts == ARRAY_SIZE - 1)
+        if (insert_idx == ARRAY_SIZE - 1)
         {
             return;
         }
+        cout << "item is null ? " << (item == NULL) << insert_idx << endl;
 
-        items[nb_elts++] = item;
+        items[insert_idx++] = item;
     }
 
     void printItems()

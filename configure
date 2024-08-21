@@ -4,12 +4,17 @@ DEBUG=0
 
 CFLAGS="-W -Wall -Werror -std=c++17 -pedantic"
 
-if [ $# -eq 1 ] && [ "$1" = "DEBUG" ]; then
+if [ $# -eq 1 ] && [ "$1" = "S" ]; then
 	DEBUG=1
 	CFLAGS="$CFLAGS -g -ggdb -fsanitize=address"
+elif [ $# -eq 1 ] && [ "$1" = "D" ]; then
+	DEBUG=2
+	CFLAGS="$CFLAGS -DDEBUG"
 fi
 
 if [ $DEBUG -eq 1 ]; then
+	echo "SANITIZING mode"
+elif [ $DEBUG -eq 2 ]; then
 	echo "DEBUG mode"
 fi
 
