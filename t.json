@@ -3,5 +3,18 @@
     "num": 51065,
     "boool": true,
     "boo": false,
-    "n": null
+    "n": null,
+    "arr": [
+        "testing",
+        546884,
+        null,
+        false,
+        [
+            1,
+            2,
+            3,
+            5
+        ],
+        true
+    ]
 }

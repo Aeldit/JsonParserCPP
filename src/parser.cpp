@@ -5,6 +5,12 @@
 *******************************************************************************/
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+
+#include "items.hpp"
+#include "json.hpp"
+
+using namespace std;
 
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
