@@ -73,7 +73,7 @@ public:
 
     void add(TypedValue *value);
     void printValues();
-    void printValuesIndent(int indent);
+    void printValuesIndent(int indent, bool fromDict);
 };
 
 class JSONDict : public JSON
@@ -93,7 +93,7 @@ public:
 
     void addItem(Item *item);
     void printItems();
-    void printItemsIndent(int indent);
+    void printItemsIndent(int indent, bool fromDict);
 };
 
 /**************************************
