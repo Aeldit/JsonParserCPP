@@ -99,7 +99,12 @@ using namespace std;
     uint64_t len = size - offset - 1
 
 /*******************************************************************************
-**                              LOCAL FUNCTIONS                               **
+**                           FUNCTIONS DECLARATIONS                           **
+*******************************************************************************/
+JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
+
+/*******************************************************************************
+**                              LOCAL FUNCTIONS **
 *******************************************************************************/
 /**
 ** \brief Reads the string at position 'pos' in the given file, and adds it to
@@ -275,9 +280,9 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     return size == 0 ? 0 : size + 1;
 }
 
-JSONDict *parse_array(JSONDict *jd, FILE *f, uint64_t *pos)
+JSONArray *parse_array(FILE *f, uint64_t *pos)
 {
-    if (jd == NULL || f == NULL || pos == NULL)
+    if (f == NULL || pos == NULL)
     {
         return NULL;
     }
@@ -285,11 +290,7 @@ JSONDict *parse_array(JSONDict *jd, FILE *f, uint64_t *pos)
     uint64_t nb_elts = get_nb_elts_array(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
-    json_array_st *ja = array_init(nb_elts);
-    if (ja == NULL)
-    {
-        return NULL;
-    }
+    JSONArray *ja = new JSONArray(nb_elts);
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
@@ -301,27 +302,23 @@ JSONDict *parse_array(JSONDict *jd, FILE *f, uint64_t *pos)
     {
         if (c == '"')
         {
-            add_str_to_array(jd, ja, parse_string(jd, f, pos));
+            ja->add(new StringTypedValue(parse_string(f, pos)));
         }
         else if (IS_NUMBER_START(c))
         {
-            add_num_to_array(jd, ja, parse_number(jd, f, pos));
+            ja->add(new IntTypedValue(parse_number(f, pos)));
         }
         else if (IS_BOOL_START(c))
         {
-            char bool = parse_boolean(jd, f, pos);
-            if (bool < 2)
-            {
-                add_bool_to_array(jd, ja, bool);
-            }
+            ja->add(new BoolTypedValue(parse_boolean(f, pos)));
         }
         else if (c == '[')
         {
-            add_array_to_array(jd, ja, parse_array(jd, f, pos));
+            ja->add(new ArrayTypedValue(parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            add_json_dict_to_array(jd, ja, parse_json_dict(f, pos));
+            ja->add(new DictTypedValue(parse_json_dict(f, pos)));
         }
         else if (c == ',')
         {
@@ -456,14 +453,14 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
         {
             jd->addItem(new NullItem(key));
         }
-        /*else if (c == '[')
+        else if (c == '[')
         {
-            add_array(jd, key, parse_array(jd, f, pos));
+            jd->addItem(new ArrayItem(key, parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            add_json_dict(jd, key, parse_json_dict(f, pos));
-        }*/
+            jd->addItem(new DictItem(key, parse_json_dict(f, pos)));
+        }
         else if (c == ',')
         {
             is_waiting_key = 1;

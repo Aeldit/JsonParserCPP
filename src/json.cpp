@@ -120,10 +120,12 @@ void NullItem::print()
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
-ArrayItem::ArrayItem(string key, JSONArray ja)
+ArrayItem::ArrayItem(string key, JSONArray *ja)
     : Item(key)
-    , ja(ja)
-{}
+    , ja(*ja)
+{
+    free(ja);
+}
 
 unsigned char ArrayItem::getType()
 {
@@ -138,10 +140,12 @@ JSONArray *ArrayItem::getValue()
 /**************************************
 **             DICT ITEM             **
 **************************************/
-DictItem::DictItem(string key, JSONDict jd)
+DictItem::DictItem(string key, JSONDict *jd)
     : Item(key)
-    , jd(jd)
-{}
+    , jd(*jd)
+{
+    free(jd);
+}
 
 unsigned char DictItem::getType()
 {
@@ -234,10 +238,12 @@ void NullTypedValue::print()
 /**************************************
 **            ARRAY VALUE            **
 **************************************/
-ArrayTypedValue::ArrayTypedValue(JSONArray ja)
+ArrayTypedValue::ArrayTypedValue(JSONArray *ja)
     : TypedValue(TYPE_ARR)
-    , ja(ja)
-{}
+    , ja(*ja)
+{
+    free(ja);
+}
 
 JSONArray *ArrayTypedValue::getValue()
 {
@@ -247,10 +253,12 @@ JSONArray *ArrayTypedValue::getValue()
 /**************************************
 **            DICT VALUE             **
 **************************************/
-DictTypedValue::DictTypedValue(JSONDict jd)
-    : TypedValue(TYPE_ARR)
-    , jd(jd)
-{}
+DictTypedValue::DictTypedValue(JSONDict *jd)
+    : TypedValue(TYPE_DICT)
+    , jd(*jd)
+{
+    free(jd);
+}
 
 JSONDict *DictTypedValue::getValue()
 {
@@ -260,6 +268,113 @@ JSONDict *DictTypedValue::getValue()
 /*******************************************************************************
 **                                    JSON                                    **
 *******************************************************************************/
+/**************************************
+**              ARRAY                **
+**************************************/
+JSONArray::JSONArray(size_t size)
+    : size(size)
+{
+#ifdef DEBUG
+    cout << "Initializing " << size << " values" << endl;
+#endif
+    values = (TypedValue **)calloc(size, sizeof(TypedValue *));
+}
+
+JSONArray::~JSONArray()
+{
+    if (values == NULL || size == 0)
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (values[i] == NULL)
+        {
+            continue;
+        }
+        free(values[i]);
+    }
+    free(values);
+}
+
+size_t JSONArray::getSize()
+{
+    return size;
+}
+
+TypedValue **JSONArray::getValues()
+{
+    return values;
+}
+
+TypedValue *JSONArray::getValueAt(size_t index)
+{
+    if (values == NULL || index >= size)
+    {
+        return NULL;
+    }
+    return values[index];
+}
+
+void JSONArray::add(TypedValue *value)
+{
+    if (values == NULL || value == NULL || insert_idx >= size)
+    {
+        return;
+    }
+
+    values[insert_idx++] = value;
+}
+
+void JSONArray::printValues()
+{
+    if (values == NULL || size == 0)
+    {
+        return;
+    }
+
+    cout << "\t[" << endl;
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        cout << "\t\t";
+
+        if (values[i] == NULL)
+        {
+            continue;
+        }
+
+        if (values[i]->getType() == TYPE_ARR)
+        {
+            JSONArray *value = ((ArrayTypedValue *)values[i])->getValue();
+            if (value != NULL)
+            {
+                value->printValues();
+            }
+        }
+        else if (values[i]->getType() == TYPE_DICT)
+        {
+            JSONDict *value = ((DictTypedValue *)values[i])->getValue();
+            if (value != NULL)
+            {
+                value->printItems();
+            }
+        }
+        else
+        {
+            values[i]->print();
+        }
+
+        if (i < size - 1)
+        {
+            cout << "," << endl;
+        }
+    }
+
+    cout << "\n]" << endl;
+}
+
 /**************************************
 **               DICT                **
 **************************************/
@@ -350,20 +465,20 @@ void JSONDict::printItems()
             continue;
         }
 
-        if (items[i]->getType() == TYPE_DICT)
-        {
-            JSONDict *value = ((DictItem *)items[i])->getValue();
-            if (value != NULL)
-            {
-                value->printItems();
-            }
-        }
-        else if (items[i]->getType() == TYPE_ARR)
+        if (items[i]->getType() == TYPE_ARR)
         {
             JSONArray *value = ((ArrayItem *)items[i])->getValue();
             if (value != NULL)
             {
                 value->printValues();
+            }
+        }
+        else if (items[i]->getType() == TYPE_DICT)
+        {
+            JSONDict *value = ((DictItem *)items[i])->getValue();
+            if (value != NULL)
+            {
+                value->printItems();
             }
         }
         else
@@ -378,111 +493,4 @@ void JSONDict::printItems()
     }
 
     cout << "\n}" << endl;
-}
-
-/**************************************
-**              ARRAY                **
-**************************************/
-JSONArray::JSONArray(size_t size)
-    : size(size)
-{
-#ifdef DEBUG
-    cout << "Initializing " << size << " values" << endl;
-#endif
-    values = (TypedValue **)calloc(size, sizeof(TypedValue *));
-}
-
-JSONArray::~JSONArray()
-{
-    if (values == NULL || size == 0)
-    {
-        return;
-    }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (values[i] == NULL)
-        {
-            continue;
-        }
-        free(values[i]);
-    }
-    free(values);
-}
-
-size_t JSONArray::getSize()
-{
-    return size;
-}
-
-TypedValue **JSONArray::getValues()
-{
-    return values;
-}
-
-TypedValue *JSONArray::getValueAt(size_t index)
-{
-    if (values == NULL || index >= size)
-    {
-        return NULL;
-    }
-    return values[index];
-}
-
-void JSONArray::add(TypedValue *value)
-{
-    if (values == NULL || value == NULL || insert_idx >= size)
-    {
-        return;
-    }
-
-    values[insert_idx++] = value;
-}
-
-void JSONArray::printValues()
-{
-    if (values == NULL || size == 0)
-    {
-        return;
-    }
-
-    cout << "\t[" << endl;
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        cout << "\t\t";
-
-        if (values[i] == NULL)
-        {
-            continue;
-        }
-
-        if (values[i]->getType() == TYPE_DICT)
-        {
-            JSONDict *value = ((DictItem *)values[i])->getValue();
-            if (value != NULL)
-            {
-                value->printItems();
-            }
-        }
-        else if (values[i]->getType() == TYPE_ARR)
-        {
-            JSONArray *value = ((ArrayItem *)values[i])->getValue();
-            if (value != NULL)
-            {
-                value->printValues();
-            }
-        }
-        else
-        {
-            values[i]->print();
-        }
-
-        if (i < size - 1)
-        {
-            cout << "," << endl;
-        }
-    }
-
-    cout << "\n]" << endl;
 }

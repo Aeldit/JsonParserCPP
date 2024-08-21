@@ -9,10 +9,6 @@ int main(int argc, char *argv[])
     }
 
     JSONDict *jd = parse(argv[1]);
-    if (jd == NULL)
-    {
-        return 1;
-    }
 
     jd->printItems();
     return 0;
