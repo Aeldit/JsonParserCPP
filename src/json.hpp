@@ -14,6 +14,7 @@ class Item
 {
 protected:
     string key;
+    unsigned char type;
 
 public:
     Item(string key)
@@ -24,6 +25,15 @@ public:
     {
         return key;
     }
+
+    void printKey()
+    {
+        cout << "\"" << key << "\"" << ": ";
+    }
+
+    virtual void print() = 0;
+
+    virtual unsigned char getType() = 0;
 };
 
 class StringItem : public Item
@@ -42,9 +52,15 @@ public:
         return value;
     }
 
+    unsigned char getType()
+    {
+        return TYPE_STR;
+    }
+
     void print()
     {
-        cout << key << ": " << value << endl;
+        printKey();
+        cout << "\"" << value << "\"";
     }
 };
 
@@ -64,9 +80,15 @@ public:
         return value;
     }
 
+    unsigned char getType()
+    {
+        return TYPE_NUM;
+    }
+
     void print()
     {
-        cout << key << ": " << value << endl;
+        printKey();
+        cout << value;
     }
 };
 
@@ -86,16 +108,92 @@ public:
         return value;
     }
 
+    unsigned char getType()
+    {
+        return TYPE_BOOL;
+    }
+
     void print()
     {
-        cout << key << ": " << (value ? "true" : "false") << endl;
+        printKey();
+        cout << (value ? "true" : "false");
+    }
+};
+
+class NullItem : public Item
+{
+public:
+    NullItem(string key)
+        : Item(key)
+    {}
+
+    unsigned char getType()
+    {
+        return TYPE_NULL;
+    }
+
+    void print()
+    {
+        printKey();
+        cout << "null";
     }
 };
 
 class JSONDict
 {
 private:
-    size_t n_elts;
+    size_t nb_elts = 0;
+    Item *items[ARRAY_SIZE];
+
+public:
+    size_t getNbElts()
+    {
+        return nb_elts;
+    }
+
+    Item **getItems()
+    {
+        return items;
+    }
+
+    Item *getItem(string key)
+    {
+        for (size_t i = 0; i < nb_elts; ++i)
+        {
+            if (key.compare(items[i]->getKey()) == 0)
+            {
+                return items[i];
+            }
+        }
+    }
+
+    void addItem(Item *item)
+    {
+        if (nb_elts == ARRAY_SIZE - 1)
+        {
+            return;
+        }
+
+        items[nb_elts++] = item;
+    }
+
+    void printItems()
+    {
+        cout << "{" << endl;
+
+        for (size_t i = 0; i < nb_elts; ++i)
+        {
+            cout << "\t";
+            items[i]->print();
+
+            if (i < nb_elts - 1)
+            {
+                cout << "," << endl;
+            }
+        }
+
+        cout << "\n}" << endl;
+    }
 };
 
 #endif // !JSON_HPP
