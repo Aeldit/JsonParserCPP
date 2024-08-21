@@ -2,6 +2,11 @@
     "test": "stringinining",
     "num": 51065,
     "boool": true,
+    "empty": {},
+    "dict": {
+        "empty": [],
+        "num": 563.2
+    },
     "boo": false,
     "n": null,
     "arr": [

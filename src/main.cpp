@@ -8,8 +8,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JSONDict *jd = parse(argv[1]);
-
-    jd->printItems();
+    JSON *j = parse(argv[1]);
+    if (j->isArray())
+    {
+        ((JSONArray *)j)->printValues();
+    }
+    else
+    {
+        ((JSONDict *)j)->printItems();
+    }
     return 0;
 }

@@ -484,7 +484,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 /*******************************************************************************
 **                                 FUNCTIONS                                  **
 *******************************************************************************/
-JSONDict *parse(char *file)
+JSON *parse(char *file)
 {
     FILE *f = fopen(file, "r");
     if (f == NULL)
@@ -512,6 +512,13 @@ JSONDict *parse(char *file)
     }
     else if (c == '[')
     {
+        JSONArray *ja = parse_array(f, &offset);
+        if (ja == NULL)
+        {
+            fclose(f);
+            return NULL;
+        }
+        return ja;
     }
 
     fclose(f);

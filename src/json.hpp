@@ -45,7 +45,18 @@ public:
 /**************************************
 **               JSON                **
 **************************************/
-class JSONArray
+class JSON
+{
+private:
+    bool is_array;
+
+public:
+    JSON(bool is_array);
+
+    bool isArray();
+};
+
+class JSONArray : public JSON
 {
 private:
     size_t size;
@@ -65,7 +76,7 @@ public:
     void printValuesIndent(int indent);
 };
 
-class JSONDict
+class JSONDict : public JSON
 {
 private:
     size_t size;
