@@ -329,17 +329,32 @@ void JSONArray::add(TypedValue *value)
 
 void JSONArray::printValues()
 {
+    printValuesIndent(1);
+}
+
+void JSONArray::printValuesIndent(int indent)
+{
     if (values == NULL || size == 0)
     {
         return;
     }
 
-    cout << "\t[" << endl;
+    // Obtains the number of tab characters that will be printed
+    char *tabs = (char *)calloc(indent, sizeof(char));
+    if (tabs == NULL)
+    {
+        return;
+    }
+    for (int i = 0; i < indent - 1; ++i)
+    {
+        tabs[i] = '\t';
+    }
+    tabs[indent - 1] = '\0';
+
+    cout << tabs << "[\n";
 
     for (size_t i = 0; i < size; ++i)
     {
-        cout << "\t\t";
-
         if (values[i] == NULL)
         {
             continue;
@@ -350,7 +365,7 @@ void JSONArray::printValues()
             JSONArray *value = ((ArrayTypedValue *)values[i])->getValue();
             if (value != NULL)
             {
-                value->printValues();
+                value->printValuesIndent(indent + 1);
             }
         }
         else if (values[i]->getType() == TYPE_DICT)
@@ -358,21 +373,28 @@ void JSONArray::printValues()
             JSONDict *value = ((DictTypedValue *)values[i])->getValue();
             if (value != NULL)
             {
-                value->printItems();
+                value->printItemsIndent(indent + 1);
             }
         }
         else
         {
+            cout << "\t" << tabs;
             values[i]->print();
         }
 
         if (i < size - 1)
         {
-            cout << "," << endl;
+            cout << ",\n";
         }
     }
 
-    cout << "\n]" << endl;
+    cout << "\n" << tabs << "]";
+
+    if (indent == 1)
+    {
+        cout << endl;
+    }
+    free(tabs);
 }
 
 /**************************************
@@ -449,17 +471,32 @@ void JSONDict::addItem(Item *item)
 
 void JSONDict::printItems()
 {
+    printItemsIndent(1);
+}
+
+void JSONDict::printItemsIndent(int indent)
+{
     if (items == NULL || size == 0)
     {
         return;
     }
 
-    cout << "{" << endl;
+    // Obtains the number of tab characters that will be printed
+    char *tabs = (char *)calloc(indent, sizeof(char));
+    if (tabs == NULL)
+    {
+        return;
+    }
+    for (int i = 0; i < indent - 1; ++i)
+    {
+        tabs[i] = '\t';
+    }
+    tabs[indent - 1] = '\0';
+
+    cout << tabs << "{\n";
 
     for (size_t i = 0; i < size; ++i)
     {
-        cout << "\t";
-
         if (items[i] == NULL)
         {
             continue;
@@ -470,7 +507,7 @@ void JSONDict::printItems()
             JSONArray *value = ((ArrayItem *)items[i])->getValue();
             if (value != NULL)
             {
-                value->printValues();
+                value->printValuesIndent(indent + 1);
             }
         }
         else if (items[i]->getType() == TYPE_DICT)
@@ -478,19 +515,26 @@ void JSONDict::printItems()
             JSONDict *value = ((DictItem *)items[i])->getValue();
             if (value != NULL)
             {
-                value->printItems();
+                value->printItemsIndent(indent + 1);
             }
         }
         else
         {
+            cout << "\t" << tabs;
             items[i]->print();
         }
 
         if (i < size - 1)
         {
-            cout << "," << endl;
+            cout << ",\n";
         }
     }
 
-    cout << "\n}" << endl;
+    cout << "\n" << tabs << "}";
+
+    if (indent == 1)
+    {
+        cout << endl;
+    }
+    free(tabs);
 }

@@ -62,6 +62,7 @@ public:
 
     void add(TypedValue *value);
     void printValues();
+    void printValuesIndent(int indent);
 };
 
 class JSONDict
@@ -81,6 +82,7 @@ public:
 
     void addItem(Item *item);
     void printItems();
+    void printItemsIndent(int indent);
 };
 
 /**************************************
