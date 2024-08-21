@@ -1,6 +1,9 @@
 #ifndef JSON_HPP
 #define JSON_HPP
 
+/*******************************************************************************
+**                                  INCLUDES                                  **
+*******************************************************************************/
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -9,6 +12,9 @@
 
 using namespace std;
 
+/*******************************************************************************
+**                                   CLASSES                                  **
+*******************************************************************************/
 class Item
 {
 protected:
@@ -141,23 +147,42 @@ public:
 class JSONDict
 {
 private:
-    size_t nb_elts;
+    size_t size;
     Item **items;
     size_t insert_idx = 0;
 
 public:
-    JSONDict(size_t nb_elts)
-        : nb_elts(nb_elts)
+    JSONDict(size_t size)
+        : size(size)
     {
 #ifdef DEBUG
-        cout << "Initializing " << nb_elts << " items" << endl;
+        cout << "Initializing " << size << " items" << endl;
 #endif
-        items = (Item **)calloc(nb_elts, sizeof(Item));
+        items = (Item **)calloc(size, sizeof(Item *));
     }
 
-    size_t getNbElts()
+    ~JSONDict()
     {
-        return nb_elts;
+        if (items == NULL || size == 0)
+        {
+            return;
+        }
+
+        for (size_t i = 0; i < size; ++i)
+        {
+            if (items[i] == NULL)
+            {
+                continue;
+            }
+
+            free(items[i]);
+        }
+        free(items);
+    }
+
+    size_t getSize()
+    {
+        return size;
     }
 
     Item **getItems()
@@ -167,8 +192,18 @@ public:
 
     Item *getItem(string key)
     {
-        for (size_t i = 0; i < nb_elts; ++i)
+        if (items == NULL)
         {
+            return NULL;
+        }
+
+        for (size_t i = 0; i < size; ++i)
+        {
+            if (items[i] == NULL)
+            {
+                continue;
+            }
+
             if (key.compare(items[i]->getKey()) == 0)
             {
                 return items[i];
@@ -178,25 +213,41 @@ public:
 
     void addItem(Item *item)
     {
-        if (insert_idx == ARRAY_SIZE - 1)
+        if (items == NULL || item == NULL || insert_idx >= size)
         {
             return;
         }
-        cout << "item is null ? " << (item == NULL) << insert_idx << endl;
 
         items[insert_idx++] = item;
     }
 
     void printItems()
     {
+        if (items == NULL || size == 0)
+        {
+            return;
+        }
+
         cout << "{" << endl;
 
-        for (size_t i = 0; i < nb_elts; ++i)
+        for (size_t i = 0; i < size; ++i)
         {
             cout << "\t";
-            items[i]->print();
 
-            if (i < nb_elts - 1)
+            if (items[i] == NULL)
+            {
+                continue;
+            }
+
+            if (items[i]->getType() == TYPE_OBJ)
+            {
+            }
+            else
+            {
+                items[i]->print();
+            }
+
+            if (i < size - 1)
             {
                 cout << "," << endl;
             }
