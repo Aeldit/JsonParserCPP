@@ -22,22 +22,13 @@ protected:
     unsigned char type;
 
 public:
-    Item(string key)
-        : key(key)
-    {}
+    Item(string key);
 
-    string getKey()
-    {
-        return key;
-    }
+    string getKey();
 
-    void printKey()
-    {
-        cout << "\"" << key << "\"" << ": ";
-    }
+    void printKey();
 
     virtual void print() = 0;
-
     virtual unsigned char getType() = 0;
 };
 
@@ -47,26 +38,11 @@ private:
     string value;
 
 public:
-    StringItem(string key, string value)
-        : Item(key)
-        , value(value)
-    {}
+    StringItem(string key, string value);
 
-    string getValue()
-    {
-        return value;
-    }
-
-    unsigned char getType()
-    {
-        return TYPE_STR;
-    }
-
-    void print()
-    {
-        printKey();
-        cout << "\"" << value << "\"";
-    }
+    void print();
+    unsigned char getType();
+    string getValue();
 };
 
 class IntItem : public Item
@@ -75,26 +51,11 @@ private:
     int value;
 
 public:
-    IntItem(string key, int value)
-        : Item(key)
-        , value(value)
-    {}
+    IntItem(string key, int value);
 
-    int getValue()
-    {
-        return value;
-    }
-
-    unsigned char getType()
-    {
-        return TYPE_NUM;
-    }
-
-    void print()
-    {
-        printKey();
-        cout << value;
-    }
+    void print();
+    unsigned char getType();
+    int getValue();
 };
 
 class BoolItem : public Item
@@ -103,45 +64,20 @@ private:
     bool value;
 
 public:
-    BoolItem(string key, bool value)
-        : Item(key)
-        , value(value)
-    {}
+    BoolItem(string key, bool value);
 
-    bool getValue()
-    {
-        return value;
-    }
-
-    unsigned char getType()
-    {
-        return TYPE_BOOL;
-    }
-
-    void print()
-    {
-        printKey();
-        cout << (value ? "true" : "false");
-    }
+    void print();
+    unsigned char getType();
+    bool getValue();
 };
 
 class NullItem : public Item
 {
 public:
-    NullItem(string key)
-        : Item(key)
-    {}
+    NullItem(string key);
 
-    unsigned char getType()
-    {
-        return TYPE_NULL;
-    }
-
-    void print()
-    {
-        printKey();
-        cout << "null";
-    }
+    void print();
+    unsigned char getType();
 };
 
 class JSONDict
@@ -152,109 +88,15 @@ private:
     size_t insert_idx = 0;
 
 public:
-    JSONDict(size_t size)
-        : size(size)
-    {
-#ifdef DEBUG
-        cout << "Initializing " << size << " items" << endl;
-#endif
-        items = (Item **)calloc(size, sizeof(Item *));
-    }
+    JSONDict(size_t size);
+    ~JSONDict();
 
-    ~JSONDict()
-    {
-        if (items == NULL || size == 0)
-        {
-            return;
-        }
+    size_t getSize();
+    Item **getItems();
+    Item *getItem(string key);
 
-        for (size_t i = 0; i < size; ++i)
-        {
-            if (items[i] == NULL)
-            {
-                continue;
-            }
-
-            free(items[i]);
-        }
-        free(items);
-    }
-
-    size_t getSize()
-    {
-        return size;
-    }
-
-    Item **getItems()
-    {
-        return items;
-    }
-
-    Item *getItem(string key)
-    {
-        if (items == NULL)
-        {
-            return NULL;
-        }
-
-        for (size_t i = 0; i < size; ++i)
-        {
-            if (items[i] == NULL)
-            {
-                continue;
-            }
-
-            if (key.compare(items[i]->getKey()) == 0)
-            {
-                return items[i];
-            }
-        }
-    }
-
-    void addItem(Item *item)
-    {
-        if (items == NULL || item == NULL || insert_idx >= size)
-        {
-            return;
-        }
-
-        items[insert_idx++] = item;
-    }
-
-    void printItems()
-    {
-        if (items == NULL || size == 0)
-        {
-            return;
-        }
-
-        cout << "{" << endl;
-
-        for (size_t i = 0; i < size; ++i)
-        {
-            cout << "\t";
-
-            if (items[i] == NULL)
-            {
-                continue;
-            }
-
-            if (items[i]->getType() == TYPE_OBJ)
-            {
-            }
-            else
-            {
-                items[i]->print();
-            }
-
-            if (i < size - 1)
-            {
-                cout << "," << endl;
-            }
-        }
-
-        cout << "\n}" << endl;
-    }
+    void addItem(Item *item);
+    void printItems();
 };
 
 #endif // !JSON_HPP
