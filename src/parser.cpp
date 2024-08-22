@@ -237,8 +237,6 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     }
 
     uint64_t size = 0;
-    // Used for the case where the array contains only one element, and so does
-    // not contain a ','
 
     char c = '\0';
     char prev_c = '\0';
@@ -562,6 +560,7 @@ JSON *parse(char *file)
     }
     else if (c == '[')
     {
+        // TODO -> Fix parsing when dicts without keys are inside an array
         JSONArray *ja = parse_array(f, &offset);
         if (ja == NULL)
         {

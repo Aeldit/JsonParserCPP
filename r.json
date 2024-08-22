@@ -1,40 +1,98 @@
-{
-    "test": "stringi[nining",
-    "num": 51065,
-    "boool": true,
-    "empty": {},
-    "dict": {
-        "empty": [
-            [
+[
+    {
+        "test": "stringi[nining",
+        "num": 51065,
+        "boool": true,
+        "empty": {
+            "t": {
+                "t": {
+                    "t": {
+                        "t": {}
+                    }
+                }
+            }
+        },
+        "dict": {
+            "empty": [
                 [
                     [
                         [
                             [
-                                []
+                                [
+                                    []
+                                ]
                             ]
                         ]
                     ]
                 ]
-            ]
-        ],
-        "num": 563
+            ],
+            "num": 563
+        },
+        "boo": false,
+        "n": null,
+        "arr": [
+            "testing",
+            546884,
+            null,
+            false,
+            [
+                1
+            ],
+            [
+                1,
+                2,
+                3,
+                5
+            ],
+            true
+        ]
     },
-    "boo": false,
-    "n": null,
-    "arr": [
-        "testing",
-        546884,
-        null,
-        false,
-        [
-            1
-        ],
-        [
-            1,
-            2,
-            3,
-            5
-        ],
-        true
-    ]
-}
+    {
+        "test": "stringi[nining",
+        "num": 51065,
+        "boool": true,
+        "empty": {
+            "t": {
+                "t": {
+                    "t": {
+                        "t": {}
+                    }
+                }
+            }
+        },
+        "dict": {
+            "empty": [
+                [
+                    [
+                        [
+                            [
+                                [
+                                    []
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "num": 563
+        },
+        "boo": false,
+        "n": null,
+        "arr": [
+            "testing",
+            546884,
+            null,
+            false,
+            [
+                1
+            ],
+            [
+                1,
+                2,
+                3,
+                5
+            ],
+            true
+        ]
+    }
+]
