@@ -13,13 +13,19 @@ using namespace std;
 /*******************************************************************************
 **                                   ITEMS                                    **
 *******************************************************************************/
-Item::Item(string key)
+Item::Item(string key, unsigned char type)
     : key(key)
+    , type(type)
 {}
 
 string Item::getKey()
 {
     return key;
+}
+
+unsigned char Item::getType()
+{
+    return type;
 }
 
 void Item::printKey()
@@ -31,18 +37,13 @@ void Item::printKey()
 **            STRING ITEM            **
 **************************************/
 StringItem::StringItem(string key, string value)
-    : Item(key)
+    : Item(key, TYPE_STR)
     , value(value)
 {}
 
 string StringItem::getValue()
 {
     return value;
-}
-
-unsigned char StringItem::getType()
-{
-    return TYPE_STR;
 }
 
 void StringItem::print()
@@ -55,18 +56,13 @@ void StringItem::print()
 **             INT ITEM              **
 **************************************/
 IntItem::IntItem(string key, int64_t value)
-    : Item(key)
+    : Item(key, TYPE_NUM)
     , value(value)
 {}
 
 int64_t IntItem::getValue()
 {
     return value;
-}
-
-unsigned char IntItem::getType()
-{
-    return TYPE_NUM;
 }
 
 void IntItem::print()
@@ -79,18 +75,13 @@ void IntItem::print()
 **             BOOL ITEM             **
 **************************************/
 BoolItem::BoolItem(string key, bool value)
-    : Item(key)
+    : Item(key, TYPE_BOOL)
     , value(value)
 {}
 
 bool BoolItem::getValue()
 {
     return value;
-}
-
-unsigned char BoolItem::getType()
-{
-    return TYPE_BOOL;
 }
 
 void BoolItem::print()
@@ -103,13 +94,8 @@ void BoolItem::print()
 **             NULL ITEM             **
 **************************************/
 NullItem::NullItem(string key)
-    : Item(key)
+    : Item(key, TYPE_NULL)
 {}
-
-unsigned char NullItem::getType()
-{
-    return TYPE_NULL;
-}
 
 void NullItem::print()
 {
@@ -121,15 +107,10 @@ void NullItem::print()
 **            ARRAY ITEM             **
 **************************************/
 ArrayItem::ArrayItem(string key, JSONArray *ja)
-    : Item(key)
+    : Item(key, TYPE_ARR)
     , ja(*ja)
 {
     free(ja);
-}
-
-unsigned char ArrayItem::getType()
-{
-    return TYPE_ARR;
 }
 
 JSONArray *ArrayItem::getValue()
@@ -141,15 +122,10 @@ JSONArray *ArrayItem::getValue()
 **             DICT ITEM             **
 **************************************/
 DictItem::DictItem(string key, JSONDict *jd)
-    : Item(key)
+    : Item(key, TYPE_DICT)
     , jd(*jd)
 {
     free(jd);
-}
-
-unsigned char DictItem::getType()
-{
-    return TYPE_DICT;
 }
 
 JSONDict *DictItem::getValue()

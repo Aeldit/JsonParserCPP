@@ -19,14 +19,14 @@ protected:
     unsigned char type;
 
 public:
-    Item(string key);
+    Item(string key, unsigned char type);
 
     string getKey();
+    unsigned char getType();
 
     void printKey();
 
     virtual void print() {}; // Not implemented by array and dict objects
-    virtual unsigned char getType() = 0;
 };
 
 class TypedValue
@@ -38,7 +38,6 @@ public:
     TypedValue(unsigned char type);
 
     unsigned char getType();
-
     virtual void print() {};
 };
 
@@ -108,7 +107,6 @@ public:
     StringItem(string key, string value);
 
     void print();
-    unsigned char getType();
     string getValue();
 };
 
@@ -121,7 +119,6 @@ public:
     IntItem(string key, int64_t value);
 
     void print();
-    unsigned char getType();
     int64_t getValue();
 };
 
@@ -134,7 +131,6 @@ public:
     BoolItem(string key, bool value);
 
     void print();
-    unsigned char getType();
     bool getValue();
 };
 
@@ -144,7 +140,6 @@ public:
     NullItem(string key);
 
     void print();
-    unsigned char getType();
 };
 
 class ArrayItem : public Item
@@ -155,7 +150,6 @@ private:
 public:
     ArrayItem(string key, JSONArray *ja);
 
-    unsigned char getType();
     JSONArray *getValue();
 };
 
@@ -167,7 +161,6 @@ private:
 public:
     DictItem(string key, JSONDict *jd);
 
-    unsigned char getType();
     JSONDict *getValue();
 };
 

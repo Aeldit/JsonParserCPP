@@ -484,6 +484,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 /*******************************************************************************
 **                                 FUNCTIONS                                  **
 *******************************************************************************/
+// TODO: Fix parsing of arrays and dicts of empty arrays and dicts
 JSON *parse(char *file)
 {
     FILE *f = fopen(file, "r");
