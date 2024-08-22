@@ -8,7 +8,7 @@ CFILES=src/main.cpp \
 OBJS=${CFILES:.c=.o}
 
 all: json-parser
-	./json-parser t.json
+	./json-parser r.json
 
 .PHONY:
 json-parser: $(OBJS)

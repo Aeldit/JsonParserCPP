@@ -19,9 +19,9 @@ using namespace std;
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
 #define ARRAY_END_REACHED                                                      \
-    (!is_in_string && !is_in_array && (c == '\n' || c == ',' || c == ']'))
+    (!is_in_string && !is_in_array && (c == '\n' || c == ','))
 #define DICT_END_REACHED                                                       \
-    (!is_in_string && !is_in_dict && (c == ',' || c == '\n' || c == '}'))
+    (!is_in_string && !is_in_dict && (c == '\n' || c == ','))
 
 /**
 ** \def Calculates the size of the given value (string, number or boolean).
@@ -239,26 +239,28 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     uint64_t size = 0;
     // Used for the case where the array contains only one element, and so does
     // not contain a ','
-    uint64_t single_elt_found = 0;
 
     char c = '\0';
     char prev_c = '\0';
     char is_in_array = 1;
     char is_in_dict = 0;
     char is_in_string = 0;
+    char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
     {
-        printf("%d: '%c' | in array = %d | size = %lu\n", c, c, is_in_array,
-               size);
         if (ARRAY_END_REACHED)
         {
             break;
         }
 
-        // If we are not in a string or if the string just ended
-        if (!is_in_string || (is_in_string && c == '"' && prev_c != '\\'))
+        if (c == '\\')
         {
-            single_elt_found = 1;
+            is_backslashing = !is_backslashing;
+        }
+
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
+        {
             if (c == '"')
             {
                 is_in_string = !is_in_string;
@@ -278,14 +280,14 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == '{')
             {
                 ++is_in_dict;
-            }
-            else if (c == '}')
-            {
-                --is_in_dict;
                 if (is_in_array == 2)
                 {
                     ++size;
                 }
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
             }
             else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
@@ -297,9 +299,19 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
         {
             break;
         }
-        prev_c = c;
+
+        if (c != ' ' && c != '\t' && c != ']')
+        {
+            prev_c = c;
+        }
     }
-    return size == 0 ? single_elt_found : size + 1;
+    // If there was only one value, there was no ',', so the element wasn't
+    // detected
+    if ((prev_c == '\n') && size == 0)
+    {
+        ++size;
+    }
+    return size < 2 ? size : size + 1;
 }
 
 JSONArray *parse_array(FILE *f, uint64_t *pos)

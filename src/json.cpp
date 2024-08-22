@@ -441,15 +441,11 @@ Item *JSONDict::getItem(string key)
             continue;
         }
 
-        cout << key << key.size() << items[i]->getKey()
-             << items[i]->getKey().size() << key.compare(items[i]->getKey())
-             << endl;
         if (key.compare(items[i]->getKey()) == 0)
         {
             return items[i];
         }
     }
-    cout << "C" << endl;
     return NULL;
 }
 
