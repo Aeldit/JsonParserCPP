@@ -4,7 +4,9 @@
     "boool": true,
     "empty": {},
     "dict": {
-        "empty": [],
+        "empty": [
+            []
+        ],
         "num": 563
     },
     "boo": false,
@@ -14,6 +16,9 @@
         546884,
         null,
         false,
+        [
+            1
+        ],
         [
             1,
             2,

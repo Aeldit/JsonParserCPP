@@ -18,7 +18,8 @@ using namespace std;
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
-#define ARRAY_END_REACHED (!is_in_string && !is_in_array && c == ']')
+#define ARRAY_END_REACHED                                                      \
+    (!is_in_string && !is_in_array && (c == '\n' || c == ',' || c == ']'))
 #define DICT_END_REACHED                                                       \
     (!is_in_string && !is_in_dict && (c == ',' || c == '\n' || c == '}'))
 
@@ -140,7 +141,7 @@ string parse_string(FILE *f, uint64_t *pos)
         str[i] = fgetc(f);
     }
     ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    string fstr(str, len + 1);
+    string fstr(str); // Converts from char * to string
     free(str);
     return fstr;
 }
@@ -236,6 +237,9 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     }
 
     uint64_t size = 0;
+    // Used for the case where the array contains only one element, and so does
+    // not contain a ','
+    uint64_t single_elt_found = 0;
 
     char c = '\0';
     char prev_c = '\0';
@@ -244,6 +248,8 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     char is_in_string = 0;
     while ((c = fgetc(f)) != EOF)
     {
+        printf("%d: '%c' | in array = %d | size = %lu\n", c, c, is_in_array,
+               size);
         if (ARRAY_END_REACHED)
         {
             break;
@@ -252,6 +258,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
         // If we are not in a string or if the string just ended
         if (!is_in_string || (is_in_string && c == '"' && prev_c != '\\'))
         {
+            single_elt_found = 1;
             if (c == '"')
             {
                 is_in_string = !is_in_string;
@@ -259,6 +266,10 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == '[')
             {
                 ++is_in_array;
+                if (is_in_array == 2)
+                {
+                    ++size;
+                }
             }
             else if (c == ']')
             {
@@ -271,6 +282,10 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == '}')
             {
                 --is_in_dict;
+                if (is_in_array == 2)
+                {
+                    ++size;
+                }
             }
             else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
@@ -284,7 +299,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
         }
         prev_c = c;
     }
-    return size == 0 ? 0 : size + 1;
+    return size == 0 ? single_elt_found : size + 1;
 }
 
 JSONArray *parse_array(FILE *f, uint64_t *pos)
