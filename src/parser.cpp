@@ -3,6 +3,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -17,8 +18,7 @@ using namespace std;
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
-#define ARRAY_END_REACHED                                                      \
-    (!is_in_string && !is_in_array && (c == ',' || c == '\n' || c == ']'))
+#define ARRAY_END_REACHED (!is_in_string && !is_in_array && c == ']')
 #define DICT_END_REACHED                                                       \
     (!is_in_string && !is_in_dict && (c == ',' || c == '\n' || c == '}'))
 
@@ -168,6 +168,7 @@ int64_t str_to_long(char *str, uint64_t len)
     return res * is_negative;
 }
 
+// TODO: Handle floats
 int64_t parse_number(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
@@ -237,6 +238,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     uint64_t size = 0;
 
     char c = '\0';
+    char prev_c = '\0';
     char is_in_array = 1;
     char is_in_dict = 0;
     char is_in_string = 0;
@@ -247,35 +249,40 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             break;
         }
 
-        if (c == '"')
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && prev_c != '\\'))
         {
-            is_in_string = !is_in_string;
-        }
-        else if (c == '[')
-        {
-            ++is_in_array;
-        }
-        else if (c == ']')
-        {
-            --is_in_array;
-        }
-        else if (c == '{')
-        {
-            ++is_in_dict;
-        }
-        else if (c == '}')
-        {
-            --is_in_dict;
-        }
-        else if (!is_in_string && !is_in_dict && is_in_array == 1 && c == ',')
-        {
-            ++size;
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+            else if (!is_in_dict && is_in_array == 1 && c == ',')
+            {
+                ++size;
+            }
         }
 
         if (fseek(f, offset++, SEEK_SET) != 0)
         {
             break;
         }
+        prev_c = c;
     }
     return size == 0 ? 0 : size + 1;
 }
@@ -310,7 +317,16 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
         else if (IS_BOOL_START(c))
         {
-            ja->add(new BoolTypedValue(parse_boolean(f, pos)));
+            uint64_t len = parse_boolean(f, pos);
+            if (len == 0 || (c == 'f' && len != 5) || (c == 't' && len != 4))
+            {
+                continue;
+            }
+            ja->add(new BoolTypedValue(len == 4 ? true : false));
+        }
+        else if (c == 'n')
+        {
+            ja->add(new NullTypedValue());
         }
         else if (c == '[')
         {
@@ -358,6 +374,7 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
     uint64_t single_elt_found = 0;
 
     char c = '\0';
+    char prev_c = '\0';
     char is_in_dict = 1;
     char is_in_array = 0;
     char is_in_string = 0;
@@ -368,36 +385,41 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
             break;
         }
 
-        if (c == '"')
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && prev_c != '\\'))
         {
-            is_in_string = !is_in_string;
-            single_elt_found = 1;
-        }
-        else if (c == '[')
-        {
-            ++is_in_array;
-        }
-        else if (c == ']')
-        {
-            --is_in_array;
-        }
-        else if (c == '{')
-        {
-            ++is_in_dict;
-        }
-        else if (c == '}')
-        {
-            --is_in_dict;
-        }
-        else if (!is_in_string && !is_in_array && is_in_dict == 1 && c == ',')
-        {
-            ++size;
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+                single_elt_found = 1;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+            else if (!is_in_array && is_in_dict == 1 && c == ',')
+            {
+                ++size;
+            }
         }
 
         if (fseek(f, offset++, SEEK_SET) != 0)
         {
             break;
         }
+        prev_c = c;
     }
     return size == 0 ? single_elt_found : size + 1;
 }

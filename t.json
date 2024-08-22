@@ -1,24 +1,11 @@
 {
-    "test": "stringinining",
+    "test": "stringi[nining",
     "num": 51065,
     "boool": true,
     "empty": {},
     "dict": {
-        "empty": [
-            [
-                [
-                    []
-                ]
-            ]
-        ],
-        "e": {
-            {
-                {
-                    {}
-                }
-            }
-        },
-        "num": 563.2
+        "empty": [],
+        "num": 563
     },
     "boo": false,
     "n": null,
