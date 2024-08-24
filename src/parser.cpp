@@ -334,12 +334,10 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     {
         if (c == '"')
         {
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new StringTypedValue(parse_string(f, pos)));
         }
         else if (IS_NUMBER_START(c))
         {
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new IntTypedValue(parse_number(f, pos)));
         }
         else if (IS_BOOL_START(c))
@@ -349,22 +347,18 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 continue;
             }
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new BoolTypedValue(len == 4 ? true : false));
         }
         else if (c == 'n')
         {
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new NullTypedValue());
         }
         else if (c == '[')
         {
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new ArrayTypedValue(parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new DictTypedValue(parse_json_dict(f, pos)));
         }
         else if (c == ',')
@@ -383,7 +377,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
     }
     --(*pos);
-    cout << endl;
     return ja;
 }
 
