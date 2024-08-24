@@ -2,20 +2,28 @@
 
 DEBUG=0
 
-CFLAGS="-W -Wall -Werror -std=c++17 -pedantic"
+CFLAGS="-W -Wall -Werror -std=c++11 -pedantic"
 
-if [ $# -eq 1 ] && [ "$1" = "S" ]; then
-	DEBUG=1
-	CFLAGS="$CFLAGS -g -ggdb -fsanitize=address"
-elif [ $# -eq 1 ] && [ "$1" = "D" ]; then
-	DEBUG=2
-	CFLAGS="$CFLAGS -DDEBUG"
+if [ $# -eq 1 ]; then
+	if [ -z "${1##*"S"*}" ]; then
+		DEBUG=1
+		CFLAGS="$CFLAGS -g -ggdb -fsanitize=address"
+	fi
+	if [ -z "${1##*"D"*}" ]; then
+		DEBUG=1
+		CFLAGS="$CFLAGS -DDEBUG"
+	fi
 fi
 
 if [ $DEBUG -eq 1 ]; then
-	echo "SANITIZING mode"
-elif [ $DEBUG -eq 2 ]; then
-	echo "DEBUG mode"
+	OUT=""
+	if [ -z "${1##*"S"*}" ]; then
+		OUT="SANITIZING "
+	fi
+	if [ -z "${1##*"D"*}" ]; then
+		OUT="${OUT}DEBUG "
+	fi
+	echo "${OUT}mode"
 fi
 
 echo "CFLAGS=${CFLAGS}" >Makefile.rules

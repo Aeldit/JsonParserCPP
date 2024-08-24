@@ -14,7 +14,7 @@ using namespace std;
 *******************************************************************************/
 class Item
 {
-protected:
+private:
     string key;
     unsigned char type;
 
@@ -31,7 +31,7 @@ public:
 
 class TypedValue
 {
-protected:
+private:
     unsigned char type;
 
 public:
@@ -145,10 +145,10 @@ public:
 class ArrayItem : public Item
 {
 private:
-    JSONArray ja;
+    JSONArray *ja;
 
 public:
-    ArrayItem(string key, JSONArray *ja);
+    ArrayItem(string key, JSONArray *ja_arg);
 
     JSONArray *getValue();
 };
@@ -156,10 +156,10 @@ public:
 class DictItem : public Item
 {
 private:
-    JSONDict jd;
+    JSONDict *jd;
 
 public:
-    DictItem(string key, JSONDict *jd);
+    DictItem(string key, JSONDict *jd_arg);
 
     JSONDict *getValue();
 };
@@ -214,10 +214,10 @@ public:
 class ArrayTypedValue : public TypedValue
 {
 private:
-    JSONArray ja;
+    JSONArray *ja;
 
 public:
-    ArrayTypedValue(JSONArray *ja);
+    ArrayTypedValue(JSONArray *ja_arg);
 
     JSONArray *getValue();
 };
@@ -225,10 +225,10 @@ public:
 class DictTypedValue : public TypedValue
 {
 private:
-    JSONDict jd;
+    JSONDict *jd;
 
 public:
-    DictTypedValue(JSONDict *jd);
+    DictTypedValue(JSONDict *jd_arg);
 
     JSONDict *getValue();
 };

@@ -106,31 +106,27 @@ void NullItem::print()
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
-ArrayItem::ArrayItem(string key, JSONArray *ja)
+ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
     : Item(key, TYPE_ARR)
-    , ja(*ja)
-{
-    free(ja);
-}
+    , ja(ja_arg)
+{}
 
 JSONArray *ArrayItem::getValue()
 {
-    return &ja;
+    return ja;
 }
 
 /**************************************
 **             DICT ITEM             **
 **************************************/
-DictItem::DictItem(string key, JSONDict *jd)
+DictItem::DictItem(string key, JSONDict *jd_arg)
     : Item(key, TYPE_DICT)
-    , jd(*jd)
-{
-    free(jd);
-}
+    , jd(jd_arg)
+{}
 
 JSONDict *DictItem::getValue()
 {
-    return &jd;
+    return jd;
 }
 
 /*******************************************************************************
@@ -214,31 +210,27 @@ void NullTypedValue::print()
 /**************************************
 **            ARRAY VALUE            **
 **************************************/
-ArrayTypedValue::ArrayTypedValue(JSONArray *ja)
+ArrayTypedValue::ArrayTypedValue(JSONArray *ja_arg)
     : TypedValue(TYPE_ARR)
-    , ja(*ja)
-{
-    free(ja);
-}
+    , ja(ja_arg)
+{}
 
 JSONArray *ArrayTypedValue::getValue()
 {
-    return &ja;
+    return ja;
 }
 
 /**************************************
 **            DICT VALUE             **
 **************************************/
-DictTypedValue::DictTypedValue(JSONDict *jd)
+DictTypedValue::DictTypedValue(JSONDict *jd_arg)
     : TypedValue(TYPE_DICT)
-    , jd(*jd)
-{
-    free(jd);
-}
+    , jd(jd_arg)
+{}
 
 JSONDict *DictTypedValue::getValue()
 {
-    return &jd;
+    return jd;
 }
 
 /*******************************************************************************
@@ -263,25 +255,12 @@ JSONArray::JSONArray(size_t size)
 #ifdef DEBUG
     cout << "Initializing array of " << size << " values" << endl;
 #endif
-    values = (TypedValue **)calloc(size, sizeof(TypedValue *));
+    values = new TypedValue *[size];
 }
 
 JSONArray::~JSONArray()
 {
-    if (values == NULL || size == 0)
-    {
-        return;
-    }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (values[i] == NULL)
-        {
-            continue;
-        }
-        free(values[i]);
-    }
-    free(values);
+    delete[] values;
 }
 
 size_t JSONArray::getSize()
@@ -321,7 +300,7 @@ void JSONArray::printValues()
 void JSONArray::printValuesIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
-    char *tabs = (char *)calloc(indent, sizeof(char));
+    char *tabs = new char[indent];
     if (tabs == NULL)
     {
         return;
@@ -336,6 +315,11 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
     if (values == NULL || size == 0)
     {
         cout << (fromDict ? "" : tabs) << "[]";
+        if (indent == 1)
+        {
+            cout << endl;
+        }
+        delete[] tabs;
         return;
     }
 
@@ -382,7 +366,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
     {
         cout << endl;
     }
-    free(tabs);
+    delete[] tabs;
 }
 
 /**************************************
@@ -395,25 +379,16 @@ JSONDict::JSONDict(size_t size)
 #ifdef DEBUG
     cout << "Initializing dict of " << size << " items" << endl;
 #endif
-    items = (Item **)calloc(size, sizeof(Item *));
+    items = new Item *[size];
 }
 
 JSONDict::~JSONDict()
 {
-    if (items == NULL || size == 0)
+    if (items == NULL)
     {
         return;
     }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (items[i] == NULL)
-        {
-            continue;
-        }
-        free(items[i]);
-    }
-    free(items);
+    delete[] items;
 }
 
 size_t JSONDict::getSize()
@@ -467,7 +442,7 @@ void JSONDict::printItems()
 void JSONDict::printItemsIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
-    char *tabs = (char *)calloc(indent, sizeof(char));
+    char *tabs = new char[indent];
     if (tabs == NULL)
     {
         return;
@@ -481,6 +456,11 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
     if (items == NULL || size == 0)
     {
         cout << (fromDict ? "" : tabs) << "{}";
+        if (indent == 1)
+        {
+            cout << endl;
+        }
+        delete[] tabs;
         return;
     }
 
@@ -531,5 +511,5 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
     {
         cout << endl;
     }
-    free(tabs);
+    delete[] tabs;
 }

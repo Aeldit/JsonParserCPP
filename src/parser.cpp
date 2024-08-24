@@ -266,10 +266,6 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == '[')
             {
                 ++is_in_array;
-                if (is_in_array == 2)
-                {
-                    ++size;
-                }
             }
             else if (c == ']')
             {
@@ -278,18 +274,22 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == '{')
             {
                 ++is_in_dict;
-                if (is_in_array == 2)
-                {
-                    ++size;
-                }
             }
             else if (c == '}')
             {
                 --is_in_dict;
             }
-            else if (!is_in_dict && is_in_array == 1 && c == ',')
+            else if (!is_in_dict && is_in_array)
             {
-                ++size;
+                if (is_in_array == 2 && (c == ',' || c == '\n')
+                    && prev_c == ']')
+                {
+                    ++size;
+                }
+                else if (is_in_array == 1 && c == ',')
+                {
+                    ++size;
+                }
             }
         }
 
@@ -334,10 +334,12 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     {
         if (c == '"')
         {
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new StringTypedValue(parse_string(f, pos)));
         }
         else if (IS_NUMBER_START(c))
         {
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new IntTypedValue(parse_number(f, pos)));
         }
         else if (IS_BOOL_START(c))
@@ -347,18 +349,22 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 continue;
             }
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new BoolTypedValue(len == 4 ? true : false));
         }
         else if (c == 'n')
         {
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new NullTypedValue());
         }
         else if (c == '[')
         {
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new ArrayTypedValue(parse_array(f, pos)));
         }
         else if (c == '{')
         {
+            cout << "elt added for " << ja->getSize() << "\n";
             ja->add(new DictTypedValue(parse_json_dict(f, pos)));
         }
         else if (c == ',')
@@ -377,6 +383,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
     }
     --(*pos);
+    cout << endl;
     return ja;
 }
 
@@ -399,10 +406,10 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
     uint64_t single_elt_found = 0;
 
     char c = '\0';
-    char prev_c = '\0';
     char is_in_dict = 1;
     char is_in_array = 0;
     char is_in_string = 0;
+    char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (DICT_END_REACHED)
@@ -410,8 +417,13 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
             break;
         }
 
+        if (c == '\\')
+        {
+            is_backslashing = !is_backslashing;
+        }
+
         // If we are not in a string or if the string just ended
-        if (!is_in_string || (is_in_string && c == '"' && prev_c != '\\'))
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
         {
             if (c == '"')
             {
@@ -444,7 +456,6 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
         {
             break;
         }
-        prev_c = c;
     }
     return size == 0 ? single_elt_found : size + 1;
 }
@@ -531,7 +542,6 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 /*******************************************************************************
 **                                 FUNCTIONS                                  **
 *******************************************************************************/
-// TODO: Fix parsing of arrays and dicts of empty arrays and dicts
 JSON *parse(char *file)
 {
     FILE *f = fopen(file, "r");
