@@ -16,12 +16,14 @@ int main(int argc, char *argv[])
     JSON *j = parse(argv[1]);
     if (j->isArray())
     {
-        ((JSONArray *)j)->printValues();
+        JSONArray *ja = (JSONArray *)j;
+        ja->printValues();
     }
     else
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
     }
+    delete j;
     return 0;
 }

@@ -20,6 +20,7 @@ private:
 
 public:
     Item(string key, unsigned char type);
+    virtual ~Item() = default;
 
     string getKey();
     unsigned char getType();
@@ -36,6 +37,7 @@ private:
 
 public:
     TypedValue(unsigned char type);
+    virtual ~TypedValue() = default;
 
     unsigned char getType();
     virtual void print() {};
@@ -51,6 +53,7 @@ private:
 
 public:
     JSON(bool is_array);
+    virtual ~JSON() = default;
 
     bool isArray();
 };
@@ -64,7 +67,7 @@ private:
 
 public:
     JSONArray(size_t size);
-    ~JSONArray();
+    virtual ~JSONArray();
 
     size_t getSize();
     TypedValue **getValues();
@@ -84,7 +87,7 @@ private:
 
 public:
     JSONDict(size_t size);
-    ~JSONDict();
+    virtual ~JSONDict();
 
     size_t getSize();
     Item **getItems();
@@ -149,6 +152,7 @@ private:
 
 public:
     ArrayItem(string key, JSONArray *ja_arg);
+    virtual ~ArrayItem();
 
     JSONArray *getValue();
 };
@@ -160,6 +164,7 @@ private:
 
 public:
     DictItem(string key, JSONDict *jd_arg);
+    virtual ~DictItem();
 
     JSONDict *getValue();
 };
@@ -218,6 +223,7 @@ private:
 
 public:
     ArrayTypedValue(JSONArray *ja_arg);
+    virtual ~ArrayTypedValue();
 
     JSONArray *getValue();
 };
@@ -229,6 +235,7 @@ private:
 
 public:
     DictTypedValue(JSONDict *jd_arg);
+    virtual ~DictTypedValue();
 
     JSONDict *getValue();
 };

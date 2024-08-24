@@ -111,6 +111,11 @@ ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
     , ja(ja_arg)
 {}
 
+ArrayItem::~ArrayItem()
+{
+    delete ja;
+}
+
 JSONArray *ArrayItem::getValue()
 {
     return ja;
@@ -123,6 +128,11 @@ DictItem::DictItem(string key, JSONDict *jd_arg)
     : Item(key, TYPE_DICT)
     , jd(jd_arg)
 {}
+
+DictItem::~DictItem()
+{
+    delete jd;
+}
 
 JSONDict *DictItem::getValue()
 {
@@ -215,6 +225,11 @@ ArrayTypedValue::ArrayTypedValue(JSONArray *ja_arg)
     , ja(ja_arg)
 {}
 
+ArrayTypedValue::~ArrayTypedValue()
+{
+    delete ja;
+}
+
 JSONArray *ArrayTypedValue::getValue()
 {
     return ja;
@@ -227,6 +242,11 @@ DictTypedValue::DictTypedValue(JSONDict *jd_arg)
     : TypedValue(TYPE_DICT)
     , jd(jd_arg)
 {}
+
+DictTypedValue::~DictTypedValue()
+{
+    delete jd;
+}
 
 JSONDict *DictTypedValue::getValue()
 {
@@ -260,6 +280,19 @@ JSONArray::JSONArray(size_t size)
 
 JSONArray::~JSONArray()
 {
+    if (values == NULL)
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (values[i] == NULL)
+        {
+            continue;
+        }
+        delete values[i];
+    }
     delete[] values;
 }
 
@@ -387,6 +420,15 @@ JSONDict::~JSONDict()
     if (items == NULL)
     {
         return;
+    }
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (items[i] == NULL)
+        {
+            continue;
+        }
+        delete items[i];
     }
     delete[] items;
 }
