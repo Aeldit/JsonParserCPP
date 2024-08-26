@@ -4,14 +4,11 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cmath>
-#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
 
 #include "json.hpp"
-
-using namespace std;
 
 /*******************************************************************************
 **                                 STRUCTURES                                 **
@@ -37,73 +34,12 @@ public:
 };
 
 /*******************************************************************************
-**                              DEFINES / MACROS                              **
+**                                   MACROS                                   **
 *******************************************************************************/
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
 #define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
-
-#define ARRAY_END_REACHED                                                      \
-    (!is_in_array || (!is_in_string && !is_in_array && (c == '\n' || c == ',')))
-#define DICT_END_REACHED                                                       \
-    (!is_in_string && !is_in_dict && (c == '\n' || c == ','))
-
-/**
-** \def Calculates the size of the given value (string, number or boolean).
-**      These defines are used to limit the number of function calls
-*/
-#define STR_LEN                                                                \
-    uint64_t size = (*pos);                                                    \
-    char c = '\0';                                                             \
-    char prev_c = '\0';                                                        \
-    while ((c = fgetc(f)) != EOF)                                              \
-    {                                                                          \
-        if (c == '"' && prev_c != '\\')                                        \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
-        if (fseek(f, size++, SEEK_SET) != 0)                                   \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
-        prev_c = c;                                                            \
-    }                                                                          \
-    uint64_t len = size - (*pos) - 1
-
-#define ARR_LEN                                                                \
-    uint64_t size = offset;                                                    \
-    if (fseek(f, size++, SEEK_SET) != 0)                                       \
-    {                                                                          \
-        return 0;                                                              \
-    }                                                                          \
-    char c = '\0';                                                             \
-    char is_in_array = 0;                                                      \
-    char is_in_string = 0;                                                     \
-    while ((c = fgetc(f)) != EOF)                                              \
-    {                                                                          \
-        if (ARRAY_END_REACHED)                                                 \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
-        if (c == '"')                                                          \
-        {                                                                      \
-            is_in_string = !is_in_string;                                      \
-        }                                                                      \
-        else if (c == '[')                                                     \
-        {                                                                      \
-            ++is_in_array;                                                     \
-        }                                                                      \
-        else if (c == ']')                                                     \
-        {                                                                      \
-            --is_in_array;                                                     \
-        }                                                                      \
-        if (fseek(f, size++, SEEK_SET) != 0)                                   \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
-    }                                                                          \
-    uint64_t len = size - offset - 1
 
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
@@ -119,6 +55,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 ** \param f The file stream
 ** \param pos The pos of the '"' that starts the string of which we are
 **            currently acquiring the length
+** \returns An empty string in case of error, the parsed string otherwise
 */
 string parse_string(FILE *f, uint64_t *pos)
 {
@@ -127,7 +64,23 @@ string parse_string(FILE *f, uint64_t *pos)
         return string();
     }
 
-    STR_LEN;
+    uint64_t size = (*pos);
+    char c = '\0';
+    char prev_c = '\0';
+    while ((c = fgetc(f)) != EOF)
+    {
+        if (c == '"' && prev_c != '\\')
+        {
+            break;
+        }
+        if (fseek(f, size++, SEEK_SET) != 0)
+        {
+            break;
+        }
+        prev_c = c;
+    }
+
+    uint64_t len = size - (*pos) - 1;
     if (len == 0)
     {
         return string();
@@ -153,6 +106,14 @@ string parse_string(FILE *f, uint64_t *pos)
     return fstr;
 }
 
+/**
+** \brief Takes sl's char array and transforms it into an int64_t.
+**        If the number has an exponent, the exponent is parsed as well and the
+**        number is elevated to that exponent
+** \param sl A pointer to an StrAndLenTuple object
+** \returns The 0 in case of error (or if the number was 0), the number
+**          otherwise
+*/
 int64_t str_to_long(StrAndLenTuple *sl)
 {
     char *str = sl->str;
@@ -164,15 +125,11 @@ int64_t str_to_long(StrAndLenTuple *sl)
 
     int64_t res = 0;
     uint64_t exponent = 0;
-    char is_negative = 1;
+    char is_negative = str[0] == '-' ? -1 : 1;
     char is_in_exponent = 0;
     for (uint64_t i = 0; i < len; ++i)
     {
-        if (str[i] == '-')
-        {
-            is_negative = -1;
-        }
-        else if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
+        if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
         {
             is_in_exponent = 1;
         }
@@ -192,6 +149,14 @@ int64_t str_to_long(StrAndLenTuple *sl)
                             : res * is_negative;
 }
 
+/**
+** \brief Takes sl's char array and transforms it into a double.
+**        If the number has an exponent, the exponent is parsed as well and the
+**        number is elevated to that exponent
+** \param sl A pointer to an StrAndLenTuple object
+** \returns The 0 in case of error (or if the number was 0), the number
+**          otherwise
+*/
 double str_to_double(StrAndLenTuple *sl)
 {
     char *str = sl->str;
@@ -201,20 +166,18 @@ double str_to_double(StrAndLenTuple *sl)
         return 0;
     }
 
-    double res = 0;
-    double dot_res = 0;
-    uint64_t exponent = 0;
+    double res = 0; // Integer part
+    double dot_res = 0; // Decimal part
+    uint64_t exponent = 0; // Only used if sl->has_exponent() is true
     uint64_t nb_digits_dot = 1;
-    char is_negative = 1;
-    bool dot_reached = false;
-    bool is_in_exponent = false;
+    // If the number is negative, this is set to -1 and the final res is
+    // multiplied by it
+    char is_negative = str[0] == '-' ? -1 : 1;
+    char dot_reached = 0;
+    char is_in_exponent = 0;
     for (uint64_t i = 0; i < len; ++i)
     {
-        if (str[i] == '-')
-        {
-            is_negative = -1;
-        }
-        else if (str[i] == '.')
+        if (str[i] == '.')
         {
             dot_reached = 1;
         }
@@ -278,6 +241,15 @@ bool has_exponent(char *str, uint64_t len)
     return false;
 }
 
+/**
+** \brief Reads the file from the given pos and returns an instance of the
+**        StrAndLenTuple class containing the number as a char array, the length
+**        of the char array and whether the number is a float and has an
+**        exponent
+** \param f The file stream
+** \param pos The pos of the start of the number of which we are currently
+**            acquiring the length
+*/
 StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
@@ -368,6 +340,12 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
     return len;
 }
 
+/**
+** \param f The file stream
+** \param pos The pos of the character just after the '[' that begins the
+**            current array
+** \returns The number of elements of the current array
+*/
 uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 {
     if (f == NULL)
@@ -392,7 +370,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     char comma_encountered = 0;
     while ((c = fgetc(f)) != EOF)
     {
-        if (ARRAY_END_REACHED)
+        if (!is_in_array)
         {
             break;
         }
@@ -463,6 +441,12 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     return size;
 }
 
+/**
+** \param f The file stream
+** \param pos The pos of the character just after the '[' that begins the
+**            current array
+** \returns The json array parsed at the pos
+*/
 JSONArray *parse_array(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
@@ -550,6 +534,12 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     return ja;
 }
 
+/**
+** \param f The file stream
+** \param pos The pos of the character just after the '{' that begins the
+**            current dict
+** \returns The number of elements of the current dict
+*/
 uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 {
     if (f == NULL)
@@ -575,7 +565,7 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
     char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
     {
-        if (DICT_END_REACHED)
+        if (!is_in_dict)
         {
             break;
         }
@@ -623,6 +613,12 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
     return size == 0 ? single_elt_found : size + 1;
 }
 
+/**
+** \param f The file stream
+** \param pos The pos of the character just after the '[' that begins the
+**            current array
+** \returns The json dict parsed at the pos
+*/
 JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
