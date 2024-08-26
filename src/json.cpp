@@ -30,7 +30,8 @@ unsigned char Item::getType()
 
 void Item::printKey()
 {
-    cout << "\"" << key << "\"" << ": ";
+    cout << "\"" << key << "\""
+         << ": ";
 }
 
 /**************************************
@@ -275,7 +276,7 @@ JSONArray::JSONArray(size_t size)
 #ifdef DEBUG
     cout << "Initializing array of " << size << " values" << endl;
 #endif
-    values = new TypedValue *[size];
+    values = new TypedValue *[size]();
 }
 
 JSONArray::~JSONArray()
@@ -333,7 +334,7 @@ void JSONArray::printValues()
 void JSONArray::printValuesIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
-    char *tabs = new char[indent];
+    char *tabs = new char[indent]();
     if (tabs == NULL)
     {
         return;
@@ -412,7 +413,7 @@ JSONDict::JSONDict(size_t size)
 #ifdef DEBUG
     cout << "Initializing dict of " << size << " items" << endl;
 #endif
-    items = new Item *[size];
+    items = new Item *[size]();
 }
 
 JSONDict::~JSONDict()
@@ -447,7 +448,6 @@ Item *JSONDict::getItem(string key)
 {
     if (items == NULL)
     {
-        cout << "B" << endl;
         return NULL;
     }
 
@@ -484,7 +484,7 @@ void JSONDict::printItems()
 void JSONDict::printItemsIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
-    char *tabs = new char[indent];
+    char *tabs = new char[indent]();
     if (tabs == NULL)
     {
         return;
