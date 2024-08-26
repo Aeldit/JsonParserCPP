@@ -12,6 +12,19 @@ using namespace std;
 /*******************************************************************************
 **                                   CLASSES                                  **
 *******************************************************************************/
+/**
+** \class Item Base class representing a JSONDict item
+** \brief The following classes are derived from this one :
+**        - StringItem
+**        - IntItem
+**        - DoubleItem
+**        - BoolItem
+**        - NullItem
+**        - ArrayItem
+**        - DictItem
+** \param key The key of the item (string)
+** \param type The type of the item's value (see types.h)
+*/
 class Item
 {
 private:
@@ -27,9 +40,21 @@ public:
 
     void printKey();
 
-    virtual void print(){}; // Not implemented by array and dict objects
+    virtual void print(){}; // Not implemented by array and dict items
 };
 
+/**
+** \class TypedValue Base class representing a JSONArray's value
+** \brief The following classes are derived from this one :
+**        - StringTypedValue
+**        - IntTypedValue
+**        - DoubleTypedValue
+**        - BoolTypedValue
+**        - NullTypedValue
+**        - ArrayTypedValue
+**        - DictTypedValue
+** \param type The type of the value (see types.h)
+*/
 class TypedValue
 {
 private:
@@ -46,6 +71,13 @@ public:
 /**************************************
 **               JSON                **
 **************************************/
+/**
+** \class JSON Base class representing a JSON object (dict or array)
+** \brief The following classes are derived from this one :
+**        - JSONArray
+**        - JSONDict
+** \param is_array Whether the JSON object is an array or a dict
+*/
 class JSON
 {
 private:
@@ -58,12 +90,20 @@ public:
     bool isArray();
 };
 
+/**
+** \class JSONArray
+** \implements JSON
+** \param size The number of values inside the array
+** \param insert_idx The index where the next value will be added
+** \param values An array of TypedValues pointers (only contains objects of
+**               classes that are derived from the TypedValue class)
+*/
 class JSONArray : public JSON
 {
 private:
     size_t size;
-    TypedValue **values;
     size_t insert_idx = 0;
+    TypedValue **values;
 
 public:
     JSONArray(size_t size);
@@ -78,12 +118,20 @@ public:
     void printValuesIndent(int indent, bool fromDict);
 };
 
+/**
+** \class JSONDict
+** \implements JSON
+** \param size The number of items inside the dict
+** \param insert_idx The index where the next item will be added
+** \param items An array of Items pointers (only contains objects of
+**               classes that are derived from the Item class)
+*/
 class JSONDict : public JSON
 {
 private:
     size_t size;
-    Item **items;
     size_t insert_idx = 0;
+    Item **items;
 
 public:
     JSONDict(size_t size);
