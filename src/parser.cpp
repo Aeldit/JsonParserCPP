@@ -13,12 +13,17 @@
 /*******************************************************************************
 **                                 STRUCTURES                                 **
 *******************************************************************************/
+/**
+** \class StrAndLenTuple
+** \brief Used by the parse_number() function to return multiple informations
+*/
 class StrAndLenTuple
 {
 public:
     char *str;
     uint64_t len;
-    bool is_float, has_exponent;
+    bool is_float;
+    bool has_exponent;
 
     StrAndLenTuple(char *str, uint64_t len, bool is_float, bool has_exponent)
         : str(str)

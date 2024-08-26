@@ -40,7 +40,7 @@ public:
 
     void printKey();
 
-    virtual void print(){}; // Not implemented by array and dict items
+    virtual void print() = 0;
 };
 
 /**
@@ -65,7 +65,7 @@ public:
     virtual ~TypedValue() = default;
 
     unsigned char getType();
-    virtual void print(){};
+    virtual void print() = 0;
 };
 
 /**************************************
@@ -214,6 +214,7 @@ public:
     ArrayItem(string key, JSONArray *ja_arg);
     virtual ~ArrayItem();
 
+    void print();
     JSONArray *getValue();
 };
 
@@ -226,6 +227,7 @@ public:
     DictItem(string key, JSONDict *jd_arg);
     virtual ~DictItem();
 
+    void print();
     JSONDict *getValue();
 };
 
@@ -297,6 +299,7 @@ public:
     ArrayTypedValue(JSONArray *ja_arg);
     virtual ~ArrayTypedValue();
 
+    void print();
     JSONArray *getValue();
 };
 
@@ -309,6 +312,7 @@ public:
     DictTypedValue(JSONDict *jd_arg);
     virtual ~DictTypedValue();
 
+    void print();
     JSONDict *getValue();
 };
 

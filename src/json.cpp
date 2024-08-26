@@ -141,6 +141,13 @@ JSONArray *ArrayItem::getValue()
 {
     return ja;
 }
+void ArrayItem::print()
+{
+    if (ja != NULL)
+    {
+        ja->printValues();
+    }
+}
 
 /**************************************
 **             DICT ITEM             **
@@ -158,6 +165,14 @@ DictItem::~DictItem()
 JSONDict *DictItem::getValue()
 {
     return jd;
+}
+
+void DictItem::print()
+{
+    if (jd != NULL)
+    {
+        jd->printItems();
+    }
 }
 
 /*******************************************************************************
@@ -274,6 +289,14 @@ JSONArray *ArrayTypedValue::getValue()
     return ja;
 }
 
+void ArrayTypedValue::print()
+{
+    if (ja != NULL)
+    {
+        ja->printValues();
+    }
+}
+
 /**************************************
 **            DICT VALUE             **
 **************************************/
@@ -290,6 +313,14 @@ DictTypedValue::~DictTypedValue()
 JSONDict *DictTypedValue::getValue()
 {
     return jd;
+}
+
+void DictTypedValue::print()
+{
+    if (jd != NULL)
+    {
+        jd->printItems();
+    }
 }
 
 /*******************************************************************************
