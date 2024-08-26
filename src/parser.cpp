@@ -175,7 +175,6 @@ int64_t str_to_long(char *str, uint64_t len)
 }
 
 // TODO: Handle exponent notation
-// FIX: Precision loss
 double str_to_double(char *str, uint64_t len)
 {
     if (str == NULL || len == 0)
@@ -185,7 +184,7 @@ double str_to_double(char *str, uint64_t len)
 
     double res = 0;
     double dot_res = 0;
-    char nb_digits_dot = 1;
+    uint64_t nb_digits_dot = 1;
     char is_negative = 1;
     char dot_reached = 0;
     for (uint64_t i = 0; i < len; ++i)
@@ -211,7 +210,7 @@ double str_to_double(char *str, uint64_t len)
             }
         }
     }
-    return res * is_negative + (dot_res / nb_digits_dot);
+    return is_negative * (res + (dot_res / nb_digits_dot));
 }
 
 bool is_float(char *str, uint64_t len)
