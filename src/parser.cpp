@@ -128,7 +128,7 @@ string parse_string(FILE *f, uint64_t *pos)
         return string();
     }
 
-    char *str = (char *)calloc(len + 1, sizeof(char));
+    char *str = new char[len + 1]();
     if (str == NULL)
     {
         return string();
@@ -143,8 +143,8 @@ string parse_string(FILE *f, uint64_t *pos)
         str[i] = fgetc(f);
     }
     ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    string fstr(str); // Converts from char * to string
-    free(str);
+    string fstr(str); // Converts from 'char *' to 'string'
+    delete[] str;
     return fstr;
 }
 
@@ -188,7 +188,7 @@ int64_t parse_number(FILE *f, uint64_t *pos)
         return 0;
     }
 
-    char *str = (char *)calloc(len + 1, sizeof(char));
+    char *str = new char[len + 1]();
     if (str == NULL)
     {
         return 0;
@@ -203,7 +203,7 @@ int64_t parse_number(FILE *f, uint64_t *pos)
         str[i] = fgetc(f);
     }
     int64_t res = str_to_long(str, len);
-    free(str);
+    delete[] str;
     return res;
 }
 
@@ -276,13 +276,9 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             }
             else if (c == ']')
             {
-                /*printf("%d | ", is_in_array);
-                cout << "c = " << c << " | prev_c = " << prev_c
-                     << " | size = " << size << endl;*/
                 // Empty array
                 if (is_in_array == 1 && prev_c == '\0')
                 {
-                    // cout << "break" << endl;
                     break;
                 }
                 --is_in_array;
@@ -298,7 +294,6 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
                 ++size;
-                // cout << "c = " << c << " | size = " << size << endl;
             }
         }
 
@@ -345,17 +340,10 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     {
         return NULL;
     }
-    printf("\n first = ");
 
     char c = '\0';
     while ((c = fgetc(f)) != EOF)
     {
-        if (c != ' ' && c != '\n' && c != '\t')
-        {
-            cout << c;
-            cout.flush();
-        }
-
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
@@ -394,7 +382,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
         if (nb_elts_parsed >= nb_elts)
         {
-            cout << "parsed too many elements : " << nb_elts_parsed << endl;
             break;
         }
 
@@ -404,7 +391,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
     }
     --(*pos);
-    cout << endl;
     return ja;
 }
 
