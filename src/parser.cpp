@@ -3,6 +3,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
+#include <cmath>
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
@@ -20,12 +21,13 @@ class StrAndLenTuple
 public:
     char *str;
     uint64_t len;
-    bool is_float;
+    bool is_float, has_exponent;
 
-    StrAndLenTuple(char *str, uint64_t len, bool is_float)
+    StrAndLenTuple(char *str, uint64_t len, bool is_float, bool has_exponent)
         : str(str)
         , len(len)
         , is_float(is_float)
+        , has_exponent(has_exponent)
     {}
 
     ~StrAndLenTuple()
@@ -151,32 +153,49 @@ string parse_string(FILE *f, uint64_t *pos)
     return fstr;
 }
 
-int64_t str_to_long(char *str, uint64_t len)
+int64_t str_to_long(StrAndLenTuple *sl)
 {
+    char *str = sl->str;
+    uint64_t len = sl->len;
     if (str == NULL || len == 0)
     {
         return 0;
     }
-    int64_t res = 0;
-    char is_negative = 1;
 
+    int64_t res = 0;
+    uint64_t exponent = 0;
+    char is_negative = 1;
+    char is_in_exponent = 0;
     for (uint64_t i = 0; i < len; ++i)
     {
         if (str[i] == '-')
         {
             is_negative = -1;
         }
+        else if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
+        {
+            is_in_exponent = 1;
+        }
         else if ('0' <= str[i] && str[i] <= '9')
         {
-            res = res * 10 + str[i] - '0';
+            if (is_in_exponent)
+            {
+                exponent = exponent * 10 + str[i] - '0';
+            }
+            else
+            {
+                res = res * 10 + str[i] - '0';
+            }
         }
     }
-    return res * is_negative;
+    return sl->has_exponent ? pow(res * is_negative, exponent)
+                            : res * is_negative;
 }
 
-// TODO: Handle exponent notation
-double str_to_double(char *str, uint64_t len)
+double str_to_double(StrAndLenTuple *sl)
 {
+    char *str = sl->str;
+    uint64_t len = sl->len;
     if (str == NULL || len == 0)
     {
         return 0;
@@ -184,9 +203,11 @@ double str_to_double(char *str, uint64_t len)
 
     double res = 0;
     double dot_res = 0;
+    uint64_t exponent = 0;
     uint64_t nb_digits_dot = 1;
     char is_negative = 1;
-    char dot_reached = 0;
+    bool dot_reached = false;
+    bool is_in_exponent = false;
     for (uint64_t i = 0; i < len; ++i)
     {
         if (str[i] == '-')
@@ -197,9 +218,17 @@ double str_to_double(char *str, uint64_t len)
         {
             dot_reached = 1;
         }
+        else if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
+        {
+            is_in_exponent = 1;
+        }
         else if ('0' <= str[i] && str[i] <= '9')
         {
-            if (dot_reached)
+            if (is_in_exponent)
+            {
+                exponent = exponent * 10 + str[i] - '0';
+            }
+            else if (dot_reached)
             {
                 dot_res = dot_res * 10 + str[i] - '0';
                 nb_digits_dot *= 10;
@@ -210,28 +239,50 @@ double str_to_double(char *str, uint64_t len)
             }
         }
     }
-    return is_negative * (res + (dot_res / nb_digits_dot));
+    return sl->has_exponent
+        ? pow(is_negative * (res + (dot_res / nb_digits_dot)), exponent)
+        : is_negative * (res + (dot_res / nb_digits_dot));
 }
 
 bool is_float(char *str, uint64_t len)
 {
-    bool is_float = false;
+    if (str == NULL)
+    {
+        return false;
+    }
+
     for (uint64_t i = 0; i < len; ++i)
     {
         if (str[i] == '.')
         {
-            is_float = true;
-            break;
+            return true;
         }
     }
-    return is_float;
+    return false;
+}
+
+bool has_exponent(char *str, uint64_t len)
+{
+    if (str == NULL)
+    {
+        return false;
+    }
+
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        if (str[i] == 'e' || str[i] == 'E')
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
     {
-        return StrAndLenTuple(NULL, 0, false);
+        return StrAndLenTuple(NULL, 0, false, false);
     }
 
     // Because we already read the first digit (or sign)
@@ -241,7 +292,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     uint64_t size = (*pos);
     if (fseek(f, size++, SEEK_SET) != 0)
     {
-        return StrAndLenTuple(NULL, 0, false);
+        return StrAndLenTuple(NULL, 0, false, false);
     }
 
     char c = '\0';
@@ -260,14 +311,14 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     uint64_t len = size - (*pos) - 1;
     if (len == 0)
     {
-        return StrAndLenTuple(NULL, 0, false);
+        return StrAndLenTuple(NULL, 0, false, false);
     }
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
     if (str == NULL)
     {
-        return StrAndLenTuple(NULL, 0, false);
+        return StrAndLenTuple(NULL, 0, false, false);
     }
 
     for (uint64_t i = 0; i < len; ++i)
@@ -278,7 +329,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
         }
         str[i] = fgetc(f);
     }
-    return StrAndLenTuple(str, len, is_float(str, len));
+    return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
 /**
@@ -451,11 +502,11 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
             if (sl.is_float)
             {
-                ja->add(new DoubleTypedValue(str_to_double(sl.str, sl.len)));
+                ja->add(new DoubleTypedValue(str_to_double(&sl)));
             }
             else
             {
-                ja->add(new IntTypedValue(str_to_long(sl.str, sl.len)));
+                ja->add(new IntTypedValue(str_to_long(&sl)));
             }
         }
         else if (IS_BOOL_START(c))
@@ -616,11 +667,11 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 
             if (sl.is_float)
             {
-                jd->addItem(new DoubleItem(key, str_to_double(sl.str, sl.len)));
+                jd->addItem(new DoubleItem(key, str_to_double(&sl)));
             }
             else
             {
-                jd->addItem(new IntItem(key, str_to_long(sl.str, sl.len)));
+                jd->addItem(new IntItem(key, str_to_long(&sl)));
             }
         }
         else if (IS_BOOL_START(c))

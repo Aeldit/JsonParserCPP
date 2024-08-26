@@ -1,6 +1,6 @@
 {
   "test": "stringi[nining",
-  "num": 51065.68,
+  "num": 51065.689888564,
   "boool": true,
   "empty": {
     "t": {
@@ -13,7 +13,8 @@
   },
   "dict": {
     "empty": [[1, [[2], [[]], 3]]],
-    "num": 563
+    "num": 563,
+    "u": 2e10
   },
   "boo": false,
   "n": null,
