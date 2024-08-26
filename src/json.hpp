@@ -4,7 +4,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
-#include <stdio.h>
+#include <cstddef>
 #include <string>
 
 using namespace std;
@@ -27,7 +27,7 @@ public:
 
     void printKey();
 
-    virtual void print() {}; // Not implemented by array and dict objects
+    virtual void print(){}; // Not implemented by array and dict objects
 };
 
 class TypedValue
@@ -40,7 +40,7 @@ public:
     virtual ~TypedValue() = default;
 
     unsigned char getType();
-    virtual void print() {};
+    virtual void print(){};
 };
 
 /**************************************

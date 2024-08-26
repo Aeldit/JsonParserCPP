@@ -18,8 +18,10 @@ using namespace std;
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
+#define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
+
 #define ARRAY_END_REACHED                                                      \
-    (!is_in_string && !is_in_array && (c == '\n' || c == ','))
+    (!is_in_array || (!is_in_string && !is_in_array && (c == '\n' || c == ',')))
 #define DICT_END_REACHED                                                       \
     (!is_in_string && !is_in_dict && (c == '\n' || c == ','))
 
@@ -54,7 +56,7 @@ using namespace std;
     char c = '\0';                                                             \
     while ((c = fgetc(f)) != EOF)                                              \
     {                                                                          \
-        if (c == ',' || c == '\n')                                             \
+        if (IS_END_CHAR(c))                                                    \
         {                                                                      \
             break;                                                             \
         }                                                                      \
@@ -105,7 +107,7 @@ using namespace std;
 JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 
 /*******************************************************************************
-**                              LOCAL FUNCTIONS **
+**                              LOCAL FUNCTIONS                               **
 *******************************************************************************/
 /**
 ** \brief Reads the string at position 'pos' in the given file, and adds it to
@@ -244,6 +246,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     char is_in_dict = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
+    char comma_encountered = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (ARRAY_END_REACHED)
@@ -254,6 +257,10 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
         if (c == '\\')
         {
             is_backslashing = !is_backslashing;
+        }
+        else if (!comma_encountered && c == ',' && is_in_array == 1)
+        {
+            comma_encountered = 1;
         }
 
         // If we are not in a string or if the string just ended
@@ -269,6 +276,15 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             }
             else if (c == ']')
             {
+                /*printf("%d | ", is_in_array);
+                cout << "c = " << c << " | prev_c = " << prev_c
+                     << " | size = " << size << endl;*/
+                // Empty array
+                if (is_in_array == 1 && prev_c == '\0')
+                {
+                    // cout << "break" << endl;
+                    break;
+                }
                 --is_in_array;
             }
             else if (c == '{')
@@ -279,17 +295,10 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             {
                 --is_in_dict;
             }
-            else if (!is_in_dict && is_in_array)
+            else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
-                if (is_in_array == 2 && (c == ',' || c == '\n')
-                    && prev_c == ']')
-                {
-                    ++size;
-                }
-                else if (is_in_array == 1 && c == ',')
-                {
-                    ++size;
-                }
+                ++size;
+                // cout << "c = " << c << " | size = " << size << endl;
             }
         }
 
@@ -298,18 +307,22 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             break;
         }
 
-        if (c != ' ' && c != '\t' && c != ']')
+        if (c != ' ' && c != '\t' && c != '\n')
         {
             prev_c = c;
         }
     }
-    // If there was only one value, there was no ',', so the element wasn't
-    // detected
-    if ((prev_c == '\n') && size == 0)
+    if (size >= 1 && comma_encountered)
     {
         ++size;
     }
-    return size < 2 ? size : size + 1;
+    // If there was only one value, there was no ',', so the element wasn't
+    // detected
+    if (size == 0 && prev_c != '\0')
+    {
+        ++size;
+    }
+    return size;
 }
 
 JSONArray *parse_array(FILE *f, uint64_t *pos)
@@ -323,15 +336,27 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     uint64_t nb_elts_parsed = 0;
 
     JSONArray *ja = new JSONArray(nb_elts);
+    if (nb_elts == 0)
+    {
+        return ja;
+    }
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
         return NULL;
     }
+    printf("\n first = ");
 
     char c = '\0';
     while ((c = fgetc(f)) != EOF)
     {
+        if (c != ' ' && c != '\n' && c != '\t')
+        {
+            cout << c;
+            cout.flush();
+        }
+
+        // If we are not in a string or if the string just ended
         if (c == '"')
         {
             ja->add(new StringTypedValue(parse_string(f, pos)));
@@ -352,6 +377,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         else if (c == 'n')
         {
             ja->add(new NullTypedValue());
+            (*pos) += 3;
         }
         else if (c == '[')
         {
@@ -368,6 +394,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
         if (nb_elts_parsed >= nb_elts)
         {
+            cout << "parsed too many elements : " << nb_elts_parsed << endl;
             break;
         }
 
@@ -377,6 +404,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
     }
     --(*pos);
+    cout << endl;
     return ja;
 }
 
@@ -503,6 +531,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
         else if (c == 'n')
         {
             jd->addItem(new NullItem(key));
+            (*pos) += 3;
         }
         else if (c == '[')
         {
@@ -563,7 +592,7 @@ JSON *parse(char *file)
     }
     else if (c == '[')
     {
-        // TODO -> Fix parsing when dicts without keys are inside an array
+        // TODO: Fix parsing when dicts without keys are inside an array
         JSONArray *ja = parse_array(f, &offset);
         if (ja == NULL)
         {
