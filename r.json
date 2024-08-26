@@ -1,6 +1,6 @@
 {
   "test": "stringi[nining",
-  "num": 51065,
+  "num": 51065.68,
   "boool": true,
   "empty": {
     "t": {
@@ -19,4 +19,3 @@
   "n": null,
   "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true]
 }
-

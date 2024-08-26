@@ -13,6 +13,28 @@
 using namespace std;
 
 /*******************************************************************************
+**                                 STRUCTURES                                 **
+*******************************************************************************/
+class StrAndLenTuple
+{
+public:
+    char *str;
+    uint64_t len;
+    bool is_float;
+
+    StrAndLenTuple(char *str, uint64_t len, bool is_float)
+        : str(str)
+        , len(len)
+        , is_float(is_float)
+    {}
+
+    ~StrAndLenTuple()
+    {
+        delete[] str;
+    }
+};
+
+/*******************************************************************************
 **                              DEFINES / MACROS                              **
 *******************************************************************************/
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
@@ -44,26 +66,6 @@ using namespace std;
             break;                                                             \
         }                                                                      \
         prev_c = c;                                                            \
-    }                                                                          \
-    uint64_t len = size - (*pos) - 1
-
-#define VAL_LEN                                                                \
-    uint64_t size = (*pos);                                                    \
-    if (fseek(f, size++, SEEK_SET) != 0)                                       \
-    {                                                                          \
-        return 0;                                                              \
-    }                                                                          \
-    char c = '\0';                                                             \
-    while ((c = fgetc(f)) != EOF)                                              \
-    {                                                                          \
-        if (IS_END_CHAR(c))                                                    \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
-        if (fseek(f, size++, SEEK_SET) != 0)                                   \
-        {                                                                      \
-            break;                                                             \
-        }                                                                      \
     }                                                                          \
     uint64_t len = size - (*pos) - 1
 
@@ -112,6 +114,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 /**
 ** \brief Reads the string at position 'pos' in the given file, and adds it to
 **        the given dict
+** \param f The file stream
 ** \param pos The pos of the '"' that starts the string of which we are
 **            currently acquiring the length
 */
@@ -171,27 +174,101 @@ int64_t str_to_long(char *str, uint64_t len)
     return res * is_negative;
 }
 
-// TODO: Handle floats
-int64_t parse_number(FILE *f, uint64_t *pos)
+// TODO: Handle exponent notation
+// FIX: Precision loss
+double str_to_double(char *str, uint64_t len)
+{
+    if (str == NULL || len == 0)
+    {
+        return 0;
+    }
+
+    double res = 0;
+    double dot_res = 0;
+    char nb_digits_dot = 1;
+    char is_negative = 1;
+    char dot_reached = 0;
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        if (str[i] == '-')
+        {
+            is_negative = -1;
+        }
+        else if (str[i] == '.')
+        {
+            dot_reached = 1;
+        }
+        else if ('0' <= str[i] && str[i] <= '9')
+        {
+            if (dot_reached)
+            {
+                dot_res = dot_res * 10 + str[i] - '0';
+                nb_digits_dot *= 10;
+            }
+            else
+            {
+                res = res * 10 + str[i] - '0';
+            }
+        }
+    }
+    return res * is_negative + (dot_res / nb_digits_dot);
+}
+
+bool is_float(char *str, uint64_t len)
+{
+    bool is_float = false;
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        if (str[i] == '.')
+        {
+            is_float = true;
+            break;
+        }
+    }
+    return is_float;
+}
+
+StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
     {
-        return 0;
+        return StrAndLenTuple(NULL, 0, false);
     }
 
     // Because we already read the first digit (or sign)
     --(*pos);
 
-    VAL_LEN;
-    if (len == 0)
+    // Obtains the length of the value
+    uint64_t size = (*pos);
+    if (fseek(f, size++, SEEK_SET) != 0)
     {
-        return 0;
+        return StrAndLenTuple(NULL, 0, false);
     }
 
+    char c = '\0';
+    while ((c = fgetc(f)) != EOF)
+    {
+        if (IS_END_CHAR(c))
+        {
+            break;
+        }
+        if (fseek(f, size++, SEEK_SET) != 0)
+        {
+            break;
+        }
+    }
+
+    uint64_t len = size - (*pos) - 1;
+    if (len == 0)
+    {
+        return StrAndLenTuple(NULL, 0, false);
+    }
+
+    // Puts the value in the form of a char array
     char *str = new char[len + 1]();
     if (str == NULL)
     {
-        return 0;
+        return StrAndLenTuple(NULL, 0, false);
     }
 
     for (uint64_t i = 0; i < len; ++i)
@@ -202,9 +279,7 @@ int64_t parse_number(FILE *f, uint64_t *pos)
         }
         str[i] = fgetc(f);
     }
-    int64_t res = str_to_long(str, len);
-    delete[] str;
-    return res;
+    return StrAndLenTuple(str, len, is_float(str, len));
 }
 
 /**
@@ -220,7 +295,25 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
     // Because we already read the first character
     --(*pos);
 
-    VAL_LEN;
+    uint64_t size = (*pos);
+    if (fseek(f, size++, SEEK_SET) != 0)
+    {
+        return 0;
+    }
+    char c = '\0';
+    while ((c = fgetc(f)) != EOF)
+    {
+        if (IS_END_CHAR(c))
+        {
+            break;
+        }
+        if (fseek(f, size++, SEEK_SET) != 0)
+        {
+            break;
+        }
+    }
+    uint64_t len = size - (*pos) - 1;
+
     (*pos) += len;
     return len;
 }
@@ -351,7 +444,20 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
         else if (IS_NUMBER_START(c))
         {
-            ja->add(new IntTypedValue(parse_number(f, pos)));
+            StrAndLenTuple sl = parse_number(f, pos);
+            if (sl.str == NULL)
+            {
+                continue;
+            }
+
+            if (sl.is_float)
+            {
+                ja->add(new DoubleTypedValue(str_to_double(sl.str, sl.len)));
+            }
+            else
+            {
+                ja->add(new IntTypedValue(str_to_long(sl.str, sl.len)));
+            }
         }
         else if (IS_BOOL_START(c))
         {
@@ -503,7 +609,20 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
         }
         else if (IS_NUMBER_START(c))
         {
-            jd->addItem(new IntItem(key, parse_number(f, pos)));
+            StrAndLenTuple sl = parse_number(f, pos);
+            if (sl.str == NULL)
+            {
+                continue;
+            }
+
+            if (sl.is_float)
+            {
+                jd->addItem(new DoubleItem(key, str_to_double(sl.str, sl.len)));
+            }
+            else
+            {
+                jd->addItem(new IntItem(key, str_to_long(sl.str, sl.len)));
+            }
         }
         else if (IS_BOOL_START(c))
         {

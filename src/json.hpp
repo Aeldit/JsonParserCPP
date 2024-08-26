@@ -125,6 +125,18 @@ public:
     int64_t getValue();
 };
 
+class DoubleItem : public Item
+{
+private:
+    double value;
+
+public:
+    DoubleItem(string key, double value);
+
+    void print();
+    double getValue();
+};
+
 class BoolItem : public Item
 {
 private:
@@ -194,6 +206,18 @@ public:
 
     void print();
     int64_t getValue();
+};
+
+class DoubleTypedValue : public TypedValue
+{
+private:
+    double value;
+
+public:
+    DoubleTypedValue(double value);
+
+    void print();
+    double getValue();
 };
 
 class BoolTypedValue : public TypedValue

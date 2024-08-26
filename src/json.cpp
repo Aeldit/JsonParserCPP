@@ -3,6 +3,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -70,6 +71,25 @@ void IntItem::print()
 {
     printKey();
     cout << value;
+}
+
+/**************************************
+**           DOUBLE ITEM             **
+**************************************/
+DoubleItem::DoubleItem(string key, double value)
+    : Item(key, TYPE_DOUBLE)
+    , value(value)
+{}
+
+double DoubleItem::getValue()
+{
+    return value;
+}
+
+void DoubleItem::print()
+{
+    printKey();
+    cout << setprecision(16) << value;
 }
 
 /**************************************
@@ -186,6 +206,24 @@ int64_t IntTypedValue::getValue()
 void IntTypedValue::print()
 {
     cout << value;
+}
+
+/**************************************
+**           DOUBLE VALUE            **
+**************************************/
+DoubleTypedValue::DoubleTypedValue(double value)
+    : TypedValue(TYPE_DOUBLE)
+    , value(value)
+{}
+
+double DoubleTypedValue::getValue()
+{
+    return value;
+}
+
+void DoubleTypedValue::print()
+{
+    cout << setprecision(16) << value;
 }
 
 /**************************************
