@@ -2,7 +2,6 @@
 
 #include "json.hpp"
 #include "parser.hpp"
-#include "types.h"
 
 using namespace std;
 
@@ -23,6 +22,16 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
+
+        Item *i = jd->getItem("arr");
+        if (i->isArray())
+        {
+            TypedValue *ai = ((ArrayItem *)i)->getValue()->getValueAt(0);
+            if (ai->isString())
+            {
+                cout << ((StringTypedValue *)ai)->getValue() << endl;
+            }
+        }
     }
     delete j;
     return 0;

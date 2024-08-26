@@ -35,6 +35,41 @@ void Item::printKey()
          << ": ";
 }
 
+bool Item::isString()
+{
+    return type == TYPE_STR;
+}
+
+bool Item::isInt()
+{
+    return type == TYPE_NUM;
+}
+
+bool Item::isDouble()
+{
+    return type == TYPE_DOUBLE;
+}
+
+bool Item::isBool()
+{
+    return type == TYPE_BOOL;
+}
+
+bool Item::isNull()
+{
+    return type == TYPE_NULL;
+}
+
+bool Item::isArray()
+{
+    return type == TYPE_ARR;
+}
+
+bool Item::isDict()
+{
+    return type == TYPE_DICT;
+}
+
 /**************************************
 **            STRING ITEM            **
 **************************************/
@@ -185,6 +220,40 @@ TypedValue::TypedValue(unsigned char type)
 unsigned char TypedValue::getType()
 {
     return type;
+}
+bool TypedValue::isString()
+{
+    return type == TYPE_STR;
+}
+
+bool TypedValue::isInt()
+{
+    return type == TYPE_NUM;
+}
+
+bool TypedValue::isDouble()
+{
+    return type == TYPE_DOUBLE;
+}
+
+bool TypedValue::isBool()
+{
+    return type == TYPE_BOOL;
+}
+
+bool TypedValue::isNull()
+{
+    return type == TYPE_NULL;
+}
+
+bool TypedValue::isArray()
+{
+    return type == TYPE_ARR;
+}
+
+bool TypedValue::isDict()
+{
+    return type == TYPE_DICT;
 }
 
 /**************************************

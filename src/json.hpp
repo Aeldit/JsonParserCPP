@@ -40,6 +40,14 @@ public:
 
     void printKey();
 
+    bool isString();
+    bool isInt();
+    bool isDouble();
+    bool isBool();
+    bool isNull();
+    bool isArray();
+    bool isDict();
+
     virtual void print() = 0;
 };
 
@@ -65,6 +73,15 @@ public:
     virtual ~TypedValue() = default;
 
     unsigned char getType();
+
+    bool isString();
+    bool isInt();
+    bool isDouble();
+    bool isBool();
+    bool isNull();
+    bool isArray();
+    bool isDict();
+
     virtual void print() = 0;
 };
 
