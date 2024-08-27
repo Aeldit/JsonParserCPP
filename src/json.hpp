@@ -5,7 +5,10 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cstddef>
+#include <iostream>
 #include <string>
+
+#include "types.h"
 
 using namespace std;
 
@@ -49,6 +52,88 @@ public:
     bool isDict();
 
     virtual void print() = 0;
+};
+
+template <class T>
+class ItemT
+{
+private:
+    string key;
+    unsigned char type;
+    T value;
+
+public:
+    ItemT(string key, unsigned char type, T value)
+        : key(key)
+        , type(type)
+        , value(value){};
+    ~ItemT(){
+        /*if (type == TYPE_ARR || type == TYPE_DICT)
+        {
+            delete value;
+        }*/
+    };
+
+    string getKey()
+    {
+        return key;
+    };
+
+    unsigned char getType()
+    {
+        return type;
+    };
+
+    T getValue()
+    {
+        return value;
+    };
+
+    void printKey()
+    {
+        cout << "\"" << key << "\""
+             << ": ";
+    };
+
+    bool isString()
+    {
+        return type == TYPE_STR;
+    }
+
+    bool isInt()
+    {
+        return type == TYPE_NUM;
+    }
+
+    bool isDouble()
+    {
+        return type == TYPE_DOUBLE;
+    }
+
+    bool isBool()
+    {
+        return type == TYPE_BOOL;
+    }
+
+    bool isNull()
+    {
+        return type == TYPE_NULL;
+    }
+
+    bool isArray()
+    {
+        return type == TYPE_ARR;
+    }
+
+    bool isDict()
+    {
+        return type == TYPE_DICT;
+    }
+
+    void print()
+    {
+        cout << value << endl;
+    }
 };
 
 /**

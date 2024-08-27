@@ -12,9 +12,4 @@
 #define TYPE_ARR 5
 #define TYPE_DICT 6
 
-// Errors
-#define TYPE_ERROR 6
-
-#define ARRAY_SIZE 16
-
 #endif // !JSON_TYPES_H

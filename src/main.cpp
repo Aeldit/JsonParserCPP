@@ -2,6 +2,7 @@
 
 #include "json.hpp"
 #include "parser.hpp"
+#include "types.h"
 
 using namespace std;
 
@@ -34,5 +35,9 @@ int main(int argc, char *argv[])
         }
     }
     delete j;
+
+    ItemT<int> it("typed", TYPE_NUM, 5);
+    cout << it.getValue() << endl;
+    it.print();
     return 0;
 }
