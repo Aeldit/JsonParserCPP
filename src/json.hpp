@@ -5,6 +5,7 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -54,120 +55,59 @@ public:
     virtual void print() = 0;
 };
 
-template <class T>
-class ItemT
+class Typed
 {
 private:
-    string key;
     unsigned char type;
-    T value;
 
 public:
-    ItemT(string key, unsigned char type, T value)
-        : key(key)
-        , type(type)
-        , value(value){};
-    ~ItemT(){
-        /*if (type == TYPE_ARR || type == TYPE_DICT)
-        {
-            delete value;
-        }*/
-    };
+    Typed(unsigned char type)
+        : type(type){};
 
-    string getKey()
-    {
-        return key;
-    };
+    template <class T>
+    T getValue();
 
     unsigned char getType()
     {
         return type;
     };
 
-    T getValue()
-    {
-        return value;
-    };
-
-    void printKey()
-    {
-        cout << "\"" << key << "\""
-             << ": ";
-    };
-
     bool isString()
     {
-        return type == TYPE_STR;
+        return type == T_STR;
     }
 
     bool isInt()
     {
-        return type == TYPE_NUM;
+        return type == T_NUM;
     }
 
     bool isDouble()
     {
-        return type == TYPE_DOUBLE;
+        return type == T_DOUBLE;
     }
 
     bool isBool()
     {
-        return type == TYPE_BOOL;
+        return type == T_BOOL;
     }
 
     bool isNull()
     {
-        return type == TYPE_NULL;
+        return type == T_NULL;
     }
 
     bool isArray()
     {
-        return type == TYPE_ARR;
+        return type == T_ARR;
     }
 
     bool isDict()
     {
-        return type == TYPE_DICT;
+        return type == T_DICT;
     }
 
-    void print()
-    {
-        cout << value << endl;
-    }
-};
-
-/**
-** \class TypedValue Base class representing a JSONArray's value
-** \brief The following classes are derived from this one :
-**        - StringTypedValue
-**        - IntTypedValue
-**        - DoubleTypedValue
-**        - BoolTypedValue
-**        - NullTypedValue
-**        - ArrayTypedValue
-**        - DictTypedValue
-** \param type The type of the value (see types.h)
-*/
-class TypedValue
-{
-private:
-    unsigned char type;
-
-public:
-    TypedValue(unsigned char type);
-    virtual ~TypedValue() = default;
-
-    unsigned char getType();
-
-    bool isString();
-    bool isInt();
-    bool isDouble();
-    bool isBool();
-    bool isNull();
-    bool isArray();
-    bool isDict();
-
-    virtual void print() = 0;
+    virtual void print();
 };
 
 /**************************************
@@ -205,17 +145,17 @@ class JSONArray : public JSON
 private:
     size_t size;
     size_t insert_idx = 0;
-    TypedValue **values;
+    Typed **values;
 
 public:
     JSONArray(size_t size);
     virtual ~JSONArray();
 
     size_t getSize();
-    TypedValue **getValues();
-    TypedValue *getValueAt(size_t index);
+    Typed **getValues();
+    Typed *getValueAt(size_t index);
 
-    void add(TypedValue *value);
+    void add(Typed *value);
     void printValues();
     void printValuesIndent(int indent, bool fromDict);
 };
@@ -246,6 +186,165 @@ public:
     void addItem(Item *item);
     void printItems();
     void printItemsIndent(int indent, bool fromDict);
+};
+
+class Null
+{};
+
+template <class T>
+class ItemT
+{
+private:
+    string key;
+    unsigned char type;
+    T value;
+
+public:
+    ItemT(string key, unsigned char type, T value)
+        : key(key)
+        , type(type)
+        , value(value){};
+
+    string getKey()
+    {
+        return key;
+    };
+
+    unsigned char getType()
+    {
+        return type;
+    };
+
+    T getValue()
+    {
+        return value;
+    };
+
+    bool isString()
+    {
+        return type == T_STR;
+    }
+
+    bool isInt()
+    {
+        return type == T_NUM;
+    }
+
+    bool isDouble()
+    {
+        return type == T_DOUBLE;
+    }
+
+    bool isBool()
+    {
+        return type == T_BOOL;
+    }
+
+    bool isNull()
+    {
+        return type == T_NULL;
+    }
+
+    bool isArray()
+    {
+        return type == T_ARR;
+    }
+
+    bool isDict()
+    {
+        return type == T_DICT;
+    }
+
+    void print()
+    {
+        cout << "\"" << key << "\""
+             << ": " << value << endl;
+    }
+};
+
+template <class T>
+class TypedValueT : public Typed
+{
+private:
+    T value;
+
+public:
+    TypedValueT(unsigned char type, T value)
+        : Typed(type)
+        , value(value){};
+
+    T getValue()
+    {
+        if (isNull())
+        {
+            return NULL;
+        }
+        return value;
+    }
+
+    // TODO: Ensure 'endl'
+    void print()
+    {
+        if (isString())
+        {
+            cout << "\"" << value << "\"";
+        }
+        else if (isInt() || isBool())
+        {
+            cout << value;
+        }
+        else if (isDouble())
+        {
+            cout << setprecision(16) << value;
+        }
+        else if (isNull())
+        {
+            cout << "null";
+        }
+        else if (isArray())
+        {
+            ((JSONArray)value).printValues();
+        }
+        else if (isDict())
+        {
+            ((JSONDict)value).printItems();
+        }
+        cout << endl;
+    }
+};
+
+/**
+** \class TypedValue Base class representing a JSONArray's value
+** \brief The following classes are derived from this one :
+**        - StringTypedValue
+**        - IntTypedValue
+**        - DoubleTypedValue
+**        - BoolTypedValue
+**        - NullTypedValue
+**        - ArrayTypedValue
+**        - DictTypedValue
+** \param type The type of the value (see types.h)
+*/
+class TypedValue
+{
+private:
+    unsigned char type;
+
+public:
+    TypedValue(unsigned char type);
+    virtual ~TypedValue() = default;
+
+    unsigned char getType();
+
+    bool isString();
+    bool isInt();
+    bool isDouble();
+    bool isBool();
+    bool isNull();
+    bool isArray();
+    bool isDict();
+
+    virtual void print() = 0;
 };
 
 /**************************************
@@ -334,7 +433,7 @@ public:
 };
 
 /**************************************
-**           TYPED VALUES            **
+**           TD VALUES            **
 **************************************/
 class StringTypedValue : public TypedValue
 {

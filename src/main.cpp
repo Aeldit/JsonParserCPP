@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     }
 
     JSON *j = parse(argv[1]);
-    if (j->isArray())
+    /*if (j->isArray())
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -33,10 +33,10 @@ int main(int argc, char *argv[])
                 cout << ((StringTypedValue *)ai)->getValue() << endl;
             }
         }
-    }
+    }*/
     delete j;
 
-    ItemT<int> it("typed", TYPE_NUM, 5);
+    ItemT<int> it("typed", T_NUM, 5);
     cout << it.getValue() << endl;
     it.print();
     return 0;

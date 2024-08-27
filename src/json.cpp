@@ -37,44 +37,44 @@ void Item::printKey()
 
 bool Item::isString()
 {
-    return type == TYPE_STR;
+    return type == T_STR;
 }
 
 bool Item::isInt()
 {
-    return type == TYPE_NUM;
+    return type == T_NUM;
 }
 
 bool Item::isDouble()
 {
-    return type == TYPE_DOUBLE;
+    return type == T_DOUBLE;
 }
 
 bool Item::isBool()
 {
-    return type == TYPE_BOOL;
+    return type == T_BOOL;
 }
 
 bool Item::isNull()
 {
-    return type == TYPE_NULL;
+    return type == T_NULL;
 }
 
 bool Item::isArray()
 {
-    return type == TYPE_ARR;
+    return type == T_ARR;
 }
 
 bool Item::isDict()
 {
-    return type == TYPE_DICT;
+    return type == T_DICT;
 }
 
 /**************************************
 **            STRING ITEM            **
 **************************************/
 StringItem::StringItem(string key, string value)
-    : Item(key, TYPE_STR)
+    : Item(key, T_STR)
     , value(value)
 {}
 
@@ -93,7 +93,7 @@ void StringItem::print()
 **             INT ITEM              **
 **************************************/
 IntItem::IntItem(string key, int64_t value)
-    : Item(key, TYPE_NUM)
+    : Item(key, T_NUM)
     , value(value)
 {}
 
@@ -112,7 +112,7 @@ void IntItem::print()
 **           DOUBLE ITEM             **
 **************************************/
 DoubleItem::DoubleItem(string key, double value)
-    : Item(key, TYPE_DOUBLE)
+    : Item(key, T_DOUBLE)
     , value(value)
 {}
 
@@ -131,7 +131,7 @@ void DoubleItem::print()
 **             BOOL ITEM             **
 **************************************/
 BoolItem::BoolItem(string key, bool value)
-    : Item(key, TYPE_BOOL)
+    : Item(key, T_BOOL)
     , value(value)
 {}
 
@@ -150,7 +150,7 @@ void BoolItem::print()
 **             NULL ITEM             **
 **************************************/
 NullItem::NullItem(string key)
-    : Item(key, TYPE_NULL)
+    : Item(key, T_NULL)
 {}
 
 void NullItem::print()
@@ -163,7 +163,7 @@ void NullItem::print()
 **            ARRAY ITEM             **
 **************************************/
 ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
-    : Item(key, TYPE_ARR)
+    : Item(key, T_ARR)
     , ja(ja_arg)
 {}
 
@@ -188,7 +188,7 @@ void ArrayItem::print()
 **             DICT ITEM             **
 **************************************/
 DictItem::DictItem(string key, JSONDict *jd_arg)
-    : Item(key, TYPE_DICT)
+    : Item(key, T_DICT)
     , jd(jd_arg)
 {}
 
@@ -223,44 +223,44 @@ unsigned char TypedValue::getType()
 }
 bool TypedValue::isString()
 {
-    return type == TYPE_STR;
+    return type == T_STR;
 }
 
 bool TypedValue::isInt()
 {
-    return type == TYPE_NUM;
+    return type == T_NUM;
 }
 
 bool TypedValue::isDouble()
 {
-    return type == TYPE_DOUBLE;
+    return type == T_DOUBLE;
 }
 
 bool TypedValue::isBool()
 {
-    return type == TYPE_BOOL;
+    return type == T_BOOL;
 }
 
 bool TypedValue::isNull()
 {
-    return type == TYPE_NULL;
+    return type == T_NULL;
 }
 
 bool TypedValue::isArray()
 {
-    return type == TYPE_ARR;
+    return type == T_ARR;
 }
 
 bool TypedValue::isDict()
 {
-    return type == TYPE_DICT;
+    return type == T_DICT;
 }
 
 /**************************************
 **            STRING VALUE           **
 **************************************/
 StringTypedValue::StringTypedValue(string value)
-    : TypedValue(TYPE_STR)
+    : TypedValue(T_STR)
     , value(value)
 {}
 
@@ -278,7 +278,7 @@ void StringTypedValue::print()
 **             INT VALUE             **
 **************************************/
 IntTypedValue::IntTypedValue(int64_t value)
-    : TypedValue(TYPE_NUM)
+    : TypedValue(T_NUM)
     , value(value)
 {}
 
@@ -296,7 +296,7 @@ void IntTypedValue::print()
 **           DOUBLE VALUE            **
 **************************************/
 DoubleTypedValue::DoubleTypedValue(double value)
-    : TypedValue(TYPE_DOUBLE)
+    : TypedValue(T_DOUBLE)
     , value(value)
 {}
 
@@ -314,7 +314,7 @@ void DoubleTypedValue::print()
 **             BOOL VALUE            **
 **************************************/
 BoolTypedValue::BoolTypedValue(bool value)
-    : TypedValue(TYPE_BOOL)
+    : TypedValue(T_BOOL)
     , value(value)
 {}
 
@@ -332,7 +332,7 @@ void BoolTypedValue::print()
 **             NULL VALUE            **
 **************************************/
 NullTypedValue::NullTypedValue()
-    : TypedValue(TYPE_NULL)
+    : TypedValue(T_NULL)
 {}
 
 void NullTypedValue::print()
@@ -344,7 +344,7 @@ void NullTypedValue::print()
 **            ARRAY VALUE            **
 **************************************/
 ArrayTypedValue::ArrayTypedValue(JSONArray *ja_arg)
-    : TypedValue(TYPE_ARR)
+    : TypedValue(T_ARR)
     , ja(ja_arg)
 {}
 
@@ -370,7 +370,7 @@ void ArrayTypedValue::print()
 **            DICT VALUE             **
 **************************************/
 DictTypedValue::DictTypedValue(JSONDict *jd_arg)
-    : TypedValue(TYPE_DICT)
+    : TypedValue(T_DICT)
     , jd(jd_arg)
 {}
 
@@ -414,7 +414,7 @@ JSONArray::JSONArray(size_t size)
 #ifdef DEBUG
     cout << "Initializing array of " << size << " values" << endl;
 #endif
-    values = new TypedValue *[size]();
+    values = new Typed *[size]();
 }
 
 JSONArray::~JSONArray()
@@ -440,12 +440,12 @@ size_t JSONArray::getSize()
     return size;
 }
 
-TypedValue **JSONArray::getValues()
+Typed **JSONArray::getValues()
 {
     return values;
 }
 
-TypedValue *JSONArray::getValueAt(size_t index)
+Typed *JSONArray::getValueAt(size_t index)
 {
     if (values == NULL || index >= size)
     {
@@ -454,7 +454,7 @@ TypedValue *JSONArray::getValueAt(size_t index)
     return values[index];
 }
 
-void JSONArray::add(TypedValue *value)
+void JSONArray::add(Typed *value)
 {
     if (values == NULL || value == NULL || insert_idx >= size)
     {
@@ -504,7 +504,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
             continue;
         }
 
-        if (values[i]->getType() == TYPE_ARR)
+        if (values[i]->getType() == T_ARR)
         {
             JSONArray *value = ((ArrayTypedValue *)values[i])->getValue();
             if (value != NULL)
@@ -512,7 +512,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
                 value->printValuesIndent(indent + 1, false);
             }
         }
-        else if (values[i]->getType() == TYPE_DICT)
+        else if (values[i]->getType() == T_DICT)
         {
             JSONDict *value = ((DictTypedValue *)values[i])->getValue();
             if (value != NULL)
@@ -653,7 +653,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
             continue;
         }
 
-        if (items[i]->getType() == TYPE_ARR)
+        if (items[i]->getType() == T_ARR)
         {
             JSONArray *value = ((ArrayItem *)items[i])->getValue();
             if (value != NULL)
@@ -663,7 +663,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
                 value->printValuesIndent(indent + 1, true);
             }
         }
-        else if (items[i]->getType() == TYPE_DICT)
+        else if (items[i]->getType() == T_DICT)
         {
             JSONDict *value = ((DictItem *)items[i])->getValue();
             if (value != NULL)
