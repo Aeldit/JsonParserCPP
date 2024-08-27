@@ -49,7 +49,7 @@ public:
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
-JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
+JSONDict *parse_dict(FILE *f, uint64_t *pos);
 
 /*******************************************************************************
 **                              LOCAL FUNCTIONS                               **
@@ -479,7 +479,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            ja->add(new TypedValueT<string>(T_STR, parse_string(f, pos)));
+            ja->add(new TypedValue<string>(T_STR, parse_string(f, pos)));
         }
         else if (IS_NUMBER_START(c))
         {
@@ -491,11 +491,11 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
             if (sl.is_float)
             {
-                ja->add(new TypedValueT<double>(T_DOUBLE, str_to_double(&sl)));
+                ja->add(new TypedValue<double>(T_DOUBLE, str_to_double(&sl)));
             }
             else
             {
-                ja->add(new TypedValueT<int>(T_NUM, str_to_long(&sl)));
+                ja->add(new TypedValue<int>(T_NUM, str_to_long(&sl)));
             }
         }
         else if (IS_BOOL_START(c))
@@ -505,21 +505,20 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 continue;
             }
-            ja->add(new TypedValueT<bool>(T_BOOL, len == 4 ? true : false));
+            ja->add(new TypedValue<bool>(T_BOOL, len == 4 ? true : false));
         }
         else if (c == 'n')
         {
-            ja->add(new TypedValueT<Null>(T_NULL, Null()));
+            ja->add(new TypedValue<void *>(T_NULL, NULL));
             (*pos) += 3;
         }
         else if (c == '[')
         {
-            ja->add(new TypedValueT<JSONArray>(T_ARR, *parse_array(f, pos)));
+            ja->add(new TypedValue<JSONArray *>(T_ARR, parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            ja->add(
-                new TypedValueT<JSONDict>(T_DICT, *parse_json_dict(f, pos)));
+            ja->add(new TypedValue<JSONDict *>(T_DICT, parse_dict(f, pos)));
         }
         else if (c == ',')
         {
@@ -625,7 +624,7 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 **            current array
 ** \returns The json dict parsed at the pos
 */
-JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
+JSONDict *parse_dict(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
     {
@@ -656,7 +655,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             }
             else
             {
-                jd->addItem(new StringItem(key, parse_string(f, pos)));
+                jd->addItem(new Item<string>(key, T_STR, parse_string(f, pos)));
             }
         }
         else if (IS_NUMBER_START(c))
@@ -669,11 +668,12 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 
             if (sl.is_float)
             {
-                jd->addItem(new DoubleItem(key, str_to_double(&sl)));
+                jd->addItem(
+                    new Item<double>(key, T_DOUBLE, str_to_double(&sl)));
             }
             else
             {
-                jd->addItem(new IntItem(key, str_to_long(&sl)));
+                jd->addItem(new Item<int>(key, T_NUM, str_to_long(&sl)));
             }
         }
         else if (IS_BOOL_START(c))
@@ -683,20 +683,20 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             {
                 continue;
             }
-            jd->addItem(new BoolItem(key, len == 4 ? true : false));
+            jd->addItem(new Item<bool>(key, T_BOOL, len == 4 ? true : false));
         }
         else if (c == 'n')
         {
-            jd->addItem(new NullItem(key));
+            jd->addItem(new Item<void *>(key, T_NULL, NULL));
             (*pos) += 3;
         }
         else if (c == '[')
         {
-            jd->addItem(new ArrayItem(key, parse_array(f, pos)));
+            jd->addItem(new Item<JSONArray *>(key, T_ARR, parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            jd->addItem(new DictItem(key, parse_json_dict(f, pos)));
+            jd->addItem(new Item<JSONDict *>(key, T_DICT, parse_dict(f, pos)));
         }
         else if (c == ',')
         {
@@ -739,7 +739,7 @@ JSON *parse(char *file)
     char c = fgetc(f);
     if (c == '{')
     {
-        JSONDict *jd = parse_json_dict(f, &offset);
+        JSONDict *jd = parse_dict(f, &offset);
         if (jd == NULL)
         {
             fclose(f);

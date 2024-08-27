@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     }*/
     delete j;
 
-    ItemT<int> it("typed", T_NUM, 5);
+    Item<int> it("typed", T_NUM, 5);
     cout << it.getValue() << endl;
     it.print();
     return 0;
