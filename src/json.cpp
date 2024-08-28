@@ -123,7 +123,8 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
         if (values[i]->getType() == T_ARR)
         {
-            JSONArray *value = values[i]->getValue<JSONArray *>();
+            JSONArray *value =
+                ((TypedValue<JSONArray *> *)values[i])->getValue();
             if (value != NULL)
             {
                 value->printValuesIndent(indent + 1, false);
@@ -131,7 +132,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
         }
         else if (values[i]->getType() == T_DICT)
         {
-            JSONDict *value = values[i]->getValue<JSONDict *>();
+            JSONDict *value = ((TypedValue<JSONDict *> *)values[i])->getValue();
             if (value != NULL)
             {
                 value->printItemsIndent(indent + 1, false);
@@ -272,7 +273,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 
         if (items[i]->getType() == T_ARR)
         {
-            JSONArray *value = items[i]->getValue<JSONArray *>();
+            JSONArray *value = ((Item<JSONArray *> *)items[i])->getValue();
             if (value != NULL)
             {
                 cout << "\t" << tabs;
@@ -282,7 +283,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
         }
         else if (items[i]->getType() == T_DICT)
         {
-            JSONDict *value = items[i]->getValue<JSONDict *>();
+            JSONDict *value = ((Item<JSONDict *> *)items[i])->getValue();
             if (value != NULL)
             {
                 cout << "\t" << tabs;
