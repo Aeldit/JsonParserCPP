@@ -13,45 +13,6 @@ using namespace std;
 **                                   CLASSES                                  **
 *******************************************************************************/
 /**
-** \class Item Base class representing a JSONDict item
-** \brief The following classes are derived from this one :
-**        - StringItem
-**        - IntItem
-**        - DoubleItem
-**        - BoolItem
-**        - NullItem
-**        - ArrayItem
-**        - DictItem
-** \param key The key of the item (string)
-** \param type The type of the item's value (see types.h)
-*/
-class Item
-{
-private:
-    string key;
-    unsigned char type;
-
-public:
-    Item(string key, unsigned char type);
-    virtual ~Item() = default;
-
-    string getKey();
-    unsigned char getType();
-
-    void printKey();
-
-    bool isString();
-    bool isInt();
-    bool isDouble();
-    bool isBool();
-    bool isNull();
-    bool isArray();
-    bool isDict();
-
-    virtual void print() = 0;
-};
-
-/**
 ** \class TypedValue Base class representing a JSONArray's value
 ** \brief The following classes are derived from this one :
 **        - StringTypedValue
@@ -83,6 +44,33 @@ public:
     bool isDict();
 
     virtual void print() = 0;
+};
+
+/**
+** \class Item Base class representing a JSONDict item
+** \brief The following classes are derived from this one :
+**        - StringItem
+**        - IntItem
+**        - DoubleItem
+**        - BoolItem
+**        - NullItem
+**        - ArrayItem
+**        - DictItem
+** \param key The key of the item (string)
+** \param type The type of the item's value (see types.h)
+*/
+class Item : public TypedValue
+{
+private:
+    string key;
+
+public:
+    Item(string key, unsigned char type);
+    virtual ~Item() = default;
+
+    string getKey();
+
+    void printKey();
 };
 
 /**************************************

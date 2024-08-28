@@ -12,205 +12,6 @@
 using namespace std;
 
 /*******************************************************************************
-**                                   ITEMS                                    **
-*******************************************************************************/
-Item::Item(string key, unsigned char type)
-    : key(key)
-    , type(type)
-{}
-
-string Item::getKey()
-{
-    return key;
-}
-
-unsigned char Item::getType()
-{
-    return type;
-}
-
-void Item::printKey()
-{
-    cout << "\"" << key << "\""
-         << ": ";
-}
-
-bool Item::isString()
-{
-    return type == TYPE_STR;
-}
-
-bool Item::isInt()
-{
-    return type == TYPE_NUM;
-}
-
-bool Item::isDouble()
-{
-    return type == TYPE_DOUBLE;
-}
-
-bool Item::isBool()
-{
-    return type == TYPE_BOOL;
-}
-
-bool Item::isNull()
-{
-    return type == TYPE_NULL;
-}
-
-bool Item::isArray()
-{
-    return type == TYPE_ARR;
-}
-
-bool Item::isDict()
-{
-    return type == TYPE_DICT;
-}
-
-/**************************************
-**            STRING ITEM            **
-**************************************/
-StringItem::StringItem(string key, string value)
-    : Item(key, TYPE_STR)
-    , value(value)
-{}
-
-string StringItem::getValue()
-{
-    return value;
-}
-
-void StringItem::print()
-{
-    printKey();
-    cout << "\"" << value << "\"";
-}
-
-/**************************************
-**             INT ITEM              **
-**************************************/
-IntItem::IntItem(string key, int64_t value)
-    : Item(key, TYPE_NUM)
-    , value(value)
-{}
-
-int64_t IntItem::getValue()
-{
-    return value;
-}
-
-void IntItem::print()
-{
-    printKey();
-    cout << value;
-}
-
-/**************************************
-**           DOUBLE ITEM             **
-**************************************/
-DoubleItem::DoubleItem(string key, double value)
-    : Item(key, TYPE_DOUBLE)
-    , value(value)
-{}
-
-double DoubleItem::getValue()
-{
-    return value;
-}
-
-void DoubleItem::print()
-{
-    printKey();
-    cout << setprecision(16) << value;
-}
-
-/**************************************
-**             BOOL ITEM             **
-**************************************/
-BoolItem::BoolItem(string key, bool value)
-    : Item(key, TYPE_BOOL)
-    , value(value)
-{}
-
-bool BoolItem::getValue()
-{
-    return value;
-}
-
-void BoolItem::print()
-{
-    printKey();
-    cout << (value ? "true" : "false");
-}
-
-/**************************************
-**             NULL ITEM             **
-**************************************/
-NullItem::NullItem(string key)
-    : Item(key, TYPE_NULL)
-{}
-
-void NullItem::print()
-{
-    printKey();
-    cout << "null";
-}
-
-/**************************************
-**            ARRAY ITEM             **
-**************************************/
-ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
-    : Item(key, TYPE_ARR)
-    , ja(ja_arg)
-{}
-
-ArrayItem::~ArrayItem()
-{
-    delete ja;
-}
-
-JSONArray *ArrayItem::getValue()
-{
-    return ja;
-}
-void ArrayItem::print()
-{
-    if (ja != NULL)
-    {
-        ja->printValues();
-    }
-}
-
-/**************************************
-**             DICT ITEM             **
-**************************************/
-DictItem::DictItem(string key, JSONDict *jd_arg)
-    : Item(key, TYPE_DICT)
-    , jd(jd_arg)
-{}
-
-DictItem::~DictItem()
-{
-    delete jd;
-}
-
-JSONDict *DictItem::getValue()
-{
-    return jd;
-}
-
-void DictItem::print()
-{
-    if (jd != NULL)
-    {
-        jd->printItems();
-    }
-}
-
-/*******************************************************************************
 **                                   VALUES                                   **
 *******************************************************************************/
 TypedValue::TypedValue(unsigned char type)
@@ -385,6 +186,165 @@ JSONDict *DictTypedValue::getValue()
 }
 
 void DictTypedValue::print()
+{
+    if (jd != NULL)
+    {
+        jd->printItems();
+    }
+}
+
+/*******************************************************************************
+**                                   ITEMS                                    **
+*******************************************************************************/
+Item::Item(string key, unsigned char type)
+    : TypedValue(type)
+    , key(key)
+{}
+
+string Item::getKey()
+{
+    return key;
+}
+
+void Item::printKey()
+{
+    cout << "\"" << key << "\""
+         << ": ";
+}
+
+/**************************************
+**            STRING ITEM            **
+**************************************/
+StringItem::StringItem(string key, string value)
+    : Item(key, TYPE_STR)
+    , value(value)
+{}
+
+string StringItem::getValue()
+{
+    return value;
+}
+
+void StringItem::print()
+{
+    printKey();
+    cout << "\"" << value << "\"";
+}
+
+/**************************************
+**             INT ITEM              **
+**************************************/
+IntItem::IntItem(string key, int64_t value)
+    : Item(key, TYPE_NUM)
+    , value(value)
+{}
+
+int64_t IntItem::getValue()
+{
+    return value;
+}
+
+void IntItem::print()
+{
+    printKey();
+    cout << value;
+}
+
+/**************************************
+**           DOUBLE ITEM             **
+**************************************/
+DoubleItem::DoubleItem(string key, double value)
+    : Item(key, TYPE_DOUBLE)
+    , value(value)
+{}
+
+double DoubleItem::getValue()
+{
+    return value;
+}
+
+void DoubleItem::print()
+{
+    printKey();
+    cout << setprecision(16) << value;
+}
+
+/**************************************
+**             BOOL ITEM             **
+**************************************/
+BoolItem::BoolItem(string key, bool value)
+    : Item(key, TYPE_BOOL)
+    , value(value)
+{}
+
+bool BoolItem::getValue()
+{
+    return value;
+}
+
+void BoolItem::print()
+{
+    printKey();
+    cout << (value ? "true" : "false");
+}
+
+/**************************************
+**             NULL ITEM             **
+**************************************/
+NullItem::NullItem(string key)
+    : Item(key, TYPE_NULL)
+{}
+
+void NullItem::print()
+{
+    printKey();
+    cout << "null";
+}
+
+/**************************************
+**            ARRAY ITEM             **
+**************************************/
+ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
+    : Item(key, TYPE_ARR)
+    , ja(ja_arg)
+{}
+
+ArrayItem::~ArrayItem()
+{
+    delete ja;
+}
+
+JSONArray *ArrayItem::getValue()
+{
+    return ja;
+}
+void ArrayItem::print()
+{
+    if (ja != NULL)
+    {
+        ja->printValues();
+    }
+}
+
+/**************************************
+**             DICT ITEM             **
+**************************************/
+DictItem::DictItem(string key, JSONDict *jd_arg)
+    : Item(key, TYPE_DICT)
+    , jd(jd_arg)
+{}
+
+DictItem::~DictItem()
+{
+    delete jd;
+}
+
+JSONDict *DictItem::getValue()
+{
+    return jd;
+}
+
+void DictItem::print()
 {
     if (jd != NULL)
     {
