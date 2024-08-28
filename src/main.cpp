@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
             TypedValue *ai = ((ArrayItem *)i)->getValue()->getValueAt(0);
             if (ai->isString())
             {
-                cout << ((StringTypedValue *)ai)->getValue() << endl;
+                ai->print();
             }
         }
     }

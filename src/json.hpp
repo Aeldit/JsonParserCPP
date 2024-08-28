@@ -43,6 +43,7 @@ public:
     bool isArray();
     bool isDict();
 
+    virtual void printNoFlush() = 0;
     virtual void print() = 0;
 };
 
@@ -152,91 +153,6 @@ public:
 };
 
 /**************************************
-**               ITEMS               **
-**************************************/
-class StringItem : public Item
-{
-private:
-    string value;
-
-public:
-    StringItem(string key, string value);
-
-    void print();
-    string getValue();
-};
-
-class IntItem : public Item
-{
-private:
-    int64_t value;
-
-public:
-    IntItem(string key, int64_t value);
-
-    void print();
-    int64_t getValue();
-};
-
-class DoubleItem : public Item
-{
-private:
-    double value;
-
-public:
-    DoubleItem(string key, double value);
-
-    void print();
-    double getValue();
-};
-
-class BoolItem : public Item
-{
-private:
-    bool value;
-
-public:
-    BoolItem(string key, bool value);
-
-    void print();
-    bool getValue();
-};
-
-class NullItem : public Item
-{
-public:
-    NullItem(string key);
-
-    void print();
-};
-
-class ArrayItem : public Item
-{
-private:
-    JSONArray *ja;
-
-public:
-    ArrayItem(string key, JSONArray *ja_arg);
-    virtual ~ArrayItem();
-
-    void print();
-    JSONArray *getValue();
-};
-
-class DictItem : public Item
-{
-private:
-    JSONDict *jd;
-
-public:
-    DictItem(string key, JSONDict *jd_arg);
-    virtual ~DictItem();
-
-    void print();
-    JSONDict *getValue();
-};
-
-/**************************************
 **           TYPED VALUES            **
 **************************************/
 class StringTypedValue : public TypedValue
@@ -247,6 +163,7 @@ private:
 public:
     StringTypedValue(string value);
 
+    void printNoFlush();
     void print();
     string getValue();
 };
@@ -259,6 +176,7 @@ private:
 public:
     IntTypedValue(int64_t value);
 
+    void printNoFlush();
     void print();
     int64_t getValue();
 };
@@ -271,6 +189,7 @@ private:
 public:
     DoubleTypedValue(double value);
 
+    void printNoFlush();
     void print();
     double getValue();
 };
@@ -283,6 +202,7 @@ private:
 public:
     BoolTypedValue(bool value);
 
+    void printNoFlush();
     void print();
     bool getValue();
 };
@@ -292,6 +212,7 @@ class NullTypedValue : public TypedValue
 public:
     NullTypedValue();
 
+    void printNoFlush();
     void print();
 };
 
@@ -304,6 +225,7 @@ public:
     ArrayTypedValue(JSONArray *ja_arg);
     virtual ~ArrayTypedValue();
 
+    void printNoFlush();
     void print();
     JSONArray *getValue();
 };
@@ -317,6 +239,99 @@ public:
     DictTypedValue(JSONDict *jd_arg);
     virtual ~DictTypedValue();
 
+    void printNoFlush();
+    void print();
+    JSONDict *getValue();
+};
+
+/**************************************
+**               ITEMS               **
+**************************************/
+class StringItem : public Item
+{
+private:
+    string value;
+
+public:
+    StringItem(string key, string value);
+
+    void printNoFlush();
+    void print();
+    string getValue();
+};
+
+class IntItem : public Item
+{
+private:
+    int64_t value;
+
+public:
+    IntItem(string key, int64_t value);
+
+    void printNoFlush();
+    void print();
+    int64_t getValue();
+};
+
+class DoubleItem : public Item
+{
+private:
+    double value;
+
+public:
+    DoubleItem(string key, double value);
+
+    void printNoFlush();
+    void print();
+    double getValue();
+};
+
+class BoolItem : public Item
+{
+private:
+    bool value;
+
+public:
+    BoolItem(string key, bool value);
+
+    void printNoFlush();
+    void print();
+    bool getValue();
+};
+
+class NullItem : public Item
+{
+public:
+    NullItem(string key);
+
+    void printNoFlush();
+    void print();
+};
+
+class ArrayItem : public Item
+{
+private:
+    JSONArray *ja;
+
+public:
+    ArrayItem(string key, JSONArray *ja_arg);
+    virtual ~ArrayItem();
+
+    void printNoFlush();
+    void print();
+    JSONArray *getValue();
+};
+
+class DictItem : public Item
+{
+private:
+    JSONDict *jd;
+
+public:
+    DictItem(string key, JSONDict *jd_arg);
+    virtual ~DictItem();
+
+    void printNoFlush();
     void print();
     JSONDict *getValue();
 };
