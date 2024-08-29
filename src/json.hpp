@@ -126,10 +126,8 @@ public:
 /**
 ** \class JSONDict
 ** \implements JSON
-** \param size The number of items inside the dict
-** \param insert_idx The index where the next item will be added
 ** \param items An array of Items pointers (only contains objects of
-**               classes that are derived from the Item class)
+**              classes that are derived from the Item class)
 */
 class JSONDict : public JSON
 {

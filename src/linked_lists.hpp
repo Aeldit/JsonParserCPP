@@ -100,11 +100,11 @@ public:
                 continue;
             }
 
-            tmp->values[i % BASE_ARRAY_LEN]->print();
-            if (i != 0 && (i - 1) % BASE_ARRAY_LEN == 0)
+            if (i != 0 && i % BASE_ARRAY_LEN == 0)
             {
                 tmp = tmp->next;
             }
+            tmp->values[i % BASE_ARRAY_LEN]->print();
         }
     }
 };
