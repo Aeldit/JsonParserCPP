@@ -6,6 +6,8 @@
 *******************************************************************************/
 #include <string>
 
+#include "linked_lists.hpp"
+
 using namespace std;
 
 /*******************************************************************************
@@ -106,17 +108,15 @@ public:
 class JSONArray : public JSON
 {
 private:
-    size_t size;
-    size_t insert_idx = 0;
-    TypedValue **values;
+    LinkedList<TypedValue *> values;
 
 public:
-    JSONArray(size_t size);
+    JSONArray();
     virtual ~JSONArray();
 
-    size_t getSize();
-    TypedValue **getValues();
-    TypedValue *getValueAt(size_t index);
+    uint64_t getSize();
+    LinkedList<TypedValue *> getValues();
+    TypedValue *getValueAt(uint64_t index);
 
     void add(TypedValue *value);
     void printValues();
@@ -134,16 +134,14 @@ public:
 class JSONDict : public JSON
 {
 private:
-    size_t size;
-    size_t insert_idx = 0;
-    Item **items;
+    LinkedList<Item *> items;
 
 public:
-    JSONDict(size_t size);
+    JSONDict();
     virtual ~JSONDict();
 
-    size_t getSize();
-    Item **getItems();
+    uint64_t getSize();
+    LinkedList<Item *> getItems();
     Item *getItem(string key);
 
     void addItem(Item *item);

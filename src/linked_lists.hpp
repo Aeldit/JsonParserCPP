@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define BASE_ARRAY_LEN 2
+#define BASE_ARRAY_LEN 3
 
 /*******************************************************************************
 **                                   CLASSES                                  **
@@ -21,16 +21,7 @@ public:
     Link<T> *next = NULL;
 
     Link(){};
-    ~Link()
-    {
-        for (short i = 0; i < BASE_ARRAY_LEN; ++i)
-        {
-            if (values[i] != NULL)
-            {
-                delete values[i];
-            }
-        }
-    }
+    ~Link(){};
 };
 
 template <class T>
@@ -54,6 +45,31 @@ public:
             delete t;
         }
     };
+
+    uint64_t getSize()
+    {
+        return size;
+    }
+
+    T get(uint64_t index)
+    {
+        if (head == NULL || index > size)
+        {
+            return NULL;
+        }
+
+        uint64_t link_number = index / BASE_ARRAY_LEN;
+        Link<T> *link = head;
+        for (uint64_t i = 0; i < link_number; ++i)
+        {
+            if (link == NULL)
+            {
+                return NULL;
+            }
+            link = link->next;
+        }
+        return link->values[index % BASE_ARRAY_LEN];
+    }
 
     void add(T value)
     {
@@ -83,6 +99,7 @@ public:
             {
                 continue;
             }
+
             tmp->values[i % BASE_ARRAY_LEN]->print();
             if (i != 0 && (i - 1) % BASE_ARRAY_LEN == 0)
             {

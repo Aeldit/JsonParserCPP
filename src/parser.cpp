@@ -462,7 +462,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     uint64_t nb_elts = get_nb_elts_array(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
-    JSONArray *ja = new JSONArray(nb_elts);
+    JSONArray *ja = new JSONArray();
     if (nb_elts == 0)
     {
         return ja;
@@ -635,7 +635,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     uint64_t nb_elts = get_nb_elts_dict(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
-    JSONDict *jd = new JSONDict(nb_elts);
+    JSONDict *jd = new JSONDict();
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
