@@ -118,7 +118,7 @@ public:
     LinkedList<TypedValue *> getValues();
     TypedValue *getValueAt(uint64_t index);
 
-    void add(TypedValue *value);
+    void addValue(TypedValue *value);
     void printValues();
     void printValuesIndent(int indent, bool fromDict);
 };

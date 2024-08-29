@@ -479,7 +479,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            ja->add(new StringTypedValue(parse_string(f, pos)));
+            ja->addValue(new StringTypedValue(parse_string(f, pos)));
         }
         else if (IS_NUMBER_START(c))
         {
@@ -491,11 +491,11 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
             if (sl.is_float)
             {
-                ja->add(new DoubleTypedValue(str_to_double(&sl)));
+                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
             }
             else
             {
-                ja->add(new IntTypedValue(str_to_long(&sl)));
+                ja->addValue(new IntTypedValue(str_to_long(&sl)));
             }
         }
         else if (IS_BOOL_START(c))
@@ -505,20 +505,20 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 continue;
             }
-            ja->add(new BoolTypedValue(len == 4 ? true : false));
+            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
         }
         else if (c == 'n')
         {
-            ja->add(new NullTypedValue());
+            ja->addValue(new NullTypedValue());
             (*pos) += 3;
         }
         else if (c == '[')
         {
-            ja->add(new ArrayTypedValue(parse_array(f, pos)));
+            ja->addValue(new ArrayTypedValue(parse_array(f, pos)));
         }
         else if (c == '{')
         {
-            ja->add(new DictTypedValue(parse_json_dict(f, pos)));
+            ja->addValue(new DictTypedValue(parse_json_dict(f, pos)));
         }
         else if (c == ',')
         {

@@ -482,7 +482,7 @@ TypedValue *JSONArray::getValueAt(uint64_t index)
     return values.get(index);
 }
 
-void JSONArray::add(TypedValue *value)
+void JSONArray::addValue(TypedValue *value)
 {
     values.add(value);
 }
