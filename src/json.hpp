@@ -14,13 +14,14 @@ using namespace std;
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
 *******************************************************************************/
-#define IS_STRING(value) ((value)->getType() == TYPE_STR)
-#define IS_INT(value) ((value)->getType() == TYPE_NUM)
-#define IS_DOUBLE(value) ((value)->getType() == TYPE_DOUBLE)
-#define IS_BOOL(value) ((value)->getType() == TYPE_BOOL)
-#define IS_NULL(value) ((value)->getType() == TYPE_NULL)
-#define IS_ARR(value) ((value)->getType() == TYPE_ARR)
-#define IS_DICT(value) ((value)->getType() == TYPE_DICT)
+#define IS_STRING(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_STR)
+#define IS_INT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_INT)
+#define IS_DOUBLE(v)                                                           \
+    (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DOUBLE)
+#define IS_BOOL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_BOOL)
+#define IS_NULL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_NULL)
+#define IS_ARR(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_ARR)
+#define IS_DICT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DICT)
 
 /*******************************************************************************
 **                                   CLASSES                                  **
