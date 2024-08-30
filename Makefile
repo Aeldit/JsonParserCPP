@@ -14,4 +14,4 @@ json-parser:
 	$(CC) $(CFLAGS) $(CFILES) -o json-parser
 
 clean:
-	if [ -f json-parser ]; then rm json-parser; fi
+	if [ -f "json-parser" ]; then rm json-parser; fi
