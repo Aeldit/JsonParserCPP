@@ -78,7 +78,8 @@ void StringTypedValue::printNoFlush()
 
 void StringTypedValue::print()
 {
-    cout << "\"" << value << "\"" << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -101,7 +102,8 @@ void IntTypedValue::printNoFlush()
 
 void IntTypedValue::print()
 {
-    cout << value << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -124,7 +126,8 @@ void DoubleTypedValue::printNoFlush()
 
 void DoubleTypedValue::print()
 {
-    cout << setprecision(16) << value << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -147,7 +150,8 @@ void BoolTypedValue::printNoFlush()
 
 void BoolTypedValue::print()
 {
-    cout << (value ? "true" : "false") << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -164,7 +168,8 @@ void NullTypedValue::printNoFlush()
 
 void NullTypedValue::print()
 {
-    cout << "null" << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -269,8 +274,8 @@ void StringItem::printNoFlush()
 
 void StringItem::print()
 {
-    printKey();
-    cout << "\"" << value << "\"" << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -294,8 +299,8 @@ void IntItem::printNoFlush()
 
 void IntItem::print()
 {
-    printKey();
-    cout << value << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -319,8 +324,8 @@ void DoubleItem::printNoFlush()
 
 void DoubleItem::print()
 {
-    printKey();
-    cout << setprecision(16) << value << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -344,8 +349,8 @@ void BoolItem::printNoFlush()
 
 void BoolItem::print()
 {
-    printKey();
-    cout << (value ? "true" : "false") << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
@@ -363,8 +368,8 @@ void NullItem::printNoFlush()
 
 void NullItem::print()
 {
-    printKey();
-    cout << "null" << endl;
+    printNoFlush();
+    cout.flush();
 }
 
 /**************************************
