@@ -6,14 +6,12 @@ CFILES=src/main.cpp \
 	src/parser.cpp \
 	src/linked_lists.cpp
 
-OBJS=${CFILES:.c=.o}
-
 all: json-parser
 	./json-parser r.json
 
 .PHONY:
-json-parser: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o json-parser
+json-parser:
+	$(CC) $(CFLAGS) $(CFILES) -o json-parser
 
 clean:
 	rm json-parser
