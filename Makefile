@@ -6,7 +6,7 @@ CFILES=src/main.cpp \
 	src/parser.cpp \
 	src/linked_lists.cpp
 
-all: json-parser
+all: clean json-parser
 	./json-parser r.json
 
 .PHONY:
@@ -14,4 +14,4 @@ json-parser:
 	$(CC) $(CFLAGS) $(CFILES) -o json-parser
 
 clean:
-	rm json-parser
+	if [ -f json-parser ]; then rm json-parser; fi
