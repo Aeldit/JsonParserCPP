@@ -28,21 +28,21 @@ int main(int argc, char *argv[])
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
 
-        /*Item *i = jd->getItem("arr");
+        Item *i = jd->getItem("arr");
         if (i == NULL)
         {
             delete j;
             return 1;
         }
 
-        if (i->isArray())
+        if (IS_ARR(i))
         {
             TypedValue *ai = ((ArrayItem *)i)->getValue()->getValueAt(0);
-            if (ai->isString())
+            if (IS_STRING(ai))
             {
                 ai->print();
             }
-        }*/
+        }
     }
     delete j;
     return 0;

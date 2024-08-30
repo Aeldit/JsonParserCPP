@@ -7,8 +7,20 @@
 #include <string>
 
 #include "linked_lists.hpp"
+#include "types.h"
 
 using namespace std;
+
+/*******************************************************************************
+**                              DEFINES / MACROS                              **
+*******************************************************************************/
+#define IS_STRING(value) ((value)->getType() == TYPE_STR)
+#define IS_INT(value) ((value)->getType() == TYPE_NUM)
+#define IS_DOUBLE(value) ((value)->getType() == TYPE_DOUBLE)
+#define IS_BOOL(value) ((value)->getType() == TYPE_BOOL)
+#define IS_NULL(value) ((value)->getType() == TYPE_NULL)
+#define IS_ARR(value) ((value)->getType() == TYPE_ARR)
+#define IS_DICT(value) ((value)->getType() == TYPE_DICT)
 
 /*******************************************************************************
 **                                   CLASSES                                  **
@@ -35,14 +47,6 @@ public:
     virtual ~TypedValue() = default;
 
     unsigned char getType();
-
-    bool isString();
-    bool isInt();
-    bool isDouble();
-    bool isBool();
-    bool isNull();
-    bool isArray();
-    bool isDict();
 
     virtual void printNoFlush() = 0;
     virtual void print() = 0;

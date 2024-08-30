@@ -23,41 +23,6 @@ unsigned char TypedValue::getType()
     return type;
 }
 
-bool TypedValue::isString()
-{
-    return type == TYPE_STR;
-}
-
-bool TypedValue::isInt()
-{
-    return type == TYPE_NUM;
-}
-
-bool TypedValue::isDouble()
-{
-    return type == TYPE_DOUBLE;
-}
-
-bool TypedValue::isBool()
-{
-    return type == TYPE_BOOL;
-}
-
-bool TypedValue::isNull()
-{
-    return type == TYPE_NULL;
-}
-
-bool TypedValue::isArray()
-{
-    return type == TYPE_ARR;
-}
-
-bool TypedValue::isDict()
-{
-    return type == TYPE_DICT;
-}
-
 /**************************************
 **            STRING VALUE           **
 **************************************/
