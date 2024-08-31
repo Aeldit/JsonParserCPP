@@ -1,4 +1,3 @@
-
 #include "json.hpp"
 #include "parser.hpp"
 
@@ -28,7 +27,7 @@ int main(int argc, char *argv[])
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
 
-        Item *i = jd->getItem("arr");
+        /*Item *i = jd->getItem("arr");
         if (i == NULL)
         {
             delete j;
@@ -42,7 +41,7 @@ int main(int argc, char *argv[])
             {
                 ai->print();
             }
-        }
+        }*/
     }
     delete j;
     return 0;
