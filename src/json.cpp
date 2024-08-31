@@ -418,7 +418,7 @@ JSONArray::JSONArray()
     : JSON(true)
 {
 #ifdef DEBUG
-    cout << "Initializing array of " << size << " values" << endl;
+    cout << "Initializing array of " << getSize() << " values" << endl;
 #endif
     values = LinkedList<TypedValue *>();
 }
@@ -499,7 +499,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
             continue;
         }
 
-        if (value->getType() == T_ARR)
+        if (IS_ARR(value))
         {
             JSONArray *value = ((ArrayTypedValue *)value)->getValue();
             if (value != NULL)
@@ -507,7 +507,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
                 value->printValuesIndent(indent + 1, false);
             }
         }
-        else if (value->getType() == T_DICT)
+        else if (IS_DICT(value))
         {
             JSONDict *value = ((DictTypedValue *)value)->getValue();
             if (value != NULL)
@@ -543,7 +543,7 @@ JSONDict::JSONDict()
     : JSON(false)
 {
 #ifdef DEBUG
-    cout << "Initializing dict of " << size << " items" << endl;
+    cout << "Initializing dict of " << getSize() << " items" << endl;
 #endif
     items = LinkedList<Item *>();
 }
