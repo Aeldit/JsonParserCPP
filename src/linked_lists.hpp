@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define BASE_ARRAY_LEN 3
+#define BASE_ARRAY_LEN 16
 
 /*******************************************************************************
 **                                   CLASSES                                  **
@@ -17,7 +17,7 @@ template <class T>
 class Link
 {
 public:
-    T values[BASE_ARRAY_LEN] = { 0 };
+    T *elts[BASE_ARRAY_LEN] = { 0 };
     Link<T> *next = NULL;
 
     Link(){};
@@ -44,14 +44,14 @@ public:
             tmp = tmp->next;
             delete t;
         }
-    };
+    }
 
     uint64_t getSize()
     {
         return size;
     }
 
-    T get(uint64_t index)
+    T *get(uint64_t index)
     {
         if (head == NULL || index > size)
         {
@@ -59,6 +59,7 @@ public:
         }
 
         uint64_t link_number = index / BASE_ARRAY_LEN;
+        // Goes the the link of number 'link_number' from the head
         Link<T> *link = head;
         for (uint64_t i = 0; i < link_number; ++i)
         {
@@ -68,11 +69,16 @@ public:
             }
             link = link->next;
         }
-        return link->values[index % BASE_ARRAY_LEN];
+        return link->elts[index % BASE_ARRAY_LEN];
     }
 
-    void add(T value)
+    void add(T *value)
     {
+        if (value == NULL)
+        {
+            return;
+        }
+
         if (head == NULL)
         {
             head = new Link<T>();
@@ -86,7 +92,7 @@ public:
             insert_idx = 0;
         }
 
-        tail->values[insert_idx++] = value;
+        tail->elts[insert_idx++] = value;
         ++size;
     }
 
@@ -95,7 +101,12 @@ public:
         Link<T> *tmp = head;
         for (uint64_t i = 0; i < size; ++i)
         {
-            if (tmp->values[i % BASE_ARRAY_LEN] == NULL)
+            if (tmp == NULL)
+            {
+                return;
+            }
+
+            if (tmp->elts[i % BASE_ARRAY_LEN] == NULL)
             {
                 continue;
             }
@@ -104,7 +115,7 @@ public:
             {
                 tmp = tmp->next;
             }
-            tmp->values[i % BASE_ARRAY_LEN]->print();
+            tmp->elts[i % BASE_ARRAY_LEN]->print();
         }
     }
 };
