@@ -101,29 +101,6 @@ public:
         tail->elts[insert_idx++] = value;
         ++size;
     }
-
-    void print()
-    {
-        Link<T> *tmp = head;
-        for (uint64_t i = 0; i < size; ++i)
-        {
-            if (tmp == NULL)
-            {
-                return;
-            }
-
-            if (tmp->elts[i % BASE_ARRAY_LEN] == NULL)
-            {
-                continue;
-            }
-
-            if (i != 0 && i % BASE_ARRAY_LEN == 0)
-            {
-                tmp = tmp->next;
-            }
-            tmp->elts[i % BASE_ARRAY_LEN]->print();
-        }
-    }
 };
 
 #endif // !LINKED_LISTS_HPP
