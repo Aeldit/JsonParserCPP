@@ -21,7 +21,13 @@ public:
     Link<T> *next = NULL;
 
     Link(){};
-    ~Link(){};
+    ~Link()
+    {
+        for (int i = 0; i < BASE_ARRAY_LEN; ++i)
+        {
+            delete elts[i];
+        }
+    };
 };
 
 template <class T>
