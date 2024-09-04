@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (IS_JSON_ARRAY(j))
+    /*if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -25,23 +25,31 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-
-        /*Item *i = jd->getItem("arr");
-        if (i == NULL)
-        {
-            delete j;
-            return 1;
-        }
-
-        if (IS_ARR(i))
-        {
-            TypedValue *ai = ((ArrayItem *)i)->getValue()->getValueAt(0);
-            if (IS_STRING(ai))
-            {
-                ai->print();
-            }
-        }*/
-    }
+        // jd->addItem(new BoolItem("new", false));
+        // jd->printItems();
+    }*/
     delete j;
+
+    LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
+    for (int i = 0; i < 32; ++i)
+    {
+        ll->add(new IntTypedValue(i));
+    }
+
+    printf("size = %lu\n", ll->getSize());
+
+    ll->remove(5);
+    for (int i = 0; i < 16; ++i)
+    {
+        ll->remove(1);
+    }
+    printf("size = %lu\n", ll->getSize());
+
+    TypedValue *t = ll->get(1);
+    if (t != NULL)
+    {
+        t->print();
+    }
+    delete ll;
     return 0;
 }
