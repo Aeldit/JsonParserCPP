@@ -471,18 +471,18 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
         if (IS_ARR(value))
         {
-            JSONArray *value = ((ArrayTypedValue *)value)->getValue();
-            if (value != NULL)
+            JSONArray *j = ((ArrayTypedValue *)value)->getValue();
+            if (j != NULL)
             {
-                value->printValuesIndent(indent + 1, false);
+                j->printValuesIndent(indent + 1, false);
             }
         }
         else if (IS_DICT(value))
         {
-            JSONDict *value = ((DictTypedValue *)value)->getValue();
-            if (value != NULL)
+            JSONDict *jd = ((DictTypedValue *)value)->getValue();
+            if (jd != NULL)
             {
-                value->printItemsIndent(indent + 1, false);
+                jd->printItemsIndent(indent + 1, false);
             }
         }
         else
