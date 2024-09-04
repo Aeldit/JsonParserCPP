@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     delete j;
 
     LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
-    for (int i = 0; i < 32; ++i)
+    for (int i = 0; i < 48; ++i)
     {
         ll->add(new IntTypedValue(i));
     }
@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     {
         t->print();
     }
+    printf("\n%lu\n", ll->getNbLinks());
     delete ll;
     return 0;
 }
