@@ -405,7 +405,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
                 // Empty array
                 if (is_in_array == 1 && prev_c == '\0')
                 {
-                    break;
+                    return 0;
                 }
                 --is_in_array;
             }
@@ -474,12 +474,13 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     }
 
     char c = '\0';
-    while ((c = fgetc(f)) != EOF)
+    while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
     {
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
             ja->addValue(new StringTypedValue(parse_string(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
         {
@@ -497,6 +498,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 ja->addValue(new IntTypedValue(str_to_long(&sl)));
             }
+            ++nb_elts_parsed;
         }
         else if (IS_BOOL_START(c))
         {
@@ -506,28 +508,23 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
                 continue;
             }
             ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
             ja->addValue(new NullTypedValue());
             (*pos) += 3;
+            ++nb_elts_parsed;
         }
         else if (c == '[')
         {
             ja->addValue(new ArrayTypedValue(parse_array(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == '{')
         {
             ja->addValue(new DictTypedValue(parse_json_dict(f, pos)));
-        }
-        else if (c == ',')
-        {
             ++nb_elts_parsed;
-        }
-
-        if (nb_elts_parsed >= nb_elts)
-        {
-            break;
         }
 
         if (fseek(f, (*pos)++, SEEK_SET) != 0)
@@ -644,7 +641,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 
     char c = '\0';
     char is_waiting_key = 1;
-    while ((c = fgetc(f)) != EOF)
+    while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
     {
         if (c == '"')
         {
@@ -656,6 +653,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             else
             {
                 jd->addItem(new StringItem(key, parse_string(f, pos)));
+                ++nb_elts_parsed;
             }
         }
         else if (IS_NUMBER_START(c))
@@ -674,6 +672,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             {
                 jd->addItem(new IntItem(key, str_to_long(&sl)));
             }
+            ++nb_elts_parsed;
         }
         else if (IS_BOOL_START(c))
         {
@@ -683,29 +682,27 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
                 continue;
             }
             jd->addItem(new BoolItem(key, len == 4 ? true : false));
+            ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
             jd->addItem(new NullItem(key));
             (*pos) += 3;
+            ++nb_elts_parsed;
         }
         else if (c == '[')
         {
             jd->addItem(new ArrayItem(key, parse_array(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == '{')
         {
             jd->addItem(new DictItem(key, parse_json_dict(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == ',')
         {
             is_waiting_key = 1;
-            ++nb_elts_parsed;
-        }
-
-        if (nb_elts_parsed >= nb_elts)
-        {
-            break;
         }
 
         if (fseek(f, (*pos)++, SEEK_SET) != 0)

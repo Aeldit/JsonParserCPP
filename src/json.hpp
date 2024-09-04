@@ -7,7 +7,7 @@
 #include <string>
 
 #include "linked_lists.hpp"
-#include "types.h"
+#include "types.hpp"
 
 using namespace std;
 
@@ -23,63 +23,11 @@ using namespace std;
 #define IS_ARR(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_ARR)
 #define IS_DICT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DICT)
 
+#define IS_JSON_ARRAY(j) (dynamic_cast<JSON *>(j) && (j)->isArray())
+
 /*******************************************************************************
 **                                   CLASSES                                  **
 *******************************************************************************/
-/**
-** \class TypedValue Base class representing a JSONArray's value
-** \brief The following classes are derived from this one :
-**        - StringTypedValue
-**        - IntTypedValue
-**        - DoubleTypedValue
-**        - BoolTypedValue
-**        - NullTypedValue
-**        - ArrayTypedValue
-**        - DictTypedValue
-** \param type The type of the value (see types.h)
-*/
-class TypedValue
-{
-private:
-    unsigned char type;
-
-public:
-    TypedValue(unsigned char type);
-    virtual ~TypedValue() = default;
-
-    unsigned char getType();
-
-    virtual void printNoFlush() = 0;
-    virtual void print() = 0;
-};
-
-/**
-** \class Item Base class representing a JSONDict item
-** \brief The following classes are derived from this one :
-**        - StringItem
-**        - IntItem
-**        - DoubleItem
-**        - BoolItem
-**        - NullItem
-**        - ArrayItem
-**        - DictItem
-** \param key The key of the item (string)
-** \param type The type of the item's value (see types.h)
-*/
-class Item : public TypedValue
-{
-private:
-    string key;
-
-public:
-    Item(string key, unsigned char type);
-    virtual ~Item() = default;
-
-    string getKey();
-
-    void printKey();
-};
-
 /**************************************
 **               JSON                **
 **************************************/
@@ -113,14 +61,14 @@ public:
 class JSONArray : public JSON
 {
 private:
-    LinkedList<TypedValue *> values;
+    LinkedList<TypedValue> *values;
 
 public:
     JSONArray();
-    virtual ~JSONArray();
+    ~JSONArray();
 
     uint64_t getSize();
-    LinkedList<TypedValue *> getValues();
+    LinkedList<TypedValue> *getValues();
     TypedValue *getValueAt(uint64_t index);
 
     void addValue(TypedValue *value);
@@ -137,14 +85,14 @@ public:
 class JSONDict : public JSON
 {
 private:
-    LinkedList<Item *> items;
+    LinkedList<Item> *items;
 
 public:
     JSONDict();
-    virtual ~JSONDict();
+    ~JSONDict();
 
     uint64_t getSize();
-    LinkedList<Item *> getItems();
+    LinkedList<Item> *getItems();
     Item *getItem(string key);
 
     void addItem(Item *item);

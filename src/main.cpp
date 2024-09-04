@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
-    printf("%s\n", argv[0]);
 
     JSON *j = parse(argv[1]);
     if (j == NULL)
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (j->isArray())
+    if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();

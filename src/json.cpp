@@ -7,21 +7,11 @@
 #include <iostream>
 #include <string>
 
-#include "types.h"
-
 using namespace std;
 
 /*******************************************************************************
 **                                   VALUES                                   **
 *******************************************************************************/
-TypedValue::TypedValue(unsigned char type)
-    : type(type)
-{}
-
-unsigned char TypedValue::getType()
-{
-    return type;
-}
 
 /**************************************
 **            STRING VALUE           **
@@ -202,21 +192,6 @@ void DictTypedValue::print()
 /*******************************************************************************
 **                                   ITEMS                                    **
 *******************************************************************************/
-Item::Item(string key, unsigned char type)
-    : TypedValue(type)
-    , key(key)
-{}
-
-string Item::getKey()
-{
-    return key;
-}
-
-void Item::printKey()
-{
-    cout << "\"" << key << "\""
-         << ": ";
-}
 
 /**************************************
 **            STRING ITEM            **
@@ -417,44 +392,39 @@ bool JSON::isArray()
 JSONArray::JSONArray()
     : JSON(true)
 {
-#ifdef DEBUG
-    cout << "Initializing array of " << getSize() << " values" << endl;
-#endif
-    values = LinkedList<TypedValue *>();
+    values = new LinkedList<TypedValue>();
 }
 
 JSONArray::~JSONArray()
 {
-    uint64_t size = getSize();
-    for (size_t i = 0; i < size; ++i)
-    {
-        TypedValue *value = values.get(i);
-        if (value == NULL)
-        {
-            continue;
-        }
-        delete value;
-    }
+    delete values;
 }
 
 uint64_t JSONArray::getSize()
 {
-    return values.getSize();
+    if (values == NULL)
+    {
+        return 0;
+    }
+    return values->getSize();
 }
 
-LinkedList<TypedValue *> JSONArray::getValues()
+void JSONArray::addValue(TypedValue *value)
+{
+    if (value != NULL)
+    {
+        values->add(value);
+    }
+}
+
+LinkedList<TypedValue> *JSONArray::getValues()
 {
     return values;
 }
 
 TypedValue *JSONArray::getValueAt(uint64_t index)
 {
-    return values.get(index);
-}
-
-void JSONArray::addValue(TypedValue *value)
-{
-    values.add(value);
+    return values->get(index);
 }
 
 void JSONArray::printValues()
@@ -493,7 +463,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
     for (uint64_t i = 0; i < size; ++i)
     {
-        TypedValue *value = values.get(i);
+        TypedValue *value = values->get(i);
         if (value == NULL)
         {
             continue;
@@ -542,32 +512,32 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 JSONDict::JSONDict()
     : JSON(false)
 {
-#ifdef DEBUG
-    cout << "Initializing dict of " << getSize() << " items" << endl;
-#endif
-    items = LinkedList<Item *>();
+    items = new LinkedList<Item>();
 }
 
 JSONDict::~JSONDict()
 {
-    uint64_t size = getSize();
-    for (size_t i = 0; i < size; ++i)
-    {
-        Item *it = items.get(i);
-        if (it == NULL)
-        {
-            continue;
-        }
-        delete it;
-    }
+    delete items;
 }
 
 uint64_t JSONDict::getSize()
 {
-    return items.getSize();
+    if (items == NULL)
+    {
+        return 0;
+    }
+    return items->getSize();
 }
 
-LinkedList<Item *> JSONDict::getItems()
+void JSONDict::addItem(Item *item)
+{
+    if (item != NULL)
+    {
+        items->add(item);
+    }
+}
+
+LinkedList<Item> *JSONDict::getItems()
 {
     return items;
 }
@@ -577,7 +547,7 @@ Item *JSONDict::getItem(string key)
     uint64_t size = getSize();
     for (size_t i = 0; i < size; ++i)
     {
-        Item *it = items.get(i);
+        Item *it = items->get(i);
         if (it == NULL)
         {
             continue;
@@ -589,11 +559,6 @@ Item *JSONDict::getItem(string key)
         }
     }
     return NULL;
-}
-
-void JSONDict::addItem(Item *item)
-{
-    items.add(item);
 }
 
 void JSONDict::printItems()
@@ -631,13 +596,13 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 
     for (uint64_t i = 0; i < size; ++i)
     {
-        Item *it = items.get(i);
+        Item *it = items->get(i);
         if (it == NULL)
         {
             continue;
         }
 
-        if (it->getType() == T_ARR)
+        if (IS_ARR(it))
         {
             JSONArray *value = ((ArrayItem *)it)->getValue();
             if (value != NULL)
@@ -647,7 +612,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
                 value->printValuesIndent(indent + 1, true);
             }
         }
-        else if (it->getType() == T_DICT)
+        else if (IS_DICT(it))
         {
             JSONDict *value = ((DictItem *)it)->getValue();
             if (value != NULL)
