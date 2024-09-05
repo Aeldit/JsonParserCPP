@@ -4,9 +4,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
-#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #define BASE_ARRAY_LEN 16
 
@@ -18,7 +16,7 @@ class Link
 {
 public:
     T *elts[BASE_ARRAY_LEN] = { 0 };
-    Link<T> *next = NULL;
+    Link<T> *next = nullptr;
 
     Link(){};
     ~Link()
@@ -37,42 +35,39 @@ private:
     uint64_t size = 0;
     uint64_t insert_idx = 0;
     uint64_t nb_deletion = 0;
-    Link<T> *head = NULL;
-    Link<T> *tail = NULL;
+    Link<T> *head = nullptr;
+    Link<T> *tail = nullptr;
 
     // TODO: Find after how many deletion we should defragment
     // FIX: Heap buffer overflow
     void defragment()
     {
-        // Counts the number of empty elements (NULL) followed by a non-null
+        // Counts the number of empty elements (nullptr) followed by a non-null
         // element
         T **tmp_elts = new T *[size]();
         uint64_t insert_index = 0;
         Link<T> *link = head;
-        while (link != NULL)
+        while (link != nullptr)
         {
             for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
             {
-                if (link->elts[i] != NULL)
+                if (link->elts[i] != nullptr)
                 {
                     tmp_elts[insert_index++] = link->elts[i];
-                    link->elts[i] = NULL;
+                    link->elts[i] = nullptr;
                 }
             }
             link = link->next;
         }
 
-        printf("equals : %lu %lu\n", insert_index, size);
-
         // Refills the linked list without any gap
         link = head;
         // We re-use insert_idx but it does not serve the same purpose as before
         insert_index = 0;
-        while (link != NULL)
+        while (link != nullptr)
         {
             for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
             {
-                printf("%lu ", insert_index);
                 link->elts[i] = tmp_elts[insert_index++];
             }
 
@@ -82,19 +77,18 @@ private:
             }
             link = link->next;
         }
-        printf("\n");
 
         // Removes the links that are not used and are empty
-        if (link->next != NULL)
+        if (link->next != nullptr)
         {
             Link<T> *tmp = link->next;
-            while (tmp != NULL)
+            while (tmp != nullptr)
             {
                 Link<T> *t = tmp;
                 tmp = tmp->next;
                 delete t;
             }
-            link->next = NULL;
+            link->next = nullptr;
         }
         delete[] tmp_elts;
     }
@@ -104,7 +98,7 @@ public:
     ~LinkedList()
     {
         Link<T> *tmp = head;
-        while (tmp != NULL)
+        while (tmp != nullptr)
         {
             Link<T> *t = tmp;
             tmp = tmp->next;
@@ -119,13 +113,13 @@ public:
 
     uint64_t getNbLinks()
     {
-        if (head == NULL)
+        if (head == nullptr)
         {
             return 0;
         }
         uint64_t nb_links = 0;
         Link<T> *link = head;
-        while (link != NULL)
+        while (link != nullptr)
         {
             link = link->next;
             ++nb_links;
@@ -136,28 +130,28 @@ public:
     /**
     ** \brief Iterates over the arrays in the linked list and increments the
     **        number of elements encountered when the current element is not
-    **        NULL
+    **        nullptr
     ** \param index The index of the element we want. This is NOT the index
     **              if the lists were put together in one, but the index of
-    **              non-NULL elements
-    **              Ex: with the array [0, 4, 3, NULL, 5, NULL, NULL, 8],
+    **              non-nullptr elements
+    **              Ex: with the array [0, 4, 3, nullptr, 5, NULL, NULL, 8],
     **                  the element of index 4 is '8'
-    ** \returns The element at the given index if it exists, NULL otherwise
+    ** \returns The element at the given index if it exists, nullptr otherwise
     */
     T *get(uint64_t index)
     {
-        if (head == NULL || index >= size)
+        if (head == nullptr || index >= size)
         {
-            return NULL;
+            return nullptr;
         }
 
         Link<T> *link = head;
         uint64_t nb_encountered = 0;
-        while (link != NULL)
+        while (link != nullptr)
         {
             for (short i = 0; i < BASE_ARRAY_LEN; ++i)
             {
-                if (link->elts[i] != NULL)
+                if (link->elts[i] != nullptr)
                 {
                     if (nb_encountered == index)
                     {
@@ -168,17 +162,17 @@ public:
             }
             link = link->next;
         }
-        return NULL;
+        return nullptr;
     }
 
     void add(T *value)
     {
-        if (value == NULL)
+        if (value == nullptr)
         {
             return;
         }
 
-        if (head == NULL)
+        if (head == nullptr)
         {
             head = new Link<T>();
             tail = head;
@@ -197,7 +191,7 @@ public:
 
     void remove(uint64_t index)
     {
-        if (head == NULL || index >= size)
+        if (head == nullptr || index >= size)
         {
             return;
         }
@@ -205,16 +199,16 @@ public:
         Link<T> *link = head;
         uint64_t nb_encountered = 0;
         bool done = false;
-        while (link != NULL)
+        while (link != nullptr)
         {
             for (short i = 0; i < BASE_ARRAY_LEN; ++i)
             {
-                if (link->elts[i] != NULL)
+                if (link->elts[i] != nullptr)
                 {
                     if (nb_encountered == index)
                     {
                         delete link->elts[i];
-                        link->elts[i] = NULL;
+                        link->elts[i] = nullptr;
                         done = true;
                         break;
                     }
