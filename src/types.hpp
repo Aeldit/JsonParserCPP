@@ -4,9 +4,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
-#include <string>
-
-using namespace std;
+#include "custom_string.hpp"
 
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
@@ -65,13 +63,13 @@ public:
 class Item : public TypedValue
 {
 private:
-    string key;
+    FastCompString key;
 
 public:
-    Item(string key, unsigned char type);
+    Item(FastCompString key, unsigned char type);
     virtual ~Item() = default;
 
-    string getKey();
+    FastCompString getKey();
 
     void printKey();
 };

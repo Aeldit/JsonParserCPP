@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#include "custom_string.hpp"
+
 using namespace std;
 
 /*******************************************************************************
@@ -16,12 +18,12 @@ using namespace std;
 /**************************************
 **            STRING VALUE           **
 **************************************/
-StringTypedValue::StringTypedValue(string value)
+StringTypedValue::StringTypedValue(std::string value)
     : TypedValue(T_STR)
     , value(value)
 {}
 
-string StringTypedValue::getValue()
+std::string StringTypedValue::getValue()
 {
     return value;
 }
@@ -196,12 +198,12 @@ void DictTypedValue::print()
 /**************************************
 **            STRING ITEM            **
 **************************************/
-StringItem::StringItem(string key, string value)
+StringItem::StringItem(FastCompString key, std::string value)
     : Item(key, T_STR)
     , value(value)
 {}
 
-string StringItem::getValue()
+std::string StringItem::getValue()
 {
     return value;
 }
@@ -221,7 +223,7 @@ void StringItem::print()
 /**************************************
 **             INT ITEM              **
 **************************************/
-IntItem::IntItem(string key, int64_t value)
+IntItem::IntItem(FastCompString key, int64_t value)
     : Item(key, T_INT)
     , value(value)
 {}
@@ -246,7 +248,7 @@ void IntItem::print()
 /**************************************
 **           DOUBLE ITEM             **
 **************************************/
-DoubleItem::DoubleItem(string key, double value)
+DoubleItem::DoubleItem(FastCompString key, double value)
     : Item(key, T_DOUBLE)
     , value(value)
 {}
@@ -271,7 +273,7 @@ void DoubleItem::print()
 /**************************************
 **             BOOL ITEM             **
 **************************************/
-BoolItem::BoolItem(string key, bool value)
+BoolItem::BoolItem(FastCompString key, bool value)
     : Item(key, T_BOOL)
     , value(value)
 {}
@@ -296,7 +298,7 @@ void BoolItem::print()
 /**************************************
 **             NULL ITEM             **
 **************************************/
-NullItem::NullItem(string key)
+NullItem::NullItem(FastCompString key)
     : Item(key, T_NULL)
 {}
 
@@ -315,7 +317,7 @@ void NullItem::print()
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
-ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
+ArrayItem::ArrayItem(FastCompString key, JSONArray *ja_arg)
     : Item(key, T_ARR)
     , ja(ja_arg)
 {}
@@ -346,7 +348,7 @@ void ArrayItem::print()
 /**************************************
 **             DICT ITEM             **
 **************************************/
-DictItem::DictItem(string key, JSONDict *jd_arg)
+DictItem::DictItem(FastCompString key, JSONDict *jd_arg)
     : Item(key, T_DICT)
     , jd(jd_arg)
 {}
@@ -533,7 +535,11 @@ void JSONDict::addItem(Item *item)
 {
     if (item != NULL)
     {
-        items->add(item);
+        // If an item with the same key already exists we don't add the item
+        if (!keyExists(item->getKey()))
+        {
+            items->add(item);
+        }
     }
 }
 
@@ -542,7 +548,7 @@ LinkedList<Item> *JSONDict::getItems()
     return items;
 }
 
-Item *JSONDict::getItem(string key)
+bool JSONDict::keyExists(FastCompString key)
 {
     uint64_t size = getSize();
     for (size_t i = 0; i < size; ++i)
@@ -553,7 +559,26 @@ Item *JSONDict::getItem(string key)
             continue;
         }
 
-        if (key.compare(it->getKey()) == 0)
+        if (key == it->getKey())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+Item *JSONDict::getItem(FastCompString key)
+{
+    uint64_t size = getSize();
+    for (size_t i = 0; i < size; ++i)
+    {
+        Item *it = items->get(i);
+        if (it == NULL)
+        {
+            continue;
+        }
+
+        if (key == it->getKey())
         {
             return it;
         }

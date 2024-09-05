@@ -62,11 +62,11 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 **            currently acquiring the length
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string(FILE *f, uint64_t *pos)
+FastCompString parse_string(FILE *f, uint64_t *pos)
 {
     if (f == NULL || pos == NULL)
     {
-        return string();
+        return FastCompString(NULL, 0);
     }
 
     uint64_t size = (*pos);
@@ -88,13 +88,13 @@ string parse_string(FILE *f, uint64_t *pos)
     uint64_t len = size - (*pos) - 1;
     if (len == 0)
     {
-        return string();
+        return FastCompString(NULL, 0);
     }
 
     char *str = new char[len + 1]();
     if (str == NULL)
     {
-        return string();
+        return FastCompString(NULL, 0);
     }
 
     for (uint64_t i = 0; i < len; ++i)
@@ -106,9 +106,7 @@ string parse_string(FILE *f, uint64_t *pos)
         str[i] = fgetc(f);
     }
     ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    string fstr(str); // Converts from 'char *' to 'string'
-    delete[] str;
-    return fstr;
+    return FastCompString(str, len);
 }
 
 /**
@@ -479,7 +477,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            ja->addValue(new StringTypedValue(parse_string(f, pos)));
+            ja->addValue(new StringTypedValue(parse_string(f, pos).string()));
             ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
@@ -628,7 +626,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
         return NULL;
     }
 
-    string key = string();
+    FastCompString key = FastCompString(NULL, 0);
     uint64_t nb_elts = get_nb_elts_dict(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
@@ -652,7 +650,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             }
             else
             {
-                jd->addItem(new StringItem(key, parse_string(f, pos)));
+                jd->addItem(new StringItem(key, parse_string(f, pos).string()));
                 ++nb_elts_parsed;
             }
         }
