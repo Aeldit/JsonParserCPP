@@ -36,16 +36,17 @@ class LinkedList
 private:
     uint64_t size = 0;
     uint64_t insert_idx = 0;
+    uint64_t nb_deletion = 0; // char because we stop at 16 maximum
     Link<T> *head = NULL;
     Link<T> *tail = NULL;
-    char nb_deletion = 0; // char because we stop at 16 maximum
 
+    // TODO: Find after how many deletion we should defragment
     void defragment()
     {
         // Counts the number of empty elements (NULL) followed by a non-null
         // element
         T **tmp_elts = new T *[size]();
-        uint64_t insert_idx = 0;
+        uint64_t insert_index = 0;
         Link<T> *link = head;
         while (link != NULL)
         {
@@ -53,7 +54,7 @@ private:
             {
                 if (link->elts[i] != NULL)
                 {
-                    tmp_elts[insert_idx++] = link->elts[i];
+                    tmp_elts[insert_index++] = link->elts[i];
                     link->elts[i] = NULL;
                 }
             }
@@ -62,19 +63,20 @@ private:
 
         // Refills the linked list without any gap
         link = head;
-        for (uint64_t i = 0; i < size; ++i)
+        // We re-use insert_idx but it does not serve the same purpose as before
+        insert_index = 0;
+        while (link != NULL)
         {
-            if (link == NULL)
+            for (short i = 0; i < BASE_ARRAY_LEN; ++i)
             {
-                return;
+                link->elts[i] = tmp_elts[insert_index++];
             }
 
-            link->elts[i % BASE_ARRAY_LEN] = tmp_elts[i];
-
-            if (i != 0 && i % BASE_ARRAY_LEN == 0)
+            if (insert_index == size)
             {
-                link = link->next;
+                break;
             }
+            link = link->next;
         }
 
         // Removes the links that are not used and are empty

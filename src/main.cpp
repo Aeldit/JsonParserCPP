@@ -10,13 +10,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JSON *j = parse(argv[1]);
+    printf("%s\n", argv[1]);
+
+    /*JSON *j = parse(argv[1]);
     if (j == NULL)
     {
         return 1;
     }
 
-    /*if (IS_JSON_ARRAY(j))
+    if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -27,11 +29,11 @@ int main(int argc, char *argv[])
         jd->printItems();
         // jd->addItem(new BoolItem("new", false));
         // jd->printItems();
-    }*/
-    delete j;
+    }
+    delete j;*/
 
     LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
-    for (int i = 0; i < 48; ++i)
+    for (int i = 0; i < 1000; ++i)
     {
         ll->add(new IntTypedValue(i));
     }
