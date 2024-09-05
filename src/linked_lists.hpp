@@ -36,11 +36,12 @@ class LinkedList
 private:
     uint64_t size = 0;
     uint64_t insert_idx = 0;
-    uint64_t nb_deletion = 0; // char because we stop at 16 maximum
+    uint64_t nb_deletion = 0;
     Link<T> *head = NULL;
     Link<T> *tail = NULL;
 
     // TODO: Find after how many deletion we should defragment
+    // FIX: Heap buffer overflow
     void defragment()
     {
         // Counts the number of empty elements (NULL) followed by a non-null
@@ -50,7 +51,7 @@ private:
         Link<T> *link = head;
         while (link != NULL)
         {
-            for (short i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
             {
                 if (link->elts[i] != NULL)
                 {
@@ -61,14 +62,17 @@ private:
             link = link->next;
         }
 
+        printf("equals : %lu %lu\n", insert_index, size);
+
         // Refills the linked list without any gap
         link = head;
         // We re-use insert_idx but it does not serve the same purpose as before
         insert_index = 0;
         while (link != NULL)
         {
-            for (short i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
             {
+                printf("%lu ", insert_index);
                 link->elts[i] = tmp_elts[insert_index++];
             }
 
@@ -78,6 +82,7 @@ private:
             }
             link = link->next;
         }
+        printf("\n");
 
         // Removes the links that are not used and are empty
         if (link->next != NULL)
@@ -227,7 +232,7 @@ public:
         ++nb_deletion;
         if (nb_deletion == BASE_ARRAY_LEN)
         {
-            defragment();
+            // defragment();
         }
     }
 };

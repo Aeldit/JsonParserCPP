@@ -27,18 +27,17 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-        // jd->addItem(new BoolItem("new", false));
-        // jd->printItems();
     }
     delete j;*/
 
     LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         ll->add(new IntTypedValue(i));
     }
 
     printf("size = %lu\n", ll->getSize());
+    printf("nb links = %lu\n", ll->getNbLinks());
 
     ll->remove(5);
     for (int i = 0; i < 16; ++i)

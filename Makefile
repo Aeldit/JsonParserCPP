@@ -15,3 +15,7 @@ json-parser:
 
 clean:
 	if [ -f "json-parser" ]; then rm json-parser; fi
+
+valgrind:
+	valgrind --tool=callgrind --dump-instr=yes \
+		--simulate-cache=yes --collect-jumps=yes ./json-parser big.json
