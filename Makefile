@@ -4,7 +4,6 @@ CC=g++
 CFILES=src/main.cpp \
 	src/json.cpp \
 	src/parser.cpp \
-	src/custom_string.cpp \
 	src/types.cpp
 
 all: clean json-parser

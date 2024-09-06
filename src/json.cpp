@@ -7,9 +7,30 @@
 #include <iostream>
 #include <string>
 
-#include "custom_string.hpp"
-
 using namespace std;
+
+/*******************************************************************************
+**                               LOCAL FUNCTIONS                              **
+*******************************************************************************/
+bool stringsEqual(string a, string b)
+{
+    if (a.length() != b.length())
+    {
+        return false;
+    }
+
+    uint64_t len = a.length();
+    const char *a_str = a.c_str();
+    const char *b_str = b.c_str();
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        if (a_str[i] != b_str[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 /*******************************************************************************
 **                                   VALUES                                   **
@@ -17,12 +38,12 @@ using namespace std;
 /**************************************
 **            STRING VALUE           **
 **************************************/
-StringTypedValue::StringTypedValue(std::string value)
+StringTypedValue::StringTypedValue(string value)
     : TypedValue(T_STR)
     , value(value)
 {}
 
-std::string StringTypedValue::getValue()
+string StringTypedValue::getValue()
 {
     return value;
 }
@@ -167,12 +188,12 @@ void DictTypedValue::print()
 /**************************************
 **            STRING ITEM            **
 **************************************/
-StringItem::StringItem(string key, std::string value)
+StringItem::StringItem(string key, string value)
     : Item(key, T_STR)
     , value(value)
 {}
 
-std::string StringItem::getValue()
+string StringItem::getValue()
 {
     return value;
 }
