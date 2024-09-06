@@ -44,6 +44,7 @@ public:
     unsigned char getType();
 
     virtual void printNoFlush() = 0;
+    // Overriden by the Array and Dict class (TypedValue and Item)
     virtual void print();
 };
 
