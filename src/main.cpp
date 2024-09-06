@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    /*if (IS_JSON_ARRAY(j))
+    if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-    }*/
+    }
     delete j;
 
     /*LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();

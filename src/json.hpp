@@ -83,16 +83,15 @@ public:
 class JSONDict : public JSON
 {
 private:
-    LinkedList<Item> *items;
+    LinkedList<Item> items;
 
 public:
     JSONDict();
     ~JSONDict();
 
     uint64_t getSize();
-    LinkedList<Item> *getItems();
+    Item **getItems();
     Item *getItem(std::string key);
-    bool keyExists(std::string key);
 
     void addItem(Item *item);
     void printItems();
@@ -111,7 +110,6 @@ public:
     StringTypedValue(std::string value);
 
     void printNoFlush();
-    void print();
     std::string getValue();
 };
 
@@ -124,7 +122,6 @@ public:
     IntTypedValue(int64_t value);
 
     void printNoFlush();
-    void print();
     int64_t getValue();
 };
 
@@ -137,7 +134,6 @@ public:
     DoubleTypedValue(double value);
 
     void printNoFlush();
-    void print();
     double getValue();
 };
 
@@ -150,7 +146,6 @@ public:
     BoolTypedValue(bool value);
 
     void printNoFlush();
-    void print();
     bool getValue();
 };
 
@@ -160,7 +155,6 @@ public:
     NullTypedValue();
 
     void printNoFlush();
-    void print();
 };
 
 class ArrayTypedValue : public TypedValue

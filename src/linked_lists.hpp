@@ -21,7 +21,7 @@ public:
     Link(){};
     ~Link()
     {
-        for (short i = 0; i < BASE_ARRAY_LEN; ++i)
+        for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
         {
             delete elts[i];
         }
@@ -49,7 +49,7 @@ private:
         Link<T> *link = head;
         while (link != nullptr)
         {
-            for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
             {
                 if (link->elts[i] != nullptr)
                 {
@@ -66,7 +66,7 @@ private:
         insert_index = 0;
         while (link != nullptr)
         {
-            for (uint64_t i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
             {
                 link->elts[i] = tmp_elts[insert_index++];
             }
@@ -149,7 +149,7 @@ public:
         uint64_t nb_encountered = 0;
         while (link != nullptr)
         {
-            for (short i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
             {
                 if (link->elts[i] != nullptr)
                 {
@@ -163,6 +163,35 @@ public:
             link = link->next;
         }
         return nullptr;
+    }
+
+    T **getAsArray()
+    {
+        if (head == nullptr)
+        {
+            return nullptr;
+        }
+
+        T **array = new T *[size]();
+        if (array == nullptr)
+        {
+            return nullptr;
+        }
+
+        uint64_t local_insert_idx = 0;
+        Link<T> *link = head;
+        while (link != nullptr)
+        {
+            for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
+            {
+                if (link->elts[i] != nullptr)
+                {
+                    array[local_insert_idx++] = link->elts[i];
+                }
+            }
+            link = link->next;
+        }
+        return array;
     }
 
     void add(T *value)
@@ -201,7 +230,7 @@ public:
         bool done = false;
         while (link != nullptr)
         {
-            for (short i = 0; i < BASE_ARRAY_LEN; ++i)
+            for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
             {
                 if (link->elts[i] != nullptr)
                 {

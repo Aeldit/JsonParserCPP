@@ -11,6 +11,12 @@ unsigned char TypedValue::getType()
     return type;
 }
 
+void TypedValue::print()
+{
+    printNoFlush();
+    std::cout.flush();
+}
+
 Item::Item(std::string key, unsigned char type)
     : TypedValue(type)
     , key(key)

@@ -44,7 +44,7 @@ public:
     unsigned char getType();
 
     virtual void printNoFlush() = 0;
-    virtual void print() = 0;
+    virtual void print();
 };
 
 /**

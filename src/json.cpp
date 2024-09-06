@@ -14,7 +14,6 @@ using namespace std;
 /*******************************************************************************
 **                                   VALUES                                   **
 *******************************************************************************/
-
 /**************************************
 **            STRING VALUE           **
 **************************************/
@@ -31,12 +30,6 @@ std::string StringTypedValue::getValue()
 void StringTypedValue::printNoFlush()
 {
     cout << "\"" << value << "\"";
-}
-
-void StringTypedValue::print()
-{
-    printNoFlush();
-    cout.flush();
 }
 
 /**************************************
@@ -57,12 +50,6 @@ void IntTypedValue::printNoFlush()
     cout << value;
 }
 
-void IntTypedValue::print()
-{
-    printNoFlush();
-    cout.flush();
-}
-
 /**************************************
 **           DOUBLE VALUE            **
 **************************************/
@@ -79,12 +66,6 @@ double DoubleTypedValue::getValue()
 void DoubleTypedValue::printNoFlush()
 {
     cout << setprecision(16) << value;
-}
-
-void DoubleTypedValue::print()
-{
-    printNoFlush();
-    cout.flush();
 }
 
 /**************************************
@@ -105,12 +86,6 @@ void BoolTypedValue::printNoFlush()
     cout << (value ? "true" : "false");
 }
 
-void BoolTypedValue::print()
-{
-    printNoFlush();
-    cout.flush();
-}
-
 /**************************************
 **             NULL VALUE            **
 **************************************/
@@ -121,12 +96,6 @@ NullTypedValue::NullTypedValue()
 void NullTypedValue::printNoFlush()
 {
     cout << "null";
-}
-
-void NullTypedValue::print()
-{
-    printNoFlush();
-    cout.flush();
 }
 
 /**************************************
@@ -154,7 +123,7 @@ void ArrayTypedValue::printNoFlush()
 
 void ArrayTypedValue::print()
 {
-    if (ja != NULL)
+    if (ja != nullptr)
     {
         ja->printValues();
     }
@@ -185,7 +154,7 @@ void DictTypedValue::printNoFlush()
 
 void DictTypedValue::print()
 {
-    if (jd != NULL)
+    if (jd != nullptr)
     {
         jd->printItems();
     }
@@ -339,7 +308,7 @@ void ArrayItem::printNoFlush()
 
 void ArrayItem::print()
 {
-    if (ja != NULL)
+    if (ja != nullptr)
     {
         ja->printValues();
     }
@@ -370,7 +339,7 @@ void DictItem::printNoFlush()
 
 void DictItem::print()
 {
-    if (jd != NULL)
+    if (jd != nullptr)
     {
         jd->printItems();
     }
@@ -404,7 +373,7 @@ JSONArray::~JSONArray()
 
 uint64_t JSONArray::getSize()
 {
-    if (values == NULL)
+    if (values == nullptr)
     {
         return 0;
     }
@@ -413,7 +382,7 @@ uint64_t JSONArray::getSize()
 
 void JSONArray::addValue(TypedValue *value)
 {
-    if (value != NULL)
+    if (value != nullptr)
     {
         values->add(value);
     }
@@ -438,7 +407,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
     char *tabs = new char[indent]();
-    if (tabs == NULL)
+    if (tabs == nullptr)
     {
         return;
     }
@@ -466,7 +435,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
     for (uint64_t i = 0; i < size; ++i)
     {
         TypedValue *value = values->get(i);
-        if (value == NULL)
+        if (value == nullptr)
         {
             continue;
         }
@@ -474,7 +443,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
         if (IS_ARR(value))
         {
             JSONArray *j = ((ArrayTypedValue *)value)->getValue();
-            if (j != NULL)
+            if (j != nullptr)
             {
                 j->printValuesIndent(indent + 1, false);
             }
@@ -482,7 +451,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
         else if (IS_DICT(value))
         {
             JSONDict *jd = ((DictTypedValue *)value)->getValue();
-            if (jd != NULL)
+            if (jd != nullptr)
             {
                 jd->printItemsIndent(indent + 1, false);
             }
@@ -514,76 +483,46 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 JSONDict::JSONDict()
     : JSON(false)
 {
-    items = new LinkedList<Item>();
+    items = LinkedList<Item>();
 }
 
 JSONDict::~JSONDict()
-{
-    delete items;
-}
+{}
 
 uint64_t JSONDict::getSize()
 {
-    if (items == NULL)
-    {
-        return 0;
-    }
-    return items->getSize();
+    return items.getSize();
 }
 
 void JSONDict::addItem(Item *item)
 {
-    if (item != NULL)
+    if (item != nullptr)
     {
         // If an item with the same key already exists we don't add the item
-        if (!keyExists(item->getKey()))
+        if (getItem(item->getKey()) == nullptr)
         {
-            items->add(item);
+            items.add(item);
         }
     }
 }
 
-LinkedList<Item> *JSONDict::getItems()
+Item **JSONDict::getItems()
 {
-    return items;
-}
-
-bool JSONDict::keyExists(string key)
-{
-    uint64_t size = getSize();
-    for (size_t i = 0; i < size; ++i)
-    {
-        Item *it = items->get(i);
-        if (it == NULL)
-        {
-            continue;
-        }
-
-        if (stringsEqual(key, it->getKey()))
-        {
-            return true;
-        }
-    }
-    return false;
+    return items.getAsArray();
 }
 
 Item *JSONDict::getItem(string key)
 {
     uint64_t size = getSize();
-    for (size_t i = 0; i < size; ++i)
+    for (uint64_t i = 0; i < size; ++i)
     {
-        Item *it = items->get(i);
-        if (it == NULL)
-        {
-            continue;
-        }
-
-        if (stringsEqual(key, it->getKey()))
+        Item *it = items.get(i);
+        if (it != nullptr && stringsEqual(key, it->getKey()))
         {
             return it;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void JSONDict::printItems()
@@ -595,7 +534,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
     char *tabs = new char[indent]();
-    if (tabs == NULL)
+    if (tabs == nullptr)
     {
         return;
     }
@@ -621,8 +560,8 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 
     for (uint64_t i = 0; i < size; ++i)
     {
-        Item *it = items->get(i);
-        if (it == NULL)
+        Item *it = items.get(i);
+        if (it == nullptr)
         {
             continue;
         }
@@ -630,7 +569,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
         if (IS_ARR(it))
         {
             JSONArray *value = ((ArrayItem *)it)->getValue();
-            if (value != NULL)
+            if (value != nullptr)
             {
                 cout << "\t" << tabs;
                 it->printKey();
@@ -640,7 +579,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
         else if (IS_DICT(it))
         {
             JSONDict *value = ((DictItem *)it)->getValue();
-            if (value != NULL)
+            if (value != nullptr)
             {
                 cout << "\t" << tabs;
                 it->printKey();
