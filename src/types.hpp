@@ -6,8 +6,6 @@
 *******************************************************************************/
 #include <string>
 
-using namespace std;
-
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
 *******************************************************************************/
@@ -65,13 +63,13 @@ public:
 class Item : public TypedValue
 {
 private:
-    string key;
+    std::string key;
 
 public:
-    Item(string key, unsigned char type);
+    Item(std::string key, unsigned char type);
     virtual ~Item() = default;
 
-    string getKey();
+    std::string getKey();
 
     void printKey();
 };

@@ -12,13 +12,13 @@ int main(int argc, char *argv[])
 
     printf("%s\n", argv[1]);
 
-    /*JSON *j = parse(argv[1]);
+    JSON *j = parse(argv[1]);
     if (j == NULL)
     {
         return 1;
     }
 
-    if (IS_JSON_ARRAY(j))
+    /*if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -27,10 +27,10 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-    }
-    delete j;*/
+    }*/
+    delete j;
 
-    LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
+    /*LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
     for (int i = 0; i < 100; ++i)
     {
         ll->add(new IntTypedValue(i));
@@ -52,6 +52,9 @@ int main(int argc, char *argv[])
         t->print();
     }
     printf("\n%lu\n", ll->getNbLinks());
-    delete ll;
+    delete ll;*/
+
+    // cout << boolalpha;
+    // cout << (FastCompString("Testing", 7) == FastCompString("T", 1)) << endl;
     return 0;
 }

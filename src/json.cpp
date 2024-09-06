@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#include "custom_string.hpp"
+
 using namespace std;
 
 /*******************************************************************************
@@ -16,12 +18,12 @@ using namespace std;
 /**************************************
 **            STRING VALUE           **
 **************************************/
-StringTypedValue::StringTypedValue(string value)
+StringTypedValue::StringTypedValue(std::string value)
     : TypedValue(T_STR)
     , value(value)
 {}
 
-string StringTypedValue::getValue()
+std::string StringTypedValue::getValue()
 {
     return value;
 }
@@ -196,12 +198,12 @@ void DictTypedValue::print()
 /**************************************
 **            STRING ITEM            **
 **************************************/
-StringItem::StringItem(string key, string value)
+StringItem::StringItem(string key, std::string value)
     : Item(key, T_STR)
     , value(value)
 {}
 
-string StringItem::getValue()
+std::string StringItem::getValue()
 {
     return value;
 }
@@ -533,13 +535,36 @@ void JSONDict::addItem(Item *item)
 {
     if (item != NULL)
     {
-        items->add(item);
+        // If an item with the same key already exists we don't add the item
+        if (!keyExists(item->getKey()))
+        {
+            items->add(item);
+        }
     }
 }
 
 LinkedList<Item> *JSONDict::getItems()
 {
     return items;
+}
+
+bool JSONDict::keyExists(string key)
+{
+    uint64_t size = getSize();
+    for (size_t i = 0; i < size; ++i)
+    {
+        Item *it = items->get(i);
+        if (it == NULL)
+        {
+            continue;
+        }
+
+        if (stringsEqual(key, it->getKey()))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 Item *JSONDict::getItem(string key)
@@ -553,7 +578,7 @@ Item *JSONDict::getItem(string key)
             continue;
         }
 
-        if (key.compare(it->getKey()) == 0)
+        if (stringsEqual(key, it->getKey()))
         {
             return it;
         }

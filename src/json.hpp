@@ -9,8 +9,6 @@
 #include "linked_lists.hpp"
 #include "types.hpp"
 
-using namespace std;
-
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
 *******************************************************************************/
@@ -93,7 +91,8 @@ public:
 
     uint64_t getSize();
     LinkedList<Item> *getItems();
-    Item *getItem(string key);
+    Item *getItem(std::string key);
+    bool keyExists(std::string key);
 
     void addItem(Item *item);
     void printItems();
@@ -106,14 +105,14 @@ public:
 class StringTypedValue : public TypedValue
 {
 private:
-    string value;
+    std::string value;
 
 public:
-    StringTypedValue(string value);
+    StringTypedValue(std::string value);
 
     void printNoFlush();
     void print();
-    string getValue();
+    std::string getValue();
 };
 
 class IntTypedValue : public TypedValue
@@ -198,14 +197,14 @@ public:
 class StringItem : public Item
 {
 private:
-    string value;
+    std::string value;
 
 public:
-    StringItem(string key, string value);
+    StringItem(std::string key, std::string value);
 
     void printNoFlush();
     void print();
-    string getValue();
+    std::string getValue();
 };
 
 class IntItem : public Item
@@ -214,7 +213,7 @@ private:
     int64_t value;
 
 public:
-    IntItem(string key, int64_t value);
+    IntItem(std::string key, int64_t value);
 
     void printNoFlush();
     void print();
@@ -227,7 +226,7 @@ private:
     double value;
 
 public:
-    DoubleItem(string key, double value);
+    DoubleItem(std::string key, double value);
 
     void printNoFlush();
     void print();
@@ -240,7 +239,7 @@ private:
     bool value;
 
 public:
-    BoolItem(string key, bool value);
+    BoolItem(std::string key, bool value);
 
     void printNoFlush();
     void print();
@@ -250,7 +249,7 @@ public:
 class NullItem : public Item
 {
 public:
-    NullItem(string key);
+    NullItem(std::string key);
 
     void printNoFlush();
     void print();
@@ -262,7 +261,7 @@ private:
     JSONArray *ja;
 
 public:
-    ArrayItem(string key, JSONArray *ja_arg);
+    ArrayItem(std::string key, JSONArray *ja_arg);
     virtual ~ArrayItem();
 
     void printNoFlush();
@@ -276,7 +275,7 @@ private:
     JSONDict *jd;
 
 public:
-    DictItem(string key, JSONDict *jd_arg);
+    DictItem(std::string key, JSONDict *jd_arg);
     virtual ~DictItem();
 
     void printNoFlush();
