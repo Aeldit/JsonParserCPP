@@ -183,12 +183,6 @@ void StringItem::printNoFlush()
     cout << "\"" << value << "\"";
 }
 
-void StringItem::print()
-{
-    printNoFlush();
-    cout.flush();
-}
-
 /**************************************
 **             INT ITEM              **
 **************************************/
@@ -206,12 +200,6 @@ void IntItem::printNoFlush()
 {
     printKey();
     cout << value;
-}
-
-void IntItem::print()
-{
-    printNoFlush();
-    cout.flush();
 }
 
 /**************************************
@@ -233,12 +221,6 @@ void DoubleItem::printNoFlush()
     cout << setprecision(16) << value;
 }
 
-void DoubleItem::print()
-{
-    printNoFlush();
-    cout.flush();
-}
-
 /**************************************
 **             BOOL ITEM             **
 **************************************/
@@ -258,12 +240,6 @@ void BoolItem::printNoFlush()
     cout << (value ? "true" : "false");
 }
 
-void BoolItem::print()
-{
-    printNoFlush();
-    cout.flush();
-}
-
 /**************************************
 **             NULL ITEM             **
 **************************************/
@@ -275,12 +251,6 @@ void NullItem::printNoFlush()
 {
     printKey();
     cout << "null";
-}
-
-void NullItem::print()
-{
-    printNoFlush();
-    cout.flush();
 }
 
 /**************************************

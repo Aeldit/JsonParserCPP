@@ -197,7 +197,6 @@ public:
     StringItem(std::string key, std::string value);
 
     void printNoFlush();
-    void print();
     std::string getValue();
 };
 
@@ -210,7 +209,6 @@ public:
     IntItem(std::string key, int64_t value);
 
     void printNoFlush();
-    void print();
     int64_t getValue();
 };
 
@@ -223,7 +221,6 @@ public:
     DoubleItem(std::string key, double value);
 
     void printNoFlush();
-    void print();
     double getValue();
 };
 
@@ -236,7 +233,6 @@ public:
     BoolItem(std::string key, bool value);
 
     void printNoFlush();
-    void print();
     bool getValue();
 };
 
@@ -246,7 +242,6 @@ public:
     NullItem(std::string key);
 
     void printNoFlush();
-    void print();
 };
 
 class ArrayItem : public Item

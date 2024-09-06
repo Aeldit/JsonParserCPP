@@ -111,6 +111,7 @@ public:
         return size;
     }
 
+#ifdef DEBUG
     uint64_t getNbLinks()
     {
         if (head == nullptr)
@@ -126,6 +127,7 @@ public:
         }
         return nb_links;
     }
+#endif
 
     /**
     ** \brief Iterates over the arrays in the linked list and increments the
