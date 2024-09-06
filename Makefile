@@ -20,3 +20,7 @@ clean:
 valgrind:
 	valgrind --tool=callgrind --dump-instr=yes \
 		--simulate-cache=yes --collect-jumps=yes ./json-parser big.json
+
+leaks: json-parser
+	valgrind --leak-check=full --show-leak-kinds=all \
+         --track-origins=yes ./json-parser r.json
