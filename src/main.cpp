@@ -1,7 +1,4 @@
-#include <iostream>
-
 #include "json.hpp"
-#include "linked_lists.hpp"
 #include "parser.hpp"
 
 using namespace std;
@@ -13,8 +10,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    printf("%s\n", argv[1]);
+
     JSON *j = parse(argv[1]);
-    /*if (j->isArray())
+    if (j == nullptr)
+    {
+        return 1;
+    }
+
+    if (IS_JSON_ARRAY(j))
     {
         JSONArray *ja = (JSONArray *)j;
         ja->printValues();
@@ -23,27 +27,34 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-
-        Item *i = jd->getItem("arr");
-        if (i->isArray())
-        {
-            TypedValue *ai = ((ArrayItem *)i)->getValue()->getValueAt(0);
-            if (ai->isString())
-            {
-                ai->print();
-            }
-        }
-    }*/
+    }
     delete j;
 
-    LinkedList<Item *> *ll = new LinkedList<Item *>();
-    ll->add(new IntItem("key", 45));
-    ll->add(new BoolItem("k", false));
-    ll->add(new DoubleItem("d", 0.5));
-    ll->add(new IntItem("k", 1));
-    ll->add(new StringItem("e", "my_string"));
-    ll->add(new IntItem("y", 3));
-    ll->print();
-    delete ll;
+    /*LinkedList<TypedValue> *ll = new LinkedList<TypedValue>();
+    for (int i = 0; i < 100; ++i)
+    {
+        ll->add(new IntTypedValue(i));
+    }
+
+    printf("size = %lu\n", ll->getSize());
+    printf("nb links = %lu\n", ll->getNbLinks());
+
+    ll->remove(5);
+    for (int i = 0; i < 16; ++i)
+    {
+        ll->remove(1);
+    }
+    printf("size = %lu\n", ll->getSize());
+
+    TypedValue *t = ll->get(1);
+    if (t != NULL)
+    {
+        t->print();
+    }
+    printf("\n%lu\n", ll->getNbLinks());
+    delete ll;*/
+
+    // cout << boolalpha;
+    // cout << (FastCompString("Testing", 7) == FastCompString("T", 1)) << endl;
     return 0;
 }

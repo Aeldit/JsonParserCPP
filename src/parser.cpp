@@ -4,11 +4,11 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cmath>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
 
 #include "json.hpp"
+
+using namespace std;
 
 /*******************************************************************************
 **                                 STRUCTURES                                 **
@@ -64,7 +64,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 */
 string parse_string(FILE *f, uint64_t *pos)
 {
-    if (f == NULL || pos == NULL)
+    if (f == nullptr || pos == nullptr)
     {
         return string();
     }
@@ -92,7 +92,7 @@ string parse_string(FILE *f, uint64_t *pos)
     }
 
     char *str = new char[len + 1]();
-    if (str == NULL)
+    if (str == nullptr)
     {
         return string();
     }
@@ -106,7 +106,7 @@ string parse_string(FILE *f, uint64_t *pos)
         str[i] = fgetc(f);
     }
     ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    string fstr(str); // Converts from 'char *' to 'string'
+    string fstr(str);
     delete[] str;
     return fstr;
 }
@@ -123,7 +123,7 @@ int64_t str_to_long(StrAndLenTuple *sl)
 {
     char *str = sl->str;
     uint64_t len = sl->len;
-    if (str == NULL || len == 0)
+    if (str == nullptr || len == 0)
     {
         return 0;
     }
@@ -166,7 +166,7 @@ double str_to_double(StrAndLenTuple *sl)
 {
     char *str = sl->str;
     uint64_t len = sl->len;
-    if (str == NULL || len == 0)
+    if (str == nullptr || len == 0)
     {
         return 0;
     }
@@ -214,7 +214,7 @@ double str_to_double(StrAndLenTuple *sl)
 
 bool is_float(char *str, uint64_t len)
 {
-    if (str == NULL)
+    if (str == nullptr)
     {
         return false;
     }
@@ -231,7 +231,7 @@ bool is_float(char *str, uint64_t len)
 
 bool has_exponent(char *str, uint64_t len)
 {
-    if (str == NULL)
+    if (str == nullptr)
     {
         return false;
     }
@@ -257,9 +257,9 @@ bool has_exponent(char *str, uint64_t len)
 */
 StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 {
-    if (f == NULL || pos == NULL)
+    if (f == nullptr || pos == nullptr)
     {
-        return StrAndLenTuple(NULL, 0, false, false);
+        return StrAndLenTuple(nullptr, 0, false, false);
     }
 
     // Because we already read the first digit (or sign)
@@ -269,7 +269,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     uint64_t size = (*pos);
     if (fseek(f, size++, SEEK_SET) != 0)
     {
-        return StrAndLenTuple(NULL, 0, false, false);
+        return StrAndLenTuple(nullptr, 0, false, false);
     }
 
     char c = '\0';
@@ -288,14 +288,14 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     uint64_t len = size - (*pos) - 1;
     if (len == 0)
     {
-        return StrAndLenTuple(NULL, 0, false, false);
+        return StrAndLenTuple(nullptr, 0, false, false);
     }
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
-    if (str == NULL)
+    if (str == nullptr)
     {
-        return StrAndLenTuple(NULL, 0, false, false);
+        return StrAndLenTuple(nullptr, 0, false, false);
     }
 
     for (uint64_t i = 0; i < len; ++i)
@@ -314,7 +314,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 **/
 uint64_t parse_boolean(FILE *f, uint64_t *pos)
 {
-    if (f == NULL || pos == NULL)
+    if (f == nullptr || pos == nullptr)
     {
         return 0;
     }
@@ -353,7 +353,7 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
 */
 uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 {
-    if (f == NULL)
+    if (f == nullptr)
     {
         return 0;
     }
@@ -405,7 +405,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
                 // Empty array
                 if (is_in_array == 1 && prev_c == '\0')
                 {
-                    break;
+                    return 0;
                 }
                 --is_in_array;
             }
@@ -454,15 +454,15 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 */
 JSONArray *parse_array(FILE *f, uint64_t *pos)
 {
-    if (f == NULL || pos == NULL)
+    if (f == nullptr || pos == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     uint64_t nb_elts = get_nb_elts_array(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
-    JSONArray *ja = new JSONArray(nb_elts);
+    JSONArray *ja = new JSONArray();
     if (nb_elts == 0)
     {
         return ja;
@@ -470,33 +470,35 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
-        return NULL;
+        return nullptr;
     }
 
     char c = '\0';
-    while ((c = fgetc(f)) != EOF)
+    while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
     {
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            ja->add(new StringTypedValue(parse_string(f, pos)));
+            ja->addValue(new StringTypedValue(parse_string(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
         {
             StrAndLenTuple sl = parse_number(f, pos);
-            if (sl.str == NULL)
+            if (sl.str == nullptr)
             {
                 continue;
             }
 
             if (sl.is_float)
             {
-                ja->add(new DoubleTypedValue(str_to_double(&sl)));
+                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
             }
             else
             {
-                ja->add(new IntTypedValue(str_to_long(&sl)));
+                ja->addValue(new IntTypedValue(str_to_long(&sl)));
             }
+            ++nb_elts_parsed;
         }
         else if (IS_BOOL_START(c))
         {
@@ -505,29 +507,24 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
             {
                 continue;
             }
-            ja->add(new BoolTypedValue(len == 4 ? true : false));
+            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
-            ja->add(new NullTypedValue());
+            ja->addValue(new NullTypedValue());
             (*pos) += 3;
+            ++nb_elts_parsed;
         }
         else if (c == '[')
         {
-            ja->add(new ArrayTypedValue(parse_array(f, pos)));
+            ja->addValue(new ArrayTypedValue(parse_array(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == '{')
         {
-            ja->add(new DictTypedValue(parse_json_dict(f, pos)));
-        }
-        else if (c == ',')
-        {
+            ja->addValue(new DictTypedValue(parse_json_dict(f, pos)));
             ++nb_elts_parsed;
-        }
-
-        if (nb_elts_parsed >= nb_elts)
-        {
-            break;
         }
 
         if (fseek(f, (*pos)++, SEEK_SET) != 0)
@@ -547,7 +544,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 */
 uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 {
-    if (f == NULL)
+    if (f == nullptr)
     {
         return 0;
     }
@@ -626,25 +623,25 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 */
 JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 {
-    if (f == NULL || pos == NULL)
+    if (f == nullptr || pos == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     string key = string();
     uint64_t nb_elts = get_nb_elts_dict(f, *pos);
     uint64_t nb_elts_parsed = 0;
 
-    JSONDict *jd = new JSONDict(nb_elts);
+    JSONDict *jd = new JSONDict();
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
-        return NULL;
+        return nullptr;
     }
 
     char c = '\0';
     char is_waiting_key = 1;
-    while ((c = fgetc(f)) != EOF)
+    while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
     {
         if (c == '"')
         {
@@ -656,12 +653,13 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             else
             {
                 jd->addItem(new StringItem(key, parse_string(f, pos)));
+                ++nb_elts_parsed;
             }
         }
         else if (IS_NUMBER_START(c))
         {
             StrAndLenTuple sl = parse_number(f, pos);
-            if (sl.str == NULL)
+            if (sl.str == nullptr)
             {
                 continue;
             }
@@ -674,6 +672,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             {
                 jd->addItem(new IntItem(key, str_to_long(&sl)));
             }
+            ++nb_elts_parsed;
         }
         else if (IS_BOOL_START(c))
         {
@@ -683,29 +682,27 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
                 continue;
             }
             jd->addItem(new BoolItem(key, len == 4 ? true : false));
+            ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
             jd->addItem(new NullItem(key));
             (*pos) += 3;
+            ++nb_elts_parsed;
         }
         else if (c == '[')
         {
             jd->addItem(new ArrayItem(key, parse_array(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == '{')
         {
             jd->addItem(new DictItem(key, parse_json_dict(f, pos)));
+            ++nb_elts_parsed;
         }
         else if (c == ',')
         {
             is_waiting_key = 1;
-            ++nb_elts_parsed;
-        }
-
-        if (nb_elts_parsed >= nb_elts)
-        {
-            break;
         }
 
         if (fseek(f, (*pos)++, SEEK_SET) != 0)
@@ -723,26 +720,26 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 JSON *parse(char *file)
 {
     FILE *f = fopen(file, "r");
-    if (f == NULL)
+    if (f == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     uint64_t offset = 0;
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
         fclose(f);
-        return NULL;
+        return nullptr;
     }
 
     char c = fgetc(f);
     if (c == '{')
     {
         JSONDict *jd = parse_json_dict(f, &offset);
-        if (jd == NULL)
+        fclose(f);
+        if (jd == nullptr)
         {
-            fclose(f);
-            return NULL;
+            return nullptr;
         }
         return jd;
     }
@@ -750,14 +747,14 @@ JSON *parse(char *file)
     {
         // TODO: Fix parsing when dicts without keys are inside an array
         JSONArray *ja = parse_array(f, &offset);
-        if (ja == NULL)
+        fclose(f);
+        if (ja == nullptr)
         {
-            fclose(f);
-            return NULL;
+            return nullptr;
         }
         return ja;
     }
 
     fclose(f);
-    return NULL;
+    return nullptr;
 }

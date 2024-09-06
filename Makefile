@@ -3,21 +3,23 @@
 CC=g++
 CFILES=src/main.cpp \
 	src/json.cpp \
-	src/parser.cpp
+	src/parser.cpp \
+	src/types.cpp
 
-OBJS=${CFILES:.c=.o}
-
-all: json-parser
+all: clean json-parser
 	./json-parser r.json
 
 .PHONY:
-json-parser: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o json-parser
-
-lib:
-	$(CC) $(CFLAGS) -c $(CFILES) -fpic
-	$(CC) $(CFLAGS) *.o -shared -o libjson-parser.so
-	rm *.o
+json-parser:
+	$(CC) $(CFLAGS) $(CFILES) -o json-parser
 
 clean:
-	rm json-parser
+	if [ -f "json-parser" ]; then rm json-parser; fi
+
+valgrind:
+	valgrind --tool=callgrind --dump-instr=yes \
+		--simulate-cache=yes --collect-jumps=yes ./json-parser big.json
+
+leaks: json-parser
+	valgrind --leak-check=full --show-leak-kinds=all \
+         --track-origins=yes ./json-parser r.json

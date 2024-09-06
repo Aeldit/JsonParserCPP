@@ -7,62 +7,39 @@
 #include <iostream>
 #include <string>
 
-#include "types.h"
-
 using namespace std;
+
+/*******************************************************************************
+**                               LOCAL FUNCTIONS                              **
+*******************************************************************************/
+bool stringsEqual(string a, string b)
+{
+    if (a.length() != b.length())
+    {
+        return false;
+    }
+
+    uint64_t len = a.length();
+    const char *a_str = a.c_str();
+    const char *b_str = b.c_str();
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        if (a_str[i] != b_str[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 /*******************************************************************************
 **                                   VALUES                                   **
 *******************************************************************************/
-TypedValue::TypedValue(unsigned char type)
-    : type(type)
-{}
-
-unsigned char TypedValue::getType()
-{
-    return type;
-}
-
-bool TypedValue::isString()
-{
-    return type == TYPE_STR;
-}
-
-bool TypedValue::isInt()
-{
-    return type == TYPE_NUM;
-}
-
-bool TypedValue::isDouble()
-{
-    return type == TYPE_DOUBLE;
-}
-
-bool TypedValue::isBool()
-{
-    return type == TYPE_BOOL;
-}
-
-bool TypedValue::isNull()
-{
-    return type == TYPE_NULL;
-}
-
-bool TypedValue::isArray()
-{
-    return type == TYPE_ARR;
-}
-
-bool TypedValue::isDict()
-{
-    return type == TYPE_DICT;
-}
-
 /**************************************
 **            STRING VALUE           **
 **************************************/
 StringTypedValue::StringTypedValue(string value)
-    : TypedValue(TYPE_STR)
+    : TypedValue(T_STR)
     , value(value)
 {}
 
@@ -76,16 +53,11 @@ void StringTypedValue::printNoFlush()
     cout << "\"" << value << "\"";
 }
 
-void StringTypedValue::print()
-{
-    cout << "\"" << value << "\"" << endl;
-}
-
 /**************************************
 **             INT VALUE             **
 **************************************/
 IntTypedValue::IntTypedValue(int64_t value)
-    : TypedValue(TYPE_NUM)
+    : TypedValue(T_INT)
     , value(value)
 {}
 
@@ -99,16 +71,11 @@ void IntTypedValue::printNoFlush()
     cout << value;
 }
 
-void IntTypedValue::print()
-{
-    cout << value << endl;
-}
-
 /**************************************
 **           DOUBLE VALUE            **
 **************************************/
 DoubleTypedValue::DoubleTypedValue(double value)
-    : TypedValue(TYPE_DOUBLE)
+    : TypedValue(T_DOUBLE)
     , value(value)
 {}
 
@@ -122,16 +89,11 @@ void DoubleTypedValue::printNoFlush()
     cout << setprecision(16) << value;
 }
 
-void DoubleTypedValue::print()
-{
-    cout << setprecision(16) << value << endl;
-}
-
 /**************************************
 **             BOOL VALUE            **
 **************************************/
 BoolTypedValue::BoolTypedValue(bool value)
-    : TypedValue(TYPE_BOOL)
+    : TypedValue(T_BOOL)
     , value(value)
 {}
 
@@ -145,16 +107,11 @@ void BoolTypedValue::printNoFlush()
     cout << (value ? "true" : "false");
 }
 
-void BoolTypedValue::print()
-{
-    cout << (value ? "true" : "false") << endl;
-}
-
 /**************************************
 **             NULL VALUE            **
 **************************************/
 NullTypedValue::NullTypedValue()
-    : TypedValue(TYPE_NULL)
+    : TypedValue(T_NULL)
 {}
 
 void NullTypedValue::printNoFlush()
@@ -162,16 +119,11 @@ void NullTypedValue::printNoFlush()
     cout << "null";
 }
 
-void NullTypedValue::print()
-{
-    cout << "null" << endl;
-}
-
 /**************************************
 **            ARRAY VALUE            **
 **************************************/
 ArrayTypedValue::ArrayTypedValue(JSONArray *ja_arg)
-    : TypedValue(TYPE_ARR)
+    : TypedValue(T_ARR)
     , ja(ja_arg)
 {}
 
@@ -192,7 +144,7 @@ void ArrayTypedValue::printNoFlush()
 
 void ArrayTypedValue::print()
 {
-    if (ja != NULL)
+    if (ja != nullptr)
     {
         ja->printValues();
     }
@@ -202,7 +154,7 @@ void ArrayTypedValue::print()
 **            DICT VALUE             **
 **************************************/
 DictTypedValue::DictTypedValue(JSONDict *jd_arg)
-    : TypedValue(TYPE_DICT)
+    : TypedValue(T_DICT)
     , jd(jd_arg)
 {}
 
@@ -223,7 +175,7 @@ void DictTypedValue::printNoFlush()
 
 void DictTypedValue::print()
 {
-    if (jd != NULL)
+    if (jd != nullptr)
     {
         jd->printItems();
     }
@@ -232,27 +184,12 @@ void DictTypedValue::print()
 /*******************************************************************************
 **                                   ITEMS                                    **
 *******************************************************************************/
-Item::Item(string key, unsigned char type)
-    : TypedValue(type)
-    , key(key)
-{}
-
-string Item::getKey()
-{
-    return key;
-}
-
-void Item::printKey()
-{
-    cout << "\"" << key << "\""
-         << ": ";
-}
 
 /**************************************
 **            STRING ITEM            **
 **************************************/
 StringItem::StringItem(string key, string value)
-    : Item(key, TYPE_STR)
+    : Item(key, T_STR)
     , value(value)
 {}
 
@@ -267,17 +204,11 @@ void StringItem::printNoFlush()
     cout << "\"" << value << "\"";
 }
 
-void StringItem::print()
-{
-    printKey();
-    cout << "\"" << value << "\"" << endl;
-}
-
 /**************************************
 **             INT ITEM              **
 **************************************/
 IntItem::IntItem(string key, int64_t value)
-    : Item(key, TYPE_NUM)
+    : Item(key, T_INT)
     , value(value)
 {}
 
@@ -292,17 +223,11 @@ void IntItem::printNoFlush()
     cout << value;
 }
 
-void IntItem::print()
-{
-    printKey();
-    cout << value << endl;
-}
-
 /**************************************
 **           DOUBLE ITEM             **
 **************************************/
 DoubleItem::DoubleItem(string key, double value)
-    : Item(key, TYPE_DOUBLE)
+    : Item(key, T_DOUBLE)
     , value(value)
 {}
 
@@ -317,17 +242,11 @@ void DoubleItem::printNoFlush()
     cout << setprecision(16) << value;
 }
 
-void DoubleItem::print()
-{
-    printKey();
-    cout << setprecision(16) << value << endl;
-}
-
 /**************************************
 **             BOOL ITEM             **
 **************************************/
 BoolItem::BoolItem(string key, bool value)
-    : Item(key, TYPE_BOOL)
+    : Item(key, T_BOOL)
     , value(value)
 {}
 
@@ -342,17 +261,11 @@ void BoolItem::printNoFlush()
     cout << (value ? "true" : "false");
 }
 
-void BoolItem::print()
-{
-    printKey();
-    cout << (value ? "true" : "false") << endl;
-}
-
 /**************************************
 **             NULL ITEM             **
 **************************************/
 NullItem::NullItem(string key)
-    : Item(key, TYPE_NULL)
+    : Item(key, T_NULL)
 {}
 
 void NullItem::printNoFlush()
@@ -361,17 +274,11 @@ void NullItem::printNoFlush()
     cout << "null";
 }
 
-void NullItem::print()
-{
-    printKey();
-    cout << "null" << endl;
-}
-
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
 ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
-    : Item(key, TYPE_ARR)
+    : Item(key, T_ARR)
     , ja(ja_arg)
 {}
 
@@ -392,7 +299,7 @@ void ArrayItem::printNoFlush()
 
 void ArrayItem::print()
 {
-    if (ja != NULL)
+    if (ja != nullptr)
     {
         ja->printValues();
     }
@@ -402,7 +309,7 @@ void ArrayItem::print()
 **             DICT ITEM             **
 **************************************/
 DictItem::DictItem(string key, JSONDict *jd_arg)
-    : Item(key, TYPE_DICT)
+    : Item(key, T_DICT)
     , jd(jd_arg)
 {}
 
@@ -423,7 +330,7 @@ void DictItem::printNoFlush()
 
 void DictItem::print()
 {
-    if (jd != NULL)
+    if (jd != nullptr)
     {
         jd->printItems();
     }
@@ -444,61 +351,36 @@ bool JSON::isArray()
 /**************************************
 **              ARRAY                **
 **************************************/
-JSONArray::JSONArray(size_t size)
+JSONArray::JSONArray()
     : JSON(true)
-    , size(size)
 {
-#ifdef DEBUG
-    cout << "Initializing array of " << size << " values" << endl;
-#endif
-    values = new TypedValue *[size]();
+    values = LinkedList<TypedValue>();
 }
 
 JSONArray::~JSONArray()
-{
-    if (values == NULL)
-    {
-        return;
-    }
+{}
 
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (values[i] == NULL)
-        {
-            continue;
-        }
-        delete values[i];
-    }
-    delete[] values;
+uint64_t JSONArray::getSize()
+{
+    return values.getSize();
 }
 
-size_t JSONArray::getSize()
+void JSONArray::addValue(TypedValue *value)
 {
-    return size;
+    if (value != nullptr)
+    {
+        values.add(value);
+    }
 }
 
 TypedValue **JSONArray::getValues()
 {
-    return values;
+    return values.getAsArray();
 }
 
-TypedValue *JSONArray::getValueAt(size_t index)
+TypedValue *JSONArray::getValueAt(uint64_t index)
 {
-    if (values == NULL || index >= size)
-    {
-        return NULL;
-    }
-    return values[index];
-}
-
-void JSONArray::add(TypedValue *value)
-{
-    if (values == NULL || value == NULL || insert_idx >= size)
-    {
-        return;
-    }
-
-    values[insert_idx++] = value;
+    return values.get(index);
 }
 
 void JSONArray::printValues()
@@ -510,7 +392,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
     char *tabs = new char[indent]();
-    if (tabs == NULL)
+    if (tabs == nullptr)
     {
         return;
     }
@@ -520,8 +402,9 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
     }
     tabs[indent - 1] = '\0';
 
+    uint64_t size = getSize();
     // Empty array
-    if (values == NULL || size == 0)
+    if (size == 0)
     {
         cout << (fromDict ? "" : tabs) << "[]";
         if (indent == 1)
@@ -534,33 +417,34 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
     cout << (fromDict ? "" : tabs) << "[\n";
 
-    for (size_t i = 0; i < size; ++i)
+    for (uint64_t i = 0; i < size; ++i)
     {
-        if (values[i] == NULL)
+        TypedValue *value = values.get(i);
+        if (value == nullptr)
         {
             continue;
         }
 
-        if (values[i]->getType() == TYPE_ARR)
+        if (IS_ARR(value))
         {
-            JSONArray *value = ((ArrayTypedValue *)values[i])->getValue();
-            if (value != NULL)
+            JSONArray *j = ((ArrayTypedValue *)value)->getValue();
+            if (j != nullptr)
             {
-                value->printValuesIndent(indent + 1, false);
+                j->printValuesIndent(indent + 1, false);
             }
         }
-        else if (values[i]->getType() == TYPE_DICT)
+        else if (IS_DICT(value))
         {
-            JSONDict *value = ((DictTypedValue *)values[i])->getValue();
-            if (value != NULL)
+            JSONDict *jd = ((DictTypedValue *)value)->getValue();
+            if (jd != nullptr)
             {
-                value->printItemsIndent(indent + 1, false);
+                jd->printItemsIndent(indent + 1, false);
             }
         }
         else
         {
             cout << "\t" << tabs;
-            values[i]->printNoFlush();
+            value->printNoFlush();
         }
 
         if (i < size - 1)
@@ -581,74 +465,49 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 /**************************************
 **               DICT                **
 **************************************/
-JSONDict::JSONDict(size_t size)
+JSONDict::JSONDict()
     : JSON(false)
-    , size(size)
 {
-#ifdef DEBUG
-    cout << "Initializing dict of " << size << " items" << endl;
-#endif
-    items = new Item *[size]();
+    items = LinkedList<Item>();
 }
 
 JSONDict::~JSONDict()
+{}
+
+uint64_t JSONDict::getSize()
 {
-    if (items == NULL)
-    {
-        return;
-    }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (items[i] == NULL)
-        {
-            continue;
-        }
-        delete items[i];
-    }
-    delete[] items;
-}
-
-size_t JSONDict::getSize()
-{
-    return size;
-}
-
-Item **JSONDict::getItems()
-{
-    return items;
-}
-
-Item *JSONDict::getItem(string key)
-{
-    if (items == NULL)
-    {
-        return NULL;
-    }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (items[i] == NULL)
-        {
-            continue;
-        }
-
-        if (key.compare(items[i]->getKey()) == 0)
-        {
-            return items[i];
-        }
-    }
-    return NULL;
+    return items.getSize();
 }
 
 void JSONDict::addItem(Item *item)
 {
-    if (items == NULL || item == NULL || insert_idx >= size)
+    if (item != nullptr)
     {
-        return;
+        // If an item with the same key already exists we don't add the item
+        if (getItem(item->getKey()) == nullptr)
+        {
+            items.add(item);
+        }
     }
+}
 
-    items[insert_idx++] = item;
+Item **JSONDict::getItems()
+{
+    return items.getAsArray();
+}
+
+Item *JSONDict::getItem(string key)
+{
+    uint64_t size = getSize();
+    for (uint64_t i = 0; i < size; ++i)
+    {
+        Item *it = items.get(i);
+        if (it != nullptr && stringsEqual(key, it->getKey()))
+        {
+            return it;
+        }
+    }
+    return nullptr;
 }
 
 void JSONDict::printItems()
@@ -660,7 +519,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 {
     // Obtains the number of tab characters that will be printed
     char *tabs = new char[indent]();
-    if (tabs == NULL)
+    if (tabs == nullptr)
     {
         return;
     }
@@ -670,7 +529,8 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
     }
     tabs[indent - 1] = '\0';
 
-    if (items == NULL || size == 0)
+    uint64_t size = getSize();
+    if (size == 0)
     {
         cout << (fromDict ? "" : tabs) << "{}";
         if (indent == 1)
@@ -683,37 +543,38 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 
     cout << (fromDict ? "" : tabs) << "{\n";
 
-    for (size_t i = 0; i < size; ++i)
+    for (uint64_t i = 0; i < size; ++i)
     {
-        if (items[i] == NULL)
+        Item *it = items.get(i);
+        if (it == nullptr)
         {
             continue;
         }
 
-        if (items[i]->getType() == TYPE_ARR)
+        if (IS_ARR(it))
         {
-            JSONArray *value = ((ArrayItem *)items[i])->getValue();
-            if (value != NULL)
+            JSONArray *value = ((ArrayItem *)it)->getValue();
+            if (value != nullptr)
             {
                 cout << "\t" << tabs;
-                items[i]->printKey();
+                it->printKey();
                 value->printValuesIndent(indent + 1, true);
             }
         }
-        else if (items[i]->getType() == TYPE_DICT)
+        else if (IS_DICT(it))
         {
-            JSONDict *value = ((DictItem *)items[i])->getValue();
-            if (value != NULL)
+            JSONDict *value = ((DictItem *)it)->getValue();
+            if (value != nullptr)
             {
                 cout << "\t" << tabs;
-                items[i]->printKey();
+                it->printKey();
                 value->printItemsIndent(indent + 1, true);
             }
         }
         else
         {
             cout << "\t" << tabs;
-            items[i]->printNoFlush();
+            it->printNoFlush();
         }
 
         if (i < size - 1)

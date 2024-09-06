@@ -6,73 +6,26 @@
 *******************************************************************************/
 #include <string>
 
-using namespace std;
+#include "linked_lists.hpp"
+#include "types.hpp"
+
+/*******************************************************************************
+**                              DEFINES / MACROS                              **
+*******************************************************************************/
+#define IS_STRING(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_STR)
+#define IS_INT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_INT)
+#define IS_DOUBLE(v)                                                           \
+    (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DOUBLE)
+#define IS_BOOL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_BOOL)
+#define IS_NULL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_NULL)
+#define IS_ARR(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_ARR)
+#define IS_DICT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DICT)
+
+#define IS_JSON_ARRAY(j) (dynamic_cast<JSON *>(j) && (j)->isArray())
 
 /*******************************************************************************
 **                                   CLASSES                                  **
 *******************************************************************************/
-/**
-** \class TypedValue Base class representing a JSONArray's value
-** \brief The following classes are derived from this one :
-**        - StringTypedValue
-**        - IntTypedValue
-**        - DoubleTypedValue
-**        - BoolTypedValue
-**        - NullTypedValue
-**        - ArrayTypedValue
-**        - DictTypedValue
-** \param type The type of the value (see types.h)
-*/
-class TypedValue
-{
-private:
-    unsigned char type;
-
-public:
-    TypedValue(unsigned char type);
-    virtual ~TypedValue() = default;
-
-    unsigned char getType();
-
-    bool isString();
-    bool isInt();
-    bool isDouble();
-    bool isBool();
-    bool isNull();
-    bool isArray();
-    bool isDict();
-
-    virtual void printNoFlush() = 0;
-    virtual void print() = 0;
-};
-
-/**
-** \class Item Base class representing a JSONDict item
-** \brief The following classes are derived from this one :
-**        - StringItem
-**        - IntItem
-**        - DoubleItem
-**        - BoolItem
-**        - NullItem
-**        - ArrayItem
-**        - DictItem
-** \param key The key of the item (string)
-** \param type The type of the item's value (see types.h)
-*/
-class Item : public TypedValue
-{
-private:
-    string key;
-
-public:
-    Item(string key, unsigned char type);
-    virtual ~Item() = default;
-
-    string getKey();
-
-    void printKey();
-};
-
 /**************************************
 **               JSON                **
 **************************************/
@@ -106,19 +59,17 @@ public:
 class JSONArray : public JSON
 {
 private:
-    size_t size;
-    size_t insert_idx = 0;
-    TypedValue **values;
+    LinkedList<TypedValue> values;
 
 public:
-    JSONArray(size_t size);
-    virtual ~JSONArray();
+    JSONArray();
+    ~JSONArray();
 
-    size_t getSize();
+    uint64_t getSize();
     TypedValue **getValues();
-    TypedValue *getValueAt(size_t index);
+    TypedValue *getValueAt(uint64_t index);
 
-    void add(TypedValue *value);
+    void addValue(TypedValue *value);
     void printValues();
     void printValuesIndent(int indent, bool fromDict);
 };
@@ -126,25 +77,21 @@ public:
 /**
 ** \class JSONDict
 ** \implements JSON
-** \param size The number of items inside the dict
-** \param insert_idx The index where the next item will be added
 ** \param items An array of Items pointers (only contains objects of
-**               classes that are derived from the Item class)
+**              classes that are derived from the Item class)
 */
 class JSONDict : public JSON
 {
 private:
-    size_t size;
-    size_t insert_idx = 0;
-    Item **items;
+    LinkedList<Item> items;
 
 public:
-    JSONDict(size_t size);
-    virtual ~JSONDict();
+    JSONDict();
+    ~JSONDict();
 
-    size_t getSize();
+    uint64_t getSize();
     Item **getItems();
-    Item *getItem(string key);
+    Item *getItem(std::string key);
 
     void addItem(Item *item);
     void printItems();
@@ -157,14 +104,13 @@ public:
 class StringTypedValue : public TypedValue
 {
 private:
-    string value;
+    std::string value;
 
 public:
-    StringTypedValue(string value);
+    StringTypedValue(std::string value);
 
     void printNoFlush();
-    void print();
-    string getValue();
+    std::string getValue();
 };
 
 class IntTypedValue : public TypedValue
@@ -176,7 +122,6 @@ public:
     IntTypedValue(int64_t value);
 
     void printNoFlush();
-    void print();
     int64_t getValue();
 };
 
@@ -189,7 +134,6 @@ public:
     DoubleTypedValue(double value);
 
     void printNoFlush();
-    void print();
     double getValue();
 };
 
@@ -202,7 +146,6 @@ public:
     BoolTypedValue(bool value);
 
     void printNoFlush();
-    void print();
     bool getValue();
 };
 
@@ -212,7 +155,6 @@ public:
     NullTypedValue();
 
     void printNoFlush();
-    void print();
 };
 
 class ArrayTypedValue : public TypedValue
@@ -249,14 +191,13 @@ public:
 class StringItem : public Item
 {
 private:
-    string value;
+    std::string value;
 
 public:
-    StringItem(string key, string value);
+    StringItem(std::string key, std::string value);
 
     void printNoFlush();
-    void print();
-    string getValue();
+    std::string getValue();
 };
 
 class IntItem : public Item
@@ -265,10 +206,9 @@ private:
     int64_t value;
 
 public:
-    IntItem(string key, int64_t value);
+    IntItem(std::string key, int64_t value);
 
     void printNoFlush();
-    void print();
     int64_t getValue();
 };
 
@@ -278,10 +218,9 @@ private:
     double value;
 
 public:
-    DoubleItem(string key, double value);
+    DoubleItem(std::string key, double value);
 
     void printNoFlush();
-    void print();
     double getValue();
 };
 
@@ -291,20 +230,18 @@ private:
     bool value;
 
 public:
-    BoolItem(string key, bool value);
+    BoolItem(std::string key, bool value);
 
     void printNoFlush();
-    void print();
     bool getValue();
 };
 
 class NullItem : public Item
 {
 public:
-    NullItem(string key);
+    NullItem(std::string key);
 
     void printNoFlush();
-    void print();
 };
 
 class ArrayItem : public Item
@@ -313,7 +250,7 @@ private:
     JSONArray *ja;
 
 public:
-    ArrayItem(string key, JSONArray *ja_arg);
+    ArrayItem(std::string key, JSONArray *ja_arg);
     virtual ~ArrayItem();
 
     void printNoFlush();
@@ -327,7 +264,7 @@ private:
     JSONDict *jd;
 
 public:
-    DictItem(string key, JSONDict *jd_arg);
+    DictItem(std::string key, JSONDict *jd_arg);
     virtual ~DictItem();
 
     void printNoFlush();
