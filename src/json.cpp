@@ -198,7 +198,7 @@ void DictTypedValue::print()
 /**************************************
 **            STRING ITEM            **
 **************************************/
-StringItem::StringItem(FastCompString key, std::string value)
+StringItem::StringItem(string key, std::string value)
     : Item(key, T_STR)
     , value(value)
 {}
@@ -223,7 +223,7 @@ void StringItem::print()
 /**************************************
 **             INT ITEM              **
 **************************************/
-IntItem::IntItem(FastCompString key, int64_t value)
+IntItem::IntItem(string key, int64_t value)
     : Item(key, T_INT)
     , value(value)
 {}
@@ -248,7 +248,7 @@ void IntItem::print()
 /**************************************
 **           DOUBLE ITEM             **
 **************************************/
-DoubleItem::DoubleItem(FastCompString key, double value)
+DoubleItem::DoubleItem(string key, double value)
     : Item(key, T_DOUBLE)
     , value(value)
 {}
@@ -273,7 +273,7 @@ void DoubleItem::print()
 /**************************************
 **             BOOL ITEM             **
 **************************************/
-BoolItem::BoolItem(FastCompString key, bool value)
+BoolItem::BoolItem(string key, bool value)
     : Item(key, T_BOOL)
     , value(value)
 {}
@@ -298,7 +298,7 @@ void BoolItem::print()
 /**************************************
 **             NULL ITEM             **
 **************************************/
-NullItem::NullItem(FastCompString key)
+NullItem::NullItem(string key)
     : Item(key, T_NULL)
 {}
 
@@ -317,7 +317,7 @@ void NullItem::print()
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
-ArrayItem::ArrayItem(FastCompString key, JSONArray *ja_arg)
+ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
     : Item(key, T_ARR)
     , ja(ja_arg)
 {}
@@ -348,7 +348,7 @@ void ArrayItem::print()
 /**************************************
 **             DICT ITEM             **
 **************************************/
-DictItem::DictItem(FastCompString key, JSONDict *jd_arg)
+DictItem::DictItem(string key, JSONDict *jd_arg)
     : Item(key, T_DICT)
     , jd(jd_arg)
 {}
@@ -548,7 +548,7 @@ LinkedList<Item> *JSONDict::getItems()
     return items;
 }
 
-bool JSONDict::keyExists(FastCompString key)
+bool JSONDict::keyExists(string key)
 {
     uint64_t size = getSize();
     for (size_t i = 0; i < size; ++i)
@@ -559,7 +559,7 @@ bool JSONDict::keyExists(FastCompString key)
             continue;
         }
 
-        if (key == it->getKey())
+        if (stringsEqual(key, it->getKey()))
         {
             return true;
         }
@@ -567,7 +567,7 @@ bool JSONDict::keyExists(FastCompString key)
     return false;
 }
 
-Item *JSONDict::getItem(FastCompString key)
+Item *JSONDict::getItem(string key)
 {
     uint64_t size = getSize();
     for (size_t i = 0; i < size; ++i)
@@ -578,7 +578,7 @@ Item *JSONDict::getItem(FastCompString key)
             continue;
         }
 
-        if (key == it->getKey())
+        if (stringsEqual(key, it->getKey()))
         {
             return it;
         }

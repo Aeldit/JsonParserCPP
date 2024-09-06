@@ -21,7 +21,7 @@ public:
     Link(){};
     ~Link()
     {
-        for (int i = 0; i < BASE_ARRAY_LEN; ++i)
+        for (short i = 0; i < BASE_ARRAY_LEN; ++i)
         {
             delete elts[i];
         }

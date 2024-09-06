@@ -6,7 +6,6 @@
 *******************************************************************************/
 #include <string>
 
-#include "custom_string.hpp"
 #include "linked_lists.hpp"
 #include "types.hpp"
 
@@ -92,8 +91,8 @@ public:
 
     uint64_t getSize();
     LinkedList<Item> *getItems();
-    Item *getItem(FastCompString key);
-    bool keyExists(FastCompString key);
+    Item *getItem(std::string key);
+    bool keyExists(std::string key);
 
     void addItem(Item *item);
     void printItems();
@@ -201,7 +200,7 @@ private:
     std::string value;
 
 public:
-    StringItem(FastCompString key, std::string value);
+    StringItem(std::string key, std::string value);
 
     void printNoFlush();
     void print();
@@ -214,7 +213,7 @@ private:
     int64_t value;
 
 public:
-    IntItem(FastCompString key, int64_t value);
+    IntItem(std::string key, int64_t value);
 
     void printNoFlush();
     void print();
@@ -227,7 +226,7 @@ private:
     double value;
 
 public:
-    DoubleItem(FastCompString key, double value);
+    DoubleItem(std::string key, double value);
 
     void printNoFlush();
     void print();
@@ -240,7 +239,7 @@ private:
     bool value;
 
 public:
-    BoolItem(FastCompString key, bool value);
+    BoolItem(std::string key, bool value);
 
     void printNoFlush();
     void print();
@@ -250,7 +249,7 @@ public:
 class NullItem : public Item
 {
 public:
-    NullItem(FastCompString key);
+    NullItem(std::string key);
 
     void printNoFlush();
     void print();
@@ -262,7 +261,7 @@ private:
     JSONArray *ja;
 
 public:
-    ArrayItem(FastCompString key, JSONArray *ja_arg);
+    ArrayItem(std::string key, JSONArray *ja_arg);
     virtual ~ArrayItem();
 
     void printNoFlush();
@@ -276,7 +275,7 @@ private:
     JSONDict *jd;
 
 public:
-    DictItem(FastCompString key, JSONDict *jd_arg);
+    DictItem(std::string key, JSONDict *jd_arg);
     virtual ~DictItem();
 
     void printNoFlush();

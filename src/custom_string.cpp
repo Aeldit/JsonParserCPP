@@ -1,34 +1,23 @@
 #include "custom_string.hpp"
 
-FastCompString::FastCompString(const char *s, uint64_t len)
-    : s(s)
-    , len(len)
-{}
+#include <string>
 
-bool FastCompString::operator==(FastCompString string)
+bool stringsEqual(std::string a, std::string b)
 {
-    const char *c = string.s;
-    if (s == nullptr || c == nullptr)
+    if (a.length() != b.length())
     {
         return false;
     }
 
-    if (len != string.len)
-    {
-        return false;
-    }
-
+    uint64_t len = a.length();
+    const char *a_str = a.c_str();
+    const char *b_str = b.c_str();
     for (uint64_t i = 0; i < len; ++i)
     {
-        if (s[i] != c[i])
+        if (a_str[i] != b_str[i])
         {
             return false;
         }
     }
     return true;
-}
-
-const char *FastCompString::string()
-{
-    return s;
 }

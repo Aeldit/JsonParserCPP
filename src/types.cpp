@@ -11,18 +11,18 @@ unsigned char TypedValue::getType()
     return type;
 }
 
-Item::Item(FastCompString key, unsigned char type)
+Item::Item(std::string key, unsigned char type)
     : TypedValue(type)
     , key(key)
 {}
 
-FastCompString Item::getKey()
+std::string Item::getKey()
 {
     return key;
 }
 
 void Item::printKey()
 {
-    std::cout << "\"" << key.string() << "\""
+    std::cout << "\"" << key << "\""
               << ": ";
 }
