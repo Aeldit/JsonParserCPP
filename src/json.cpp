@@ -333,39 +333,33 @@ bool JSON::isArray()
 JSONArray::JSONArray()
     : JSON(true)
 {
-    values = new LinkedList<TypedValue>();
+    values = LinkedList<TypedValue>();
 }
 
 JSONArray::~JSONArray()
-{
-    delete values;
-}
+{}
 
 uint64_t JSONArray::getSize()
 {
-    if (values == nullptr)
-    {
-        return 0;
-    }
-    return values->getSize();
+    return values.getSize();
 }
 
 void JSONArray::addValue(TypedValue *value)
 {
     if (value != nullptr)
     {
-        values->add(value);
+        values.add(value);
     }
 }
 
-LinkedList<TypedValue> *JSONArray::getValues()
+TypedValue **JSONArray::getValues()
 {
-    return values;
+    return values.getAsArray();
 }
 
 TypedValue *JSONArray::getValueAt(uint64_t index)
 {
-    return values->get(index);
+    return values.get(index);
 }
 
 void JSONArray::printValues()
@@ -404,7 +398,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
     for (uint64_t i = 0; i < size; ++i)
     {
-        TypedValue *value = values->get(i);
+        TypedValue *value = values.get(i);
         if (value == nullptr)
         {
             continue;

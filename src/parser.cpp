@@ -736,9 +736,9 @@ JSON *parse(char *file)
     if (c == '{')
     {
         JSONDict *jd = parse_json_dict(f, &offset);
+        fclose(f);
         if (jd == nullptr)
         {
-            fclose(f);
             return nullptr;
         }
         return jd;
@@ -747,9 +747,9 @@ JSON *parse(char *file)
     {
         // TODO: Fix parsing when dicts without keys are inside an array
         JSONArray *ja = parse_array(f, &offset);
+        fclose(f);
         if (ja == nullptr)
         {
-            fclose(f);
             return nullptr;
         }
         return ja;

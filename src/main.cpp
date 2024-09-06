@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
     {
         JSONDict *jd = (JSONDict *)j;
         jd->printItems();
-        jd->getItem("arr")->print();
     }
     delete j;
 

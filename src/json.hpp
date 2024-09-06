@@ -59,14 +59,14 @@ public:
 class JSONArray : public JSON
 {
 private:
-    LinkedList<TypedValue> *values;
+    LinkedList<TypedValue> values;
 
 public:
     JSONArray();
     ~JSONArray();
 
     uint64_t getSize();
-    LinkedList<TypedValue> *getValues();
+    TypedValue **getValues();
     TypedValue *getValueAt(uint64_t index);
 
     void addValue(TypedValue *value);
