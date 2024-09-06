@@ -460,7 +460,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     }
 
     uint64_t nb_elts = get_nb_elts_array(f, *pos);
-    printf("nb_elts array = %lu\n", nb_elts);
     uint64_t nb_elts_parsed = 0;
 
     JSONArray *ja = new JSONArray();
