@@ -16,10 +16,13 @@ json-parser:
 clean:
 	if [ -f "json-parser" ]; then rm json-parser; fi
 
-valgrind:
+valgrind-compile: clean
+	$(CC) $(CFLAGS) -DVALGRING_DISABLE_PRINT $(CFILES) -o json-parser
+
+valgrind: valgrind-compile
 	valgrind --tool=callgrind --dump-instr=yes \
 		--simulate-cache=yes --collect-jumps=yes ./json-parser big.json
 
-leaks: json-parser
+leaks: valgrind-compile
 	valgrind --leak-check=full --show-leak-kinds=all \
          --track-origins=yes ./json-parser r.json

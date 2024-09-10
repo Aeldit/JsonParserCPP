@@ -381,7 +381,9 @@ TypedValue *JSONArray::getValueAt(uint64_t index)
 
 void JSONArray::printValues()
 {
+#ifndef VALGRING_DISABLE_PRINT
     printValuesIndent(1, false);
+#endif
 }
 
 void JSONArray::printValuesIndent(int indent, bool fromDict)
@@ -515,7 +517,9 @@ Item *JSONDict::getItem(string key)
 
 void JSONDict::printItems()
 {
+#ifndef VALGRING_DISABLE_PRINT
     printItemsIndent(1, false);
+#endif
 }
 
 void JSONDict::printItemsIndent(int indent, bool fromDict)
