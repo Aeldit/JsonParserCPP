@@ -12,19 +12,15 @@ using namespace std;
 /*******************************************************************************
 **                               LOCAL FUNCTIONS                              **
 *******************************************************************************/
-bool stringsEqual(string a, string b)
+/**
+** \returns false if the 2 strings are different, true otherwise.
+**          This function stops as soon as a difference is found.
+*/
+bool stringsEqual(const char *a, uint64_t len, const char *b)
 {
-    if (a.length() != b.length())
-    {
-        return false;
-    }
-
-    uint64_t len = a.length();
-    const char *a_str = a.c_str();
-    const char *b_str = b.c_str();
     for (uint64_t i = 0; i < len; ++i)
     {
-        if (a_str[i] != b_str[i])
+        if (a[i] != b[i])
         {
             return false;
         }
@@ -498,13 +494,20 @@ Item **JSONDict::getItems()
 
 Item *JSONDict::getItem(string key)
 {
+    const char *k_str = key.c_str();
+    uint64_t k_len = key.length();
+
     uint64_t size = getSize();
     for (uint64_t i = 0; i < size; ++i)
     {
         Item *it = items.get(i);
-        if (it != nullptr && stringsEqual(key, it->getKey()))
+        if (it != nullptr)
         {
-            return it;
+            string k = it->getKey();
+            if (k_len == k.length() && stringsEqual(k_str, k_len, k.c_str()))
+            {
+                return it;
+            }
         }
     }
     return nullptr;
