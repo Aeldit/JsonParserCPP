@@ -298,6 +298,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
         return StrAndLenTuple(nullptr, 0, false, false);
     }
 
+    // TODO: Use fread
     for (uint64_t i = 0; i < len; ++i)
     {
         if (fseek(f, (*pos)++, SEEK_SET) != 0)
