@@ -97,15 +97,14 @@ string parse_string(FILE *f, uint64_t *pos)
         return string();
     }
 
-    for (uint64_t i = 0; i < len; ++i)
+    if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
-        if (fseek(f, (*pos)++, SEEK_SET) != 0)
-        {
-            break;
-        }
-        str[i] = fgetc(f);
+        return string();
     }
-    ++(*pos); // Because otherwise, we end up reading the last '"' of the str
+    fread(str, sizeof(char), len, f);
+
+    // ++(*pos); // Because otherwise, we end up reading the last '"' of the str
+    (*pos) += len; // (len - 1) + 1, see comment on the line above
     string fstr(str);
     delete[] str;
     return fstr;
@@ -162,6 +161,7 @@ int64_t str_to_long(StrAndLenTuple *sl)
 ** \returns The 0 in case of error (or if the number was 0), the number
 **          otherwise
 */
+// FIX: Precision error
 double str_to_double(StrAndLenTuple *sl)
 {
     char *str = sl->str;
