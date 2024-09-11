@@ -47,6 +47,9 @@ public:
 #define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
 #define IS_STRING_END(c) ((c) == 0 || ((c) == '"' && prev_c != '\\'))
 
+#define IS_NOT_BOOLEAN(c, l)                                                   \
+    ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
+
 #ifndef READ_BUFF_MAX_SIZE_OVERRIDE
 #    define READ_BUFF_MAX_SIZE 1024
 #endif
@@ -354,7 +357,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
         str[i] = buff[i + initial_i];
     }
 
-    (*pos) += len;
+    (*pos) += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
@@ -378,7 +381,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     --(*pos);
 
     // Obtains the length of the value
-    uint64_t size = (*pos);
+    uint64_t size = *pos;
     if (fseek(f, size++, SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -405,7 +408,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
-    if (str == nullptr || fseek(f, (*pos), SEEK_SET) != 0)
+    if (str == nullptr || fseek(f, *pos, SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
     }
@@ -414,6 +417,31 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 
     (*pos) += len;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
+}
+
+/**
+** \returns 5 if false, 4 if true, 0 otherwise
+**/
+uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
+{
+    if (pos == nullptr)
+    {
+        return 0;
+    }
+
+    uint64_t idx = *pos;
+    char c = 0;
+    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
+    {
+        c = buff[idx];
+        if (IS_END_CHAR(c))
+        {
+            break;
+        }
+    }
+    uint64_t len = idx - *pos;
+    (*pos) += len;
+    return len;
 }
 
 /**
@@ -434,7 +462,8 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
     {
         return 0;
     }
-    char c = '\0';
+
+    char c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (IS_END_CHAR(c))
@@ -447,7 +476,6 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
         }
     }
     uint64_t len = size - (*pos) - 1;
-
     (*pos) += len;
     return len;
 }
@@ -872,12 +900,14 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     JSONDict *jd = new JSONDict();
 
     uint64_t nb_chars_in_dict = get_nb_chars_in_dict(f, *pos);
-    printf("nb chars = %lu\n", nb_chars_in_dict);
 
     if (fseek(f, *pos, SEEK_SET) != 0)
     {
         return nullptr;
     }
+
+    string key = string();
+    uint64_t nb_elts_parsed = 0;
 
     // Read from the buffer if the size is not too big, improving performances
     // Otherwise, read using fseek and fgetc (slower)
@@ -888,10 +918,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
         fread(b, sizeof(char), nb_chars_in_dict, f);
         printf("buff = [%s]\n", b);
 
-        string key = string();
         uint64_t nb_elts = get_nb_elts_dict_buff(b);
-        uint64_t nb_elts_parsed = 0;
-        printf("nb elts = %lu\n", nb_elts);
 
         char c = 0;
         char is_waiting_key = 1;
@@ -936,9 +963,8 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             }
             else if (IS_BOOL_START(c))
             {
-                uint64_t len = parse_boolean(f, pos);
-                if (len == 0 || (c == 'f' && len != 5)
-                    || (c == 't' && len != 4))
+                uint64_t len = parse_boolean_buff(b, &i);
+                if (IS_NOT_BOOLEAN(c, len))
                 {
                     continue;
                 }
@@ -969,11 +995,9 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     }
     else
     {
-        string key = string();
         uint64_t nb_elts = get_nb_elts_dict(f, *pos);
-        uint64_t nb_elts_parsed = 0;
 
-        char c = '\0';
+        char c = 0;
         char is_waiting_key = 1;
         while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
         {
