@@ -45,6 +45,7 @@ public:
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
 #define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
+#define IS_STRING_END(c) ((c) == 0 || ((c) == '"' && prev_c != '\\'))
 
 #ifndef READ_BUFF_MAX_SIZE_OVERRIDE
 #    define READ_BUFF_MAX_SIZE 1024
@@ -72,21 +73,23 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
         return string();
     }
 
-    uint64_t i = *pos + 1;
-    uint64_t initial_i = i;
+    // Counts the number of characters until the first one that is an 'end char'
+    uint64_t idx = *pos + 1;
+    uint64_t initial_i = idx;
     char c = 0;
     char prev_c = 0;
-    for (; i < READ_BUFF_MAX_SIZE; ++i)
+    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
     {
-        c = buff[i];
-        if (c == 0 || (c == '"' && prev_c != '\\'))
+        c = buff[idx];
+        if (IS_STRING_END(c))
         {
             break;
         }
         prev_c = c;
     }
 
-    uint64_t len = i - initial_i;
+    // Number of chars
+    uint64_t len = idx - initial_i;
     if (len == 0)
     {
         return string();
@@ -125,23 +128,24 @@ string parse_string(FILE *f, uint64_t *pos)
         return string();
     }
 
-    uint64_t size = (*pos);
+    // TODO: Test if + 1 is needed
+    uint64_t i = *pos;
     char c = '\0';
     char prev_c = '\0';
     while ((c = fgetc(f)) != EOF)
     {
-        if (c == '"' && prev_c != '\\')
+        if (IS_STRING_END(c))
         {
             break;
         }
-        if (fseek(f, size++, SEEK_SET) != 0)
+        if (fseek(f, i++, SEEK_SET) != 0)
         {
             break;
         }
         prev_c = c;
     }
 
-    uint64_t len = size - (*pos) - 1;
+    uint64_t len = i - *pos - 1;
     if (len == 0)
     {
         return string();
@@ -300,6 +304,58 @@ bool has_exponent(char *str, uint64_t len)
         }
     }
     return false;
+}
+
+/**
+** \brief Reads the buffer from the given pos - 1
+** \param buff The buffer containing the current json file or object
+** \param pos The position of the second character of the number (the first one
+**            was already read)
+** \returns An instance of the StrAndLenTuple class containing the number as a
+**          char array, the length of the char array and whether the number is a
+**          float and has an exponent
+*/
+StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
+{
+    if (pos == nullptr)
+    {
+        return StrAndLenTuple(nullptr, 0, false, false);
+    }
+
+    // Counts the number of characters until the first one that is an 'end char'
+    uint64_t idx = *pos;
+    uint64_t initial_i = idx;
+    char c = 0;
+    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
+    {
+        c = buff[idx];
+        if (IS_END_CHAR(c))
+        {
+            break;
+        }
+    }
+
+    // Number of chars
+    uint64_t len = idx - initial_i;
+    if (len == 0)
+    {
+        return StrAndLenTuple(nullptr, 0, false, false);
+    }
+
+    // Puts the value in the form of a char array
+    char *str = new char[len + 1]();
+    if (str == nullptr)
+    {
+        return StrAndLenTuple(nullptr, 0, false, false);
+    }
+
+    for (uint64_t i = 0; i < len; ++i)
+    {
+        str[i] = buff[i + initial_i];
+    }
+
+    (*pos) += len;
+    return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
 /**
@@ -862,7 +918,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             }
             else if (IS_NUMBER_START(c))
             {
-                StrAndLenTuple sl = parse_number(f, pos);
+                StrAndLenTuple sl = parse_number_buff(b, &i);
                 if (sl.str == nullptr)
                 {
                     continue;
