@@ -46,6 +46,10 @@ public:
 
 #define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
 
+#ifndef READ_BUFF_MAX_SIZE_OVERRIDE
+#    define READ_BUFF_MAX_SIZE 1024
+#endif
+
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
