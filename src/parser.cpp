@@ -59,10 +59,10 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 **                              LOCAL FUNCTIONS                               **
 *******************************************************************************/
 /**
-** \brief Reads the string at position 'pos' in the given file, and adds it to
-**        the given dict
-** \param pos The pos of the '"' that starts the string of which we are
-**            currently acquiring the length
+** \brief Parses the string starting at 'pos + 1' (first char after the '"')
+** \param buff The buffer containing the current json file or object
+** \param pos A pointer to the uint64_t containing the pos of the '"' that
+**            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
 string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
@@ -79,7 +79,7 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
     for (; i < READ_BUFF_MAX_SIZE; ++i)
     {
         c = buff[i];
-        if (c == 0 || c == '"' && prev_c != '\\')
+        if (c == 0 || (c == '"' && prev_c != '\\'))
         {
             break;
         }
@@ -818,7 +818,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     uint64_t nb_chars_in_dict = get_nb_chars_in_dict(f, *pos);
     printf("nb chars = %lu\n", nb_chars_in_dict);
 
-    if (fseek(f, (*pos), SEEK_SET) != 0)
+    if (fseek(f, *pos, SEEK_SET) != 0)
     {
         return nullptr;
     }
@@ -828,12 +828,12 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     if (nb_chars_in_dict <= READ_BUFF_MAX_SIZE)
     {
         // + 1 to ensure that the string is null-terminated
-        char buff[READ_BUFF_MAX_SIZE + 1] = {};
-        fread(buff, sizeof(char), nb_chars_in_dict, f);
-        printf("buff = [%s]\n", buff);
+        char b[READ_BUFF_MAX_SIZE + 1] = {};
+        fread(b, sizeof(char), nb_chars_in_dict, f);
+        printf("buff = [%s]\n", b);
 
         string key = string();
-        uint64_t nb_elts = get_nb_elts_dict_buff(buff);
+        uint64_t nb_elts = get_nb_elts_dict_buff(b);
         uint64_t nb_elts_parsed = 0;
         printf("nb elts = %lu\n", nb_elts);
 
@@ -846,17 +846,17 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
                 break;
             }
 
-            c = buff[i];
+            c = b[i];
             if (c == '"')
             {
                 if (is_waiting_key)
                 {
-                    key = parse_string(f, pos);
+                    key = parse_string_buff(b, &i);
                     is_waiting_key = 0;
                 }
                 else
                 {
-                    jd->addItem(new StringItem(key, parse_string(f, pos)));
+                    jd->addItem(new StringItem(key, parse_string_buff(b, &i)));
                     ++nb_elts_parsed;
                 }
             }
