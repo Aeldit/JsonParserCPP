@@ -104,7 +104,7 @@ string parse_string(FILE *f, uint64_t *pos)
     fread(str, sizeof(char), len, f);
 
     // ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    (*pos) += len; // (len - 1) + 1, see comment on the line above
+    (*pos) += len; // (len - 1) + 1, (the last '+1' replaces the '++pos')
     string fstr(str);
     delete[] str;
     return fstr;
@@ -293,20 +293,14 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
-    if (str == nullptr)
+    if (str == nullptr || fseek(f, (*pos), SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
     }
 
-    // TODO: Use fread
-    for (uint64_t i = 0; i < len; ++i)
-    {
-        if (fseek(f, (*pos)++, SEEK_SET) != 0)
-        {
-            break;
-        }
-        str[i] = fgetc(f);
-    }
+    fread(str, sizeof(char), len, f);
+
+    (*pos) += len;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
