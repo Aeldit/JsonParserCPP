@@ -440,7 +440,7 @@ uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
         }
     }
     uint64_t len = idx - *pos;
-    (*pos) += len;
+    (*pos) += len - 1;
     return len;
 }
 
@@ -900,6 +900,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     JSONDict *jd = new JSONDict();
 
     uint64_t nb_chars_in_dict = get_nb_chars_in_dict(f, *pos);
+    printf("nb chars = %lu\n", nb_chars_in_dict);
 
     if (fseek(f, *pos, SEEK_SET) != 0)
     {
@@ -984,7 +985,8 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
             }
             else if (c == '{')
             {
-                jd->addItem(new DictItem(key, parse_json_dict(f, pos)));
+                ++i;
+                jd->addItem(new DictItem(key, parse_json_dict(f, &i)));
                 ++nb_elts_parsed;
             }
             else if (c == ',')
