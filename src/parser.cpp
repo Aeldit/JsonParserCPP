@@ -165,6 +165,7 @@ string parse_string(FILE *f, uint64_t *pos)
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
+        delete[] str;
         return string();
     }
     fread(str, sizeof(char), len, f);
@@ -968,10 +969,10 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '{'
-    for (uint64_t i = *pos + 1; i < READ_BUFF_MAX_SIZE; ++i)
+    uint64_t i = *pos + 1;
+    for (; i < READ_BUFF_MAX_SIZE; ++i)
     {
         c = b[i];
-        printf("b[i] = '%c'\n", c);
         if (c == 0 || nb_elts_parsed >= nb_elts)
         {
             break;
@@ -1040,6 +1041,7 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
             is_waiting_key = 1;
         }
     }
+    (*pos) += i;
     return jd;
 }
 
@@ -1169,16 +1171,12 @@ JSON *parse(char *file)
         if (nb_chars <= READ_BUFF_MAX_SIZE)
         {
             char b[READ_BUFF_MAX_SIZE] = {};
+            if (fseek(f, offset, SEEK_SET) != 0)
+            {
+                fclose(f);
+                return nullptr;
+            }
             fread(b, sizeof(char), nb_chars, f);
-            if (feof(f))
-            {
-                printf("DDDDDDDDD");
-            }
-            else if (ferror(f))
-            {
-                printf("EEEEEEEEEE");
-            }
-            printf("[%s]\n", b);
             jd = parse_json_dict_buff(b, &offset);
         }
         else

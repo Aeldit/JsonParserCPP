@@ -486,6 +486,11 @@ void JSONDict::addItem(Item *item)
         {
             items.add(item);
         }
+        else
+        {
+            item->print();
+            delete item;
+        }
     }
 }
 
