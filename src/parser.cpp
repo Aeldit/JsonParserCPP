@@ -103,13 +103,13 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Counts the number of characters until the first one that is an 'end char'
-    uint64_t tmp_idx = *idx + 1;
-    uint64_t initial_i = tmp_idx;
+    uint64_t end_idx = *idx + 1;
+    uint64_t initial_i = end_idx;
     char c = 0;
     char prev_c = 0;
-    for (; tmp_idx < READ_BUFF_MAX_SIZE; ++tmp_idx)
+    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
     {
-        c = buff[tmp_idx];
+        c = buff[end_idx];
         if (IS_STRING_END(c))
         {
             break;
@@ -118,7 +118,7 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Number of chars
-    uint64_t len = tmp_idx - initial_i;
+    uint64_t len = end_idx - initial_i;
     if (len == 0)
     {
         return string();
@@ -157,7 +157,7 @@ string parse_string(FILE *f, uint64_t *pos)
     }
 
     // TODO: Test if + 1 is needed
-    uint64_t i = *pos;
+    uint64_t end_pos = *pos;
     char c = 0;
     char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
@@ -166,14 +166,14 @@ string parse_string(FILE *f, uint64_t *pos)
         {
             break;
         }
-        if (fseek(f, i++, SEEK_SET) != 0)
+        if (fseek(f, end_pos++, SEEK_SET) != 0)
         {
             break;
         }
         prev_c = c;
     }
 
-    uint64_t len = i - *pos - 1;
+    uint64_t len = end_pos - *pos - 1;
     if (len == 0)
     {
         return string();
@@ -338,26 +338,26 @@ bool has_exponent(char *str, uint64_t len)
 /**
 ** \brief Reads the buffer from the given pos - 1
 ** \param buff The buffer containing the current json file or object
-** \param pos The position of the second character of the number (the first one
+** \param idx The index of the second character of the number (the first one
 **            was already read)
 ** \returns An instance of the StrAndLenTuple class containing the number as a
 **          char array, the length of the char array and whether the number is a
 **          float and has an exponent
 */
-StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
+StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 {
-    if (pos == nullptr)
+    if (idx == nullptr)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
     }
 
     // Counts the number of characters until the first one that is an 'end char'
-    uint64_t idx = *pos;
-    uint64_t initial_i = idx;
+    uint64_t end_idx = *idx;
+    uint64_t initial_i = end_idx;
     char c = 0;
-    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
+    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
     {
-        c = buff[idx];
+        c = buff[end_idx];
         if (IS_END_CHAR(c))
         {
             break;
@@ -365,7 +365,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
     }
 
     // Number of chars
-    uint64_t len = idx - initial_i;
+    uint64_t len = end_idx - initial_i;
     if (len == 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -383,7 +383,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
         str[i] = buff[i + initial_i];
     }
 
-    (*pos) += len - 1;
+    (*idx) += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
@@ -407,26 +407,26 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     --(*pos);
 
     // Obtains the length of the value
-    uint64_t size = *pos;
-    if (fseek(f, size++, SEEK_SET) != 0)
+    uint64_t end_pos = *pos;
+    if (fseek(f, end_pos++, SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
     }
 
-    char c = '\0';
+    char c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (IS_END_CHAR(c))
         {
             break;
         }
-        if (fseek(f, size++, SEEK_SET) != 0)
+        if (fseek(f, end_pos++, SEEK_SET) != 0)
         {
             break;
         }
     }
 
-    uint64_t len = size - (*pos) - 1;
+    uint64_t len = end_pos - (*pos) - 1;
     if (len == 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -448,25 +448,25 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 /**
 ** \returns 5 if false, 4 if true, 0 otherwise
 **/
-uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
+uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 {
-    if (pos == nullptr)
+    if (idx == nullptr)
     {
         return 0;
     }
 
-    uint64_t idx = *pos;
+    uint64_t end_idx = *idx;
     char c = 0;
-    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
+    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
     {
-        c = buff[idx];
+        c = buff[end_idx];
         if (IS_END_CHAR(c))
         {
             break;
         }
     }
-    uint64_t len = idx - *pos;
-    (*pos) += len - 1;
+    uint64_t len = end_idx - *idx;
+    (*idx) += len - 1;
     return len;
 }
 
@@ -483,8 +483,8 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
     // Because we already read the first character
     --(*pos);
 
-    uint64_t size = (*pos);
-    if (fseek(f, size++, SEEK_SET) != 0)
+    uint64_t end_pos = (*pos);
+    if (fseek(f, end_pos++, SEEK_SET) != 0)
     {
         return 0;
     }
@@ -496,12 +496,12 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
         {
             break;
         }
-        if (fseek(f, size++, SEEK_SET) != 0)
+        if (fseek(f, end_pos++, SEEK_SET) != 0)
         {
             break;
         }
     }
-    uint64_t len = size - (*pos) - 1;
+    uint64_t len = end_pos - (*pos) - 1;
     (*pos) += len;
     return len;
 }
@@ -590,7 +590,7 @@ uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
         return 0;
     }
 
-    uint64_t size = 0;
+    uint64_t nb_elts = 0;
     char c = 0;
     char prev_c = 0;
     nested_arrays_t is_in_array = 1;
@@ -640,7 +640,7 @@ uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
             }
             else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
-                ++size;
+                ++nb_elts;
             }
         }
         ++idx;
@@ -654,11 +654,11 @@ uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
     // If there was only one value, there was no ',', so the element wasn't
     // detected or if at least one element was found, it means that a ',' was
     // found
-    if ((size == 0 && prev_c != 0) || (size >= 1 && comma_encountered))
+    if ((nb_elts == 0 && prev_c != 0) || (nb_elts >= 1 && comma_encountered))
     {
-        ++size;
+        ++nb_elts;
     }
-    return size;
+    return nb_elts;
 }
 
 /**
@@ -680,7 +680,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
         return 0;
     }
 
-    uint64_t size = 0;
+    uint64_t nb_elts = 0;
 
     char c = 0;
     char prev_c = 0;
@@ -737,7 +737,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             }
             else if (!is_in_dict && is_in_array == 1 && c == ',')
             {
-                ++size;
+                ++nb_elts;
             }
         }
 
@@ -755,11 +755,11 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
     // If there was only one value, there was no ',', so the element wasn't
     // detected or if at least one element was found, it means that a ',' was
     // found
-    if ((size == 0 && prev_c != 0) || (size >= 1 && comma_encountered))
+    if ((nb_elts == 0 && prev_c != 0) || (nb_elts >= 1 && comma_encountered))
     {
-        ++size;
+        ++nb_elts;
     }
-    return size;
+    return nb_elts;
 }
 
 /**
@@ -846,7 +846,7 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
         return 0;
     }
 
-    uint64_t size = 0;
+    uint64_t nb_elts = 0;
     // Used for the case where the dict contains only one element, and so does
     // not contain a ','
     uint64_t single_elt_found = 0;
@@ -895,12 +895,12 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
             }
             else if (!is_in_array && is_in_dict == 1 && c == ',')
             {
-                ++size;
+                ++nb_elts;
             }
         }
         ++pos;
     }
-    return size == 0 ? single_elt_found : size + 1;
+    return nb_elts == 0 ? single_elt_found : nb_elts + 1;
 }
 
 /**
@@ -922,12 +922,12 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
         return 0;
     }
 
-    uint64_t size = 0;
+    uint64_t nb_elts = 0;
     // Used for the case where the dict contains only one element, and so does
     // not contain a ','
     uint64_t single_elt_found = 0;
 
-    char c = '\0';
+    char c = 0;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
@@ -970,7 +970,7 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
             }
             else if (!is_in_array && is_in_dict == 1 && c == ',')
             {
-                ++size;
+                ++nb_elts;
             }
         }
 
@@ -979,7 +979,7 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
             break;
         }
     }
-    return size == 0 ? single_elt_found : size + 1;
+    return nb_elts == 0 ? single_elt_found : nb_elts + 1;
 }
 
 /**
