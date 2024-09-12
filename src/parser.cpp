@@ -807,23 +807,27 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
 ** \param buff The buffer containing the current dict
 ** \returns The number of elements of the current dict
 */
-uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE])
+uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
 {
+    if (buff[pos] == '}')
+    {
+        return 0;
+    }
+
     uint64_t size = 0;
     // Used for the case where the dict contains only one element, and so does
     // not contain a ','
     uint64_t single_elt_found = 0;
 
-    char c = '\0';
+    char c = 0;
     char is_in_dict = 1;
     char is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
-    uint64_t i = 0;
-    while (i < READ_BUFF_MAX_SIZE && buff[i] != 0)
+    while (pos < READ_BUFF_MAX_SIZE)
     {
-        c = buff[i];
-        if (!is_in_dict)
+        c = buff[pos];
+        if (!is_in_dict || c == 0)
         {
             break;
         }
@@ -862,7 +866,7 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE])
                 ++size;
             }
         }
-        ++i;
+        ++pos;
     }
     return size == 0 ? single_elt_found : size + 1;
 }
@@ -963,13 +967,18 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
 
     string key = string();
     uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_dict_buff(b);
+    uint64_t nb_elts = get_nb_elts_dict_buff(b, *pos + 1);
+    if (nb_elts == 0)
+    {
+        return jd;
+    }
 
     char c = 0;
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '{'
     uint64_t i = *pos + 1;
+    uint64_t initial_i = i;
     for (; i < READ_BUFF_MAX_SIZE; ++i)
     {
         c = b[i];
@@ -1041,7 +1050,7 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
             is_waiting_key = 1;
         }
     }
-    (*pos) += i;
+    (*pos) += i - initial_i;
     return jd;
 }
 
@@ -1059,6 +1068,7 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
     }
 
     JSONDict *jd = new JSONDict();
+    // uint64_t i = *pos;
 
     if (fseek(f, *pos, SEEK_SET) != 0)
     {
