@@ -54,10 +54,33 @@ public:
 #    define READ_BUFF_MAX_SIZE 1024
 #endif
 
+#ifndef MAX_NESTED_ARRAYS
+#    define MAX_NESTED_ARRAYS 255
+#endif
+
+#if MAX_NESTED_ARRAYS <= 255
+typedef uint8_t nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= 65536
+typedef uint16_t nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= 4294967296
+typedef uint32_t nested_arrays_t;
+#else
+typedef uint64_t nested_arrays_t;
+#endif
+
+#if MAX_NESTED_DICTS <= 256
+typedef uint8_t nested_dicts_t;
+#elif MAX_NESTED_DICTS <= 65536
+typedef uint16_t nested_dicts_t;
+#elif MAX_NESTED_DICTS <= 4294967296
+typedef uint32_t nested_dicts_t;
+#else
+typedef uint64_t nested_dicts_t;
+#endif
+
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
-uint64_t get_nb_chars_in_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos);
 uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos);
 JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos);
 JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
@@ -68,25 +91,25 @@ JSONDict *parse_json_dict(FILE *f, uint64_t *pos);
 /**
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param buff The buffer containing the current json file or object
-** \param pos A pointer to the uint64_t containing the pos of the '"' that
+** \param idx A pointer to the uint64_t containing the index of the '"' that
 **            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
+string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 {
-    if (pos == nullptr)
+    if (idx == nullptr)
     {
         return string();
     }
 
     // Counts the number of characters until the first one that is an 'end char'
-    uint64_t idx = *pos + 1;
-    uint64_t initial_i = idx;
+    uint64_t tmp_idx = *idx + 1;
+    uint64_t initial_i = tmp_idx;
     char c = 0;
     char prev_c = 0;
-    for (; idx < READ_BUFF_MAX_SIZE; ++idx)
+    for (; tmp_idx < READ_BUFF_MAX_SIZE; ++tmp_idx)
     {
-        c = buff[idx];
+        c = buff[tmp_idx];
         if (IS_STRING_END(c))
         {
             break;
@@ -95,7 +118,7 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
     }
 
     // Number of chars
-    uint64_t len = idx - initial_i;
+    uint64_t len = tmp_idx - initial_i;
     if (len == 0)
     {
         return string();
@@ -113,18 +136,17 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *pos)
     }
 
     // + 1 to not read the last '"' when returning in the calling function
-    (*pos) += len + 1;
+    (*idx) += len + 1;
     string fstr(str);
     delete[] str;
     return fstr;
 }
 
 /**
-** \brief Reads the string at position 'pos' in the given file, and adds it to
-**        the given dict
+** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param f The file stream
-** \param pos The pos of the '"' that starts the string of which we are
-**            currently acquiring the length
+** \param pos A pointer to the uint64_t containing the position of the '"' that
+**            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
 string parse_string(FILE *f, uint64_t *pos)
@@ -136,8 +158,8 @@ string parse_string(FILE *f, uint64_t *pos)
 
     // TODO: Test if + 1 is needed
     uint64_t i = *pos;
-    char c = '\0';
-    char prev_c = '\0';
+    char c = 0;
+    char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (IS_STRING_END(c))
@@ -486,8 +508,163 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
 
 /**
 ** \param f The file stream
-** \param pos The pos of the character just after the '[' that begins the
+** \param pos The position in the file of the character '[' that begins the
 **            current array
+** \returns The total number of characters in the current array
+*/
+uint64_t get_nb_chars_in_array(FILE *f, uint64_t pos)
+{
+    if (f == nullptr)
+    {
+        return 0;
+    }
+
+    uint64_t offset = pos;
+    if (fseek(f, offset++, SEEK_SET) != 0)
+    {
+        return 0;
+    }
+
+    uint64_t nb_chars = 0;
+    char c = 0;
+    nested_arrays_t is_in_array = 1;
+    nested_dicts_t is_in_dict = 0;
+    char is_in_string = 0;
+    char is_backslashing = 0;
+    while ((c = fgetc(f)) != EOF)
+    {
+        if (!is_in_array)
+        {
+            break;
+        }
+
+        if (c == '\\')
+        {
+            is_backslashing = !is_backslashing;
+        }
+
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
+        {
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+        }
+        ++nb_chars;
+
+        if (fseek(f, offset++, SEEK_SET) != 0)
+        {
+            break;
+        }
+    }
+    return nb_chars + 1;
+}
+
+/**
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character just after the '[' that begins the
+**            current array
+** \returns The number of elements of the current array
+*/
+uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
+{
+    if (buff[idx] == ']')
+    {
+        return 0;
+    }
+
+    uint64_t size = 0;
+    char c = 0;
+    char prev_c = 0;
+    nested_arrays_t is_in_array = 1;
+    nested_dicts_t is_in_dict = 0;
+    char is_in_string = 0;
+    char is_backslashing = 0;
+    char comma_encountered = 0;
+    while (idx < READ_BUFF_MAX_SIZE)
+    {
+        if (!is_in_array)
+        {
+            break;
+        }
+
+        c = buff[idx];
+        if (c == '\\')
+        {
+            is_backslashing = !is_backslashing;
+        }
+        else if (!comma_encountered && c == ',' && is_in_array == 1)
+        {
+            comma_encountered = 1;
+        }
+
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
+        {
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+            else if (!is_in_dict && is_in_array == 1 && c == ',')
+            {
+                ++size;
+            }
+        }
+        ++idx;
+
+        if (c != ' ' && c != '\t' && c != '\n')
+        {
+            prev_c = c;
+        }
+    }
+
+    // If there was only one value, there was no ',', so the element wasn't
+    // detected or if at least one element was found, it means that a ',' was
+    // found
+    if ((size == 0 && prev_c != 0) || (size >= 1 && comma_encountered))
+    {
+        ++size;
+    }
+    return size;
+}
+
+/**
+** \param f The file stream
+** \param pos The position in the file of the character just after the '[' that
+**            begins the current array
 ** \returns The number of elements of the current array
 */
 uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
@@ -505,10 +682,10 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 
     uint64_t size = 0;
 
-    char c = '\0';
-    char prev_c = '\0';
-    char is_in_array = 1;
-    char is_in_dict = 0;
+    char c = 0;
+    char prev_c = 0;
+    nested_arrays_t is_in_array = 1;
+    nested_dicts_t is_in_dict = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     char comma_encountered = 0;
@@ -542,7 +719,9 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             else if (c == ']')
             {
                 // Empty array
-                if (is_in_array == 1 && prev_c == '\0')
+                // TODO: Remove this and put it at the top like in the buffered
+                // version
+                if (is_in_array == 1 && prev_c == 0)
                 {
                     return 0;
                 }
@@ -572,13 +751,11 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
             prev_c = c;
         }
     }
-    if (size >= 1 && comma_encountered)
-    {
-        ++size;
-    }
+
     // If there was only one value, there was no ',', so the element wasn't
-    // detected
-    if (size == 0 && prev_c != '\0')
+    // detected or if at least one element was found, it means that a ',' was
+    // found
+    if ((size == 0 && prev_c != 0) || (size >= 1 && comma_encountered))
     {
         ++size;
     }
@@ -586,10 +763,98 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 }
 
 /**
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character '[' that begins the current array
+** \returns The json array parsed from the position
+*/
+JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
+{
+    if (pos == nullptr)
+    {
+        return nullptr;
+    }
+
+    JSONArray *ja = new JSONArray();
+
+    uint64_t nb_elts_parsed = 0;
+    uint64_t nb_elts = get_nb_elts_array_buff(b, *pos + 1);
+    if (nb_elts == 0)
+    {
+        return ja;
+    }
+
+    char c = 0;
+    // We start at 1 because if we entered this function, it means that we
+    // already read a '['
+    uint64_t i = *pos + 1;
+    uint64_t initial_i = i;
+    for (; i < READ_BUFF_MAX_SIZE; ++i)
+    {
+        c = b[i];
+        if (c == 0 || nb_elts_parsed >= nb_elts)
+        {
+            break;
+        }
+
+        if (c == '"')
+        {
+            ja->addValue(new StringTypedValue(parse_string_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (IS_NUMBER_START(c))
+        {
+            StrAndLenTuple sl = parse_number_buff(b, &i);
+            if (sl.str == nullptr)
+            {
+                continue;
+            }
+
+            if (sl.is_float)
+            {
+                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
+            }
+            else
+            {
+                ja->addValue(new IntTypedValue(str_to_long(&sl)));
+            }
+            ++nb_elts_parsed;
+        }
+        else if (IS_BOOL_START(c))
+        {
+            uint64_t len = parse_boolean_buff(b, &i);
+            if (IS_NOT_BOOLEAN(c, len))
+            {
+                continue;
+            }
+            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            ++nb_elts_parsed;
+        }
+        else if (c == 'n')
+        {
+            ja->addValue(new NullTypedValue());
+            i += 3;
+            ++nb_elts_parsed;
+        }
+        else if (c == '[')
+        {
+            ja->addValue(new ArrayTypedValue(parse_array_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (c == '{')
+        {
+            ja->addValue(new DictTypedValue(parse_json_dict_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+    }
+    (*pos) += i - initial_i;
+    return ja;
+}
+
+/**
 ** \param f The file stream
-** \param pos The pos of the character just after the '[' that begins the
-**            current array
-** \returns The json array parsed at the pos
+** \param pos The postion in the file of the character just after the '[' that
+**            begins the current array
+** \returns The json array parsed from the position
 */
 JSONArray *parse_array(FILE *f, uint64_t *pos)
 {
@@ -612,7 +877,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         return nullptr;
     }
 
-    char c = '\0';
+    char c = 0;
     while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
     {
         // If we are not in a string or if the string just ended
@@ -663,7 +928,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         else if (c == '{')
         {
             uint64_t nb_chars = get_nb_chars_in_dict(f, *pos);
-            printf("AAAAAAAAAAAAAAAAAAAAAAA : %lu\n", nb_chars);
             JSONDict *jd = nullptr;
             if (nb_chars <= READ_BUFF_MAX_SIZE)
             {
@@ -688,56 +952,12 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
     return ja;
 }
 
-uint64_t get_nb_chars_in_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
-{
-    uint64_t offset = pos + 1;
-    uint64_t nb_chars = 0;
-    char c = 0;
-    char is_in_dict = 1;
-    char is_in_array = 0;
-    char is_in_string = 0;
-    char is_backslashing = 0;
-    for (; offset < READ_BUFF_MAX_SIZE; ++offset, ++nb_chars)
-    {
-        c = buff[offset];
-        if (!is_in_dict)
-        {
-            break;
-        }
-
-        if (c == '\\')
-        {
-            is_backslashing = !is_backslashing;
-        }
-
-        // If we are not in a string or if the string just ended
-        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
-        {
-            if (c == '"')
-            {
-                is_in_string = !is_in_string;
-            }
-            else if (c == '[')
-            {
-                ++is_in_array;
-            }
-            else if (c == ']')
-            {
-                --is_in_array;
-            }
-            else if (c == '{')
-            {
-                ++is_in_dict;
-            }
-            else if (c == '}')
-            {
-                --is_in_dict;
-            }
-        }
-    }
-    return nb_chars + 1;
-}
-
+/**
+** \param f The file stream
+** \param pos The position in the file of the character '{' that begins the
+**            current dict
+** \returns The total number of characters in the current dict
+*/
 uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
 {
     if (f == nullptr)
@@ -752,9 +972,9 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
     }
 
     uint64_t nb_chars = 0;
-    char c = '\0';
-    char is_in_dict = 1;
-    char is_in_array = 0;
+    char c = 0;
+    nested_dicts_t is_in_dict = 1;
+    nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
@@ -804,7 +1024,9 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
 }
 
 /**
-** \param buff The buffer containing the current dict
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character just after the '{' that begins the
+**            current dict
 ** \returns The number of elements of the current dict
 */
 uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
@@ -820,8 +1042,8 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
     uint64_t single_elt_found = 0;
 
     char c = 0;
-    char is_in_dict = 1;
-    char is_in_array = 0;
+    nested_dicts_t is_in_dict = 1;
+    nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     while (pos < READ_BUFF_MAX_SIZE)
@@ -873,8 +1095,8 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t pos)
 
 /**
 ** \param f The file stream
-** \param pos The pos of the character just after the '{' that begins the
-**            current dict
+** \param pos The position in the file of the character just after the '{' that
+**            begins the current dict
 ** \returns The number of elements of the current dict
 */
 uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
@@ -896,8 +1118,8 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
     uint64_t single_elt_found = 0;
 
     char c = '\0';
-    char is_in_dict = 1;
-    char is_in_array = 0;
+    nested_dicts_t is_in_dict = 1;
+    nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
@@ -951,14 +1173,14 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 }
 
 /**
-** \param f The file stream
-** \param pos The pos of the character just after the '[' that begins the
-**            current array
-** \returns The json dict parsed at the pos
+** \param b The buffer containing the object currently being parsed
+** \param idx A pointer to the index of the character just after the '{' that
+**            begins the current dict
+** \returns The json dict parsed from the index
 */
-JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
+JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
 {
-    if (pos == nullptr)
+    if (idx == nullptr)
     {
         return nullptr;
     }
@@ -967,7 +1189,7 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
 
     string key = string();
     uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_dict_buff(b, *pos + 1);
+    uint64_t nb_elts = get_nb_elts_dict_buff(b, *idx + 1);
     if (nb_elts == 0)
     {
         return jd;
@@ -977,7 +1199,7 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '{'
-    uint64_t i = *pos + 1;
+    uint64_t i = *idx + 1;
     uint64_t initial_i = i;
     for (; i < READ_BUFF_MAX_SIZE; ++i)
     {
@@ -1031,13 +1253,12 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
         else if (c == 'n')
         {
             jd->addItem(new NullItem(key));
-            (*pos) += 3;
+            i += 3;
             ++nb_elts_parsed;
         }
         else if (c == '[')
         {
-            jd->addItem(
-                new ArrayItem(key, nullptr)); // parse_array_buff(f, pos)));
+            jd->addItem(new ArrayItem(key, parse_array_buff(b, &i)));
             ++nb_elts_parsed;
         }
         else if (c == '{')
@@ -1050,15 +1271,15 @@ JSONDict *parse_json_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
             is_waiting_key = 1;
         }
     }
-    (*pos) += i - initial_i;
+    (*idx) += i - initial_i;
     return jd;
 }
 
 /**
 ** \param f The file stream
-** \param pos The pos of the character just after the '[' that begins the
-**            current array
-** \returns The json dict parsed at the pos
+** \param pos A pointer to the position in the file of the character just after
+**            the '{' that begins the current dict
+** \returns The json dict parsed from the position
 */
 JSONDict *parse_json_dict(FILE *f, uint64_t *pos)
 {
@@ -1175,9 +1396,8 @@ JSON *parse(char *file)
     char c = fgetc(f);
     if (c == '{')
     {
-        uint64_t nb_chars = get_nb_chars_in_dict(f, offset);
-        printf("nb chars = %lu\n", nb_chars);
         JSONDict *jd = nullptr;
+        uint64_t nb_chars = get_nb_chars_in_dict(f, offset);
         if (nb_chars <= READ_BUFF_MAX_SIZE)
         {
             char b[READ_BUFF_MAX_SIZE] = {};
@@ -1199,8 +1419,23 @@ JSON *parse(char *file)
     }
     else if (c == '[')
     {
-        // TODO: Fix parsing when dicts without keys are inside an array
-        JSONArray *ja = parse_array(f, &offset);
+        JSONArray *ja = nullptr;
+        uint64_t nb_chars = get_nb_chars_in_array(f, offset);
+        if (nb_chars <= READ_BUFF_MAX_SIZE)
+        {
+            char b[READ_BUFF_MAX_SIZE] = {};
+            if (fseek(f, offset, SEEK_SET) != 0)
+            {
+                fclose(f);
+                return nullptr;
+            }
+            fread(b, sizeof(char), nb_chars, f);
+            ja = parse_array_buff(b, &offset);
+        }
+        else
+        {
+            ja = parse_array(f, &offset);
+        }
         fclose(f);
         return ja == nullptr ? nullptr : ja;
     }
