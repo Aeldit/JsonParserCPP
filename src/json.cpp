@@ -488,7 +488,12 @@ void JSONDict::addItem(Item *item)
         }
         else
         {
-            item->print();
+#ifdef DEBUG
+            cout << "The item with key '" << item->getKey()
+                 << "' already exists, not adding it and freeing allocated "
+                    "memory"
+                 << endl;
+#endif
             delete item;
         }
     }
