@@ -979,17 +979,14 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 ** \param idx The index of the character '[' that begins the current array
 ** \returns The json array parsed from the position
 */
-JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
+JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
 {
-    if (pos == nullptr)
-    {
-        return nullptr;
-    }
+    uint64_t i = idx == nullptr ? 1 : (*idx) + 1;
 
     JSONArray *ja = new JSONArray();
 
     uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_array_buff(b, *pos + 1);
+    uint64_t nb_elts = get_nb_elts_array_buff(b, i);
     if (nb_elts == 0)
     {
         return ja;
@@ -998,7 +995,6 @@ JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
     char c = 0;
     // We start at 1 because if we entered this function, it means that we
     // already read a '['
-    uint64_t i = *pos + 1;
     uint64_t initial_i = i;
     for (; i < READ_BUFF_MAX_SIZE; ++i)
     {
@@ -1058,7 +1054,10 @@ JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos)
             ++nb_elts_parsed;
         }
     }
-    (*pos) += i - initial_i;
+    if (idx != nullptr)
+    {
+        (*idx) += i - initial_i;
+    }
     return ja;
 }
 
