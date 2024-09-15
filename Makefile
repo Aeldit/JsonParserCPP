@@ -6,6 +6,8 @@ CFILES=src/main.cpp \
 	src/parser.cpp \
 	src/types.cpp
 
+ADDITIONAL_FLAGS=
+
 all: clean json-parser
 	./json-parser r.json
 

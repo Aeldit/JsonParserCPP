@@ -59,6 +59,10 @@ public:
 #    define MAX_NESTED_ARRAYS UINT_FAST8_MAX
 #endif
 
+#ifndef MAX_NESTED_DICTS
+#    define MAX_NESTED_DICTS UINT_FAST8_MAX
+#endif
+
 #if MAX_NESTED_ARRAYS <= UINT_FAST8_MAX
 typedef uint_fast8_t nested_arrays_t;
 #elif MAX_NESTED_ARRAYS <= UINT_FAST16_MAX
