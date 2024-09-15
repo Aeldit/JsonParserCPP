@@ -106,7 +106,7 @@ public:
         }
     }
 
-    uint64_t getSize()
+    uint_fast64_t getSize()
     {
         return size;
     }
