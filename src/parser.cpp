@@ -769,13 +769,13 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
 {
     // We already read the first char but the pos was not incremented yet
-    ++pos;
-    if (f == nullptr || fseek(f, pos++, SEEK_SET) != 0)
+    //++pos;
+    if (f == nullptr)
     {
         return 0;
     }
 
-    uint64_t nb_chars = 1;
+    uint64_t nb_chars = 0;
     char c = 0;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
@@ -783,7 +783,7 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
     char is_backslashing = 0;
     while ((c = fgetc(f)) != EOF)
     {
-        if (!is_in_dict)
+        if (fseek(f, pos++, SEEK_SET) != 0)
         {
             break;
         }
@@ -819,7 +819,7 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
         }
         ++nb_chars;
 
-        if (fseek(f, pos++, SEEK_SET) != 0)
+        if (!is_in_dict)
         {
             break;
         }
@@ -1080,7 +1080,6 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
     uint64_t nb_elts_parsed = 0;
     uint64_t nb_elts = get_nb_elts_array(f, *pos);
-    printf("nb elts = %lu\n", nb_elts);
     if (nb_elts == 0)
     {
         return ja;
@@ -1163,12 +1162,15 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         else if (c == '{')
         {
             uint64_t nb_chars = get_nb_chars_in_dict(f, *pos);
-            printf("nb chars pre dict = %lu\n", nb_chars);
             JSONDict *jd = nullptr;
             if (nb_chars <= READ_BUFF_MAX_SIZE)
             {
-                printf("AAA\n");
                 char b[READ_BUFF_MAX_SIZE] = {};
+                // pos - 1 because we re-read the '{'
+                if (fseek(f, *pos - 1, SEEK_SET) != 0)
+                {
+                    break;
+                }
                 fread(b, sizeof(char), nb_chars, f);
                 jd = parse_dict_buff(b, nullptr);
                 (*pos) += nb_chars;
