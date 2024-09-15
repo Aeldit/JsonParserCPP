@@ -51,7 +51,7 @@ public:
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
-#ifndef READ_BUFF_MAX_SIZE_OVERRIDE
+#ifndef READ_BUFF_SIZE
 #    define READ_BUFF_SIZE 1024
 #endif
 
@@ -436,6 +436,7 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
+    // If the allocation failed or if we couldn't set the pos in the file
     if (str == nullptr || fseek(f, *pos, SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -521,20 +522,17 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
         return 0;
     }
 
-    if (fseek(f, pos++, SEEK_SET) != 0)
-    {
-        return 0;
-    }
-
     uint_fast64_t nb_chars = 0;
-    char c = 0;
+
     nested_arrays_t is_in_array = 1;
     nested_dicts_t is_in_dict = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
+
+    char c = 0;
     while ((c = fgetc(f)) != EOF)
     {
-        if (!is_in_array)
+        if (fseek(f, pos++, SEEK_SET) != 0)
         {
             break;
         }
@@ -570,12 +568,12 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
         }
         ++nb_chars;
 
-        if (fseek(f, pos++, SEEK_SET) != 0)
+        if (!is_in_array)
         {
             break;
         }
     }
-    return nb_chars + 1;
+    return nb_chars;
 }
 
 /**
@@ -684,13 +682,14 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos)
 
     uint_fast64_t nb_elts = 0;
 
-    char c = 0;
-    char prev_c = 0;
     nested_arrays_t is_in_array = 1;
     nested_dicts_t is_in_dict = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     char comma_encountered = 0;
+
+    char c = 0;
+    char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (!is_in_array)
@@ -772,19 +771,19 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos)
 */
 uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos)
 {
-    // We already read the first char but the pos was not incremented yet
-    //++pos;
     if (f == nullptr)
     {
         return 0;
     }
 
     uint_fast64_t nb_chars = 0;
-    char c = 0;
+
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
+
+    char c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (fseek(f, pos++, SEEK_SET) != 0)
@@ -922,15 +921,16 @@ uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos)
     }
 
     uint_fast64_t nb_elts = 0;
-    // Used for the case where the dict contains only one element, and so does
-    // not contain a ','
-    uint_fast64_t single_elt_found = 0;
 
-    char c = 0;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
+
+    // Used for the case where the dict contains only one element, and so does
+    // not contain a ','
+    char single_elt_found = 0;
+    char c = 0;
     while ((c = fgetc(f)) != EOF)
     {
         if (!is_in_dict)
