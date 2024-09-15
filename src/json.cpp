@@ -52,12 +52,12 @@ void StringTypedValue::printNoFlush()
 /**************************************
 **             INT VALUE             **
 **************************************/
-IntTypedValue::IntTypedValue(int64_t value)
+IntTypedValue::IntTypedValue(int_fast64_t value)
     : TypedValue(T_INT)
     , value(value)
 {}
 
-int64_t IntTypedValue::getValue()
+int_fast64_t IntTypedValue::getValue()
 {
     return value;
 }
@@ -203,12 +203,12 @@ void StringItem::printNoFlush()
 /**************************************
 **             INT ITEM              **
 **************************************/
-IntItem::IntItem(string key, int64_t value)
+IntItem::IntItem(string key, int_fast64_t value)
     : Item(key, T_INT)
     , value(value)
 {}
 
-int64_t IntItem::getValue()
+int_fast64_t IntItem::getValue()
 {
     return value;
 }

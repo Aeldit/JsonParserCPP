@@ -21,11 +21,12 @@ class StrAndLenTuple
 {
 public:
     char *str;
-    uint64_t len;
+    uint_fast64_t len;
     bool is_float;
     bool has_exponent;
 
-    StrAndLenTuple(char *str, uint64_t len, bool is_float, bool has_exponent)
+    StrAndLenTuple(char *str, uint_fast64_t len, bool is_float,
+                   bool has_exponent)
         : str(str)
         , len(len)
         , is_float(is_float)
@@ -51,38 +52,38 @@ public:
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
 #ifndef READ_BUFF_MAX_SIZE_OVERRIDE
-#    define READ_BUFF_MAX_SIZE 1024
+#    define READ_BUFF_SIZE 1024
 #endif
 
 #ifndef MAX_NESTED_ARRAYS
-#    define MAX_NESTED_ARRAYS 255
+#    define MAX_NESTED_ARRAYS UINT_FAST8_MAX
 #endif
 
-#if MAX_NESTED_ARRAYS <= 255
-typedef uint8_t nested_arrays_t;
-#elif MAX_NESTED_ARRAYS <= 65536
-typedef uint16_t nested_arrays_t;
-#elif MAX_NESTED_ARRAYS <= 4294967296
-typedef uint32_t nested_arrays_t;
+#if MAX_NESTED_ARRAYS <= UINT_FAST8_MAX
+typedef uint_fast8_t nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= UINT_FAST16_MAX
+typedef uint_fast16_t nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= UINT_FAST32_MAX
+typedef uint_fast32_t nested_arrays_t;
 #else
-typedef uint64_t nested_arrays_t;
+typedef uint_fast64_t nested_arrays_t;
 #endif
 
-#if MAX_NESTED_DICTS <= 256
-typedef uint8_t nested_dicts_t;
-#elif MAX_NESTED_DICTS <= 65536
-typedef uint16_t nested_dicts_t;
-#elif MAX_NESTED_DICTS <= 4294967296
-typedef uint32_t nested_dicts_t;
+#if MAX_NESTED_DICTS <= UINT_FAST8_MAX
+typedef uint_fast8_t nested_dicts_t;
+#elif MAX_NESTED_DICTS <= UINT_FAST16_MAX
+typedef uint_fast16_t nested_dicts_t;
+#elif MAX_NESTED_DICTS <= UINT_FAST32_MAX
+typedef uint_fast32_t nested_dicts_t;
 #else
-typedef uint64_t nested_dicts_t;
+typedef uint_fast64_t nested_dicts_t;
 #endif
 
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
-JSONDict *parse_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *pos);
-JSONDict *parse_dict(FILE *f, uint64_t *pos);
+JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *pos);
+JSONDict *parse_dict(FILE *f, uint_fast64_t *pos);
 
 /*******************************************************************************
 **                              LOCAL FUNCTIONS                               **
@@ -90,11 +91,12 @@ JSONDict *parse_dict(FILE *f, uint64_t *pos);
 /**
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param buff The buffer containing the current json file or object
-** \param idx A pointer to the uint64_t containing the index of the '"' that
+** \param idx A pointer to the uint_fast64_t containing the index of the '"'
+*that
 **            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
+string parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
     if (idx == nullptr)
     {
@@ -102,11 +104,11 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Counts the number of characters until the first one that is an 'end char'
-    uint64_t end_idx = *idx + 1;
-    uint64_t initial_i = end_idx;
+    uint_fast64_t end_idx = *idx + 1;
+    uint_fast64_t initial_i = end_idx;
     char c = 0;
     char prev_c = 0;
-    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
+    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
     {
         c = buff[end_idx];
         if (IS_STRING_END(c))
@@ -117,7 +119,7 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Number of chars
-    uint64_t len = end_idx - initial_i;
+    uint_fast64_t len = end_idx - initial_i;
     if (len == 0)
     {
         return string();
@@ -129,7 +131,7 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
         return string();
     }
 
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         str[i] = buff[i + initial_i];
     }
@@ -144,11 +146,12 @@ string parse_string_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 /**
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param f The file stream
-** \param pos A pointer to the uint64_t containing the position of the '"' that
+** \param pos A pointer to the uint_fast64_t containing the position of the '"'
+*that
 **            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string(FILE *f, uint64_t *pos)
+string parse_string(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -156,7 +159,7 @@ string parse_string(FILE *f, uint64_t *pos)
     }
 
     // TODO: Test if + 1 is needed
-    uint64_t end_pos = *pos;
+    uint_fast64_t end_pos = *pos;
     char c = 0;
     char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
@@ -172,7 +175,7 @@ string parse_string(FILE *f, uint64_t *pos)
         prev_c = c;
     }
 
-    uint64_t len = end_pos - *pos - 1;
+    uint_fast64_t len = end_pos - *pos - 1;
     if (len == 0)
     {
         return string();
@@ -206,20 +209,20 @@ string parse_string(FILE *f, uint64_t *pos)
 ** \returns The 0 in case of error (or if the number was 0), the number
 **          otherwise
 */
-int64_t str_to_long(StrAndLenTuple *sl)
+int_fast64_t str_to_long(StrAndLenTuple *sl)
 {
     char *str = sl->str;
-    uint64_t len = sl->len;
+    uint_fast64_t len = sl->len;
     if (str == nullptr || len == 0)
     {
         return 0;
     }
 
-    int64_t res = 0;
-    uint64_t exponent = 0;
+    int_fast64_t res = 0;
+    uint_fast64_t exponent = 0;
     char is_negative = str[0] == '-' ? -1 : 1;
     char is_in_exponent = 0;
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
         {
@@ -253,7 +256,7 @@ int64_t str_to_long(StrAndLenTuple *sl)
 double str_to_double(StrAndLenTuple *sl)
 {
     char *str = sl->str;
-    uint64_t len = sl->len;
+    uint_fast64_t len = sl->len;
     if (str == nullptr || len == 0)
     {
         return 0;
@@ -261,14 +264,14 @@ double str_to_double(StrAndLenTuple *sl)
 
     double res = 0; // Integer part
     double dot_res = 0; // Decimal part
-    uint64_t exponent = 0; // Only used if sl->has_exponent() is true
-    uint64_t nb_digits_dot = 1;
+    uint_fast64_t exponent = 0; // Only used if sl->has_exponent() is true
+    uint_fast64_t nb_digits_dot = 1;
     // If the number is negative, this is set to -1 and the final res is
     // multiplied by it
     char is_negative = str[0] == '-' ? -1 : 1;
     char dot_reached = 0;
     char is_in_exponent = 0;
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         if (str[i] == '.')
         {
@@ -300,14 +303,14 @@ double str_to_double(StrAndLenTuple *sl)
         : is_negative * (res + (dot_res / nb_digits_dot));
 }
 
-bool is_float(char *str, uint64_t len)
+bool is_float(char *str, uint_fast64_t len)
 {
     if (str == nullptr)
     {
         return false;
     }
 
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         if (str[i] == '.')
         {
@@ -317,14 +320,14 @@ bool is_float(char *str, uint64_t len)
     return false;
 }
 
-bool has_exponent(char *str, uint64_t len)
+bool has_exponent(char *str, uint_fast64_t len)
 {
     if (str == nullptr)
     {
         return false;
     }
 
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         if (str[i] == 'e' || str[i] == 'E')
         {
@@ -343,7 +346,7 @@ bool has_exponent(char *str, uint64_t len)
 **          char array, the length of the char array and whether the number is a
 **          float and has an exponent
 */
-StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
+StrAndLenTuple parse_number_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
     if (idx == nullptr)
     {
@@ -351,10 +354,10 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Counts the number of characters until the first one that is an 'end char'
-    uint64_t end_idx = *idx;
-    uint64_t initial_i = end_idx;
+    uint_fast64_t end_idx = *idx;
+    uint_fast64_t initial_i = end_idx;
     char c = 0;
-    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
+    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
     {
         c = buff[end_idx];
         if (IS_END_CHAR(c))
@@ -364,7 +367,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
     }
 
     // Number of chars
-    uint64_t len = end_idx - initial_i;
+    uint_fast64_t len = end_idx - initial_i;
     if (len == 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -377,7 +380,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
         return StrAndLenTuple(nullptr, 0, false, false);
     }
 
-    for (uint64_t i = 0; i < len; ++i)
+    for (uint_fast64_t i = 0; i < len; ++i)
     {
         str[i] = buff[i + initial_i];
     }
@@ -395,7 +398,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 ** \param pos The pos of the start of the number of which we are currently
 **            acquiring the length
 */
-StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
+StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -406,7 +409,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
     --(*pos);
 
     // Obtains the length of the value
-    uint64_t end_pos = *pos;
+    uint_fast64_t end_pos = *pos;
     if (fseek(f, end_pos++, SEEK_SET) != 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -425,7 +428,7 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
         }
     }
 
-    uint64_t len = end_pos - (*pos) - 1;
+    uint_fast64_t len = end_pos - (*pos) - 1;
     if (len == 0)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
@@ -447,16 +450,16 @@ StrAndLenTuple parse_number(FILE *f, uint64_t *pos)
 /**
 ** \returns 5 if false, 4 if true, 0 otherwise
 **/
-uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
+uint_fast64_t parse_boolean_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
     if (idx == nullptr)
     {
         return 0;
     }
 
-    uint64_t end_idx = *idx;
+    uint_fast64_t end_idx = *idx;
     char c = 0;
-    for (; end_idx < READ_BUFF_MAX_SIZE; ++end_idx)
+    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
     {
         c = buff[end_idx];
         if (IS_END_CHAR(c))
@@ -464,7 +467,7 @@ uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
             break;
         }
     }
-    uint64_t len = end_idx - *idx;
+    uint_fast64_t len = end_idx - *idx;
     (*idx) += len - 1;
     return len;
 }
@@ -472,7 +475,7 @@ uint64_t parse_boolean_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t *idx)
 /**
 ** \returns 5 if false, 4 if true, 0 otherwise
 **/
-uint64_t parse_boolean(FILE *f, uint64_t *pos)
+uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -482,7 +485,7 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
     // Because we already read the first character
     --(*pos);
 
-    uint64_t end_pos = (*pos);
+    uint_fast64_t end_pos = (*pos);
     if (fseek(f, end_pos++, SEEK_SET) != 0)
     {
         return 0;
@@ -500,7 +503,7 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
             break;
         }
     }
-    uint64_t len = end_pos - (*pos) - 1;
+    uint_fast64_t len = end_pos - (*pos) - 1;
     (*pos) += len;
     return len;
 }
@@ -511,7 +514,7 @@ uint64_t parse_boolean(FILE *f, uint64_t *pos)
 **            current array
 ** \returns The total number of characters in the current array
 */
-uint64_t get_nb_chars_in_array(FILE *f, uint64_t pos)
+uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
 {
     if (f == nullptr)
     {
@@ -523,7 +526,7 @@ uint64_t get_nb_chars_in_array(FILE *f, uint64_t pos)
         return 0;
     }
 
-    uint64_t nb_chars = 0;
+    uint_fast64_t nb_chars = 0;
     char c = 0;
     nested_arrays_t is_in_array = 1;
     nested_dicts_t is_in_dict = 0;
@@ -581,14 +584,15 @@ uint64_t get_nb_chars_in_array(FILE *f, uint64_t pos)
 **            current array
 ** \returns The number of elements of the current array
 */
-uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
+uint_fast64_t get_nb_elts_array_buff(char buff[READ_BUFF_SIZE],
+                                     uint_fast64_t idx)
 {
     if (buff[idx] == ']')
     {
         return 0;
     }
 
-    uint64_t nb_elts = 0;
+    uint_fast64_t nb_elts = 0;
     char c = 0;
     char prev_c = 0;
     nested_arrays_t is_in_array = 1;
@@ -596,7 +600,7 @@ uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
     char is_in_string = 0;
     char is_backslashing = 0;
     char comma_encountered = 0;
-    while (idx < READ_BUFF_MAX_SIZE)
+    while (idx < READ_BUFF_SIZE)
     {
         if (!is_in_array)
         {
@@ -665,20 +669,20 @@ uint64_t get_nb_elts_array_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
 **            begins the current array
 ** \returns The number of elements of the current array
 */
-uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
+uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos)
 {
     if (f == nullptr)
     {
         return 0;
     }
 
-    uint64_t offset = pos;
+    uint_fast64_t offset = pos;
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
         return 0;
     }
 
-    uint64_t nb_elts = 0;
+    uint_fast64_t nb_elts = 0;
 
     char c = 0;
     char prev_c = 0;
@@ -766,7 +770,7 @@ uint64_t get_nb_elts_array(FILE *f, uint64_t pos)
 **            current dict
 ** \returns The total number of characters in the current dict
 */
-uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
+uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos)
 {
     // We already read the first char but the pos was not incremented yet
     //++pos;
@@ -775,7 +779,7 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
         return 0;
     }
 
-    uint64_t nb_chars = 0;
+    uint_fast64_t nb_chars = 0;
     char c = 0;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
@@ -833,24 +837,25 @@ uint64_t get_nb_chars_in_dict(FILE *f, uint64_t pos)
 **            current dict
 ** \returns The number of elements of the current dict
 */
-uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
+uint_fast64_t get_nb_elts_dict_buff(char buff[READ_BUFF_SIZE],
+                                    uint_fast64_t idx)
 {
-    if (idx >= READ_BUFF_MAX_SIZE || buff[idx] == '}')
+    if (idx >= READ_BUFF_SIZE || buff[idx] == '}')
     {
         return 0;
     }
 
-    uint64_t nb_elts = 0;
+    uint_fast64_t nb_elts = 0;
     // Used for the case where the dict contains only one element, and so does
     // not contain a ','
-    uint64_t single_elt_found = 0;
+    uint_fast64_t single_elt_found = 0;
 
     char c = 0;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
-    while (idx < READ_BUFF_MAX_SIZE)
+    while (idx < READ_BUFF_SIZE)
     {
         c = buff[idx];
         if (!is_in_dict || c == 0)
@@ -903,23 +908,23 @@ uint64_t get_nb_elts_dict_buff(char buff[READ_BUFF_MAX_SIZE], uint64_t idx)
 **            begins the current dict
 ** \returns The number of elements of the current dict
 */
-uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
+uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos)
 {
     if (f == nullptr)
     {
         return 0;
     }
 
-    uint64_t offset = pos;
+    uint_fast64_t offset = pos;
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
         return 0;
     }
 
-    uint64_t nb_elts = 0;
+    uint_fast64_t nb_elts = 0;
     // Used for the case where the dict contains only one element, and so does
     // not contain a ','
-    uint64_t single_elt_found = 0;
+    uint_fast64_t single_elt_found = 0;
 
     char c = 0;
     nested_dicts_t is_in_dict = 1;
@@ -981,14 +986,14 @@ uint64_t get_nb_elts_dict(FILE *f, uint64_t pos)
 ** \param idx The index of the character '[' that begins the current array
 ** \returns The json array parsed from the position
 */
-JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
+JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint64_t i = idx == nullptr ? 1 : (*idx) + 1;
+    uint_fast64_t i = idx == nullptr ? 1 : (*idx) + 1;
 
     JSONArray *ja = new JSONArray();
 
-    uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_array_buff(b, i);
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_array_buff(b, i);
     if (nb_elts == 0)
     {
         return ja;
@@ -997,8 +1002,8 @@ JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
     char c = 0;
     // We start at 1 because if we entered this function, it means that we
     // already read a '['
-    uint64_t initial_i = i;
-    for (; i < READ_BUFF_MAX_SIZE; ++i)
+    uint_fast64_t initial_i = i;
+    for (; i < READ_BUFF_SIZE; ++i)
     {
         c = b[i];
         if (c == 0 || nb_elts_parsed >= nb_elts)
@@ -1031,7 +1036,7 @@ JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
         }
         else if (IS_BOOL_START(c))
         {
-            uint64_t len = parse_boolean_buff(b, &i);
+            uint_fast64_t len = parse_boolean_buff(b, &i);
             if (IS_NOT_BOOLEAN(c, len))
             {
                 continue;
@@ -1069,7 +1074,7 @@ JSONArray *parse_array_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
 **            begins the current array
 ** \returns The json array parsed from the position
 */
-JSONArray *parse_array(FILE *f, uint64_t *pos)
+JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -1078,8 +1083,8 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 
     JSONArray *ja = new JSONArray();
 
-    uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_array(f, *pos);
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_array(f, *pos);
     if (nb_elts == 0)
     {
         return ja;
@@ -1128,7 +1133,7 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
         else if (IS_BOOL_START(c))
         {
-            uint64_t len = parse_boolean(f, pos);
+            uint_fast64_t len = parse_boolean(f, pos);
             if (len == 0 || (c == 'f' && len != 5) || (c == 't' && len != 4))
             {
                 continue;
@@ -1144,11 +1149,11 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
         else if (c == '[')
         {
-            uint64_t nb_chars = get_nb_chars_in_array(f, *pos);
+            uint_fast64_t nb_chars = get_nb_chars_in_array(f, *pos);
             JSONArray *ja = nullptr;
-            if (nb_chars <= READ_BUFF_MAX_SIZE)
+            if (nb_chars <= READ_BUFF_SIZE)
             {
-                char b[READ_BUFF_MAX_SIZE] = {};
+                char b[READ_BUFF_SIZE] = {};
                 fread(b, sizeof(char), nb_chars, f);
                 ja = parse_array_buff(b, nullptr);
             }
@@ -1161,11 +1166,11 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
         }
         else if (c == '{')
         {
-            uint64_t nb_chars = get_nb_chars_in_dict(f, *pos);
+            uint_fast64_t nb_chars = get_nb_chars_in_dict(f, *pos);
             JSONDict *jd = nullptr;
-            if (nb_chars <= READ_BUFF_MAX_SIZE)
+            if (nb_chars <= READ_BUFF_SIZE)
             {
-                char b[READ_BUFF_MAX_SIZE] = {};
+                char b[READ_BUFF_SIZE] = {};
                 // pos - 1 because we re-read the '{'
                 if (fseek(f, *pos - 1, SEEK_SET) != 0)
                 {
@@ -1201,15 +1206,15 @@ JSONArray *parse_array(FILE *f, uint64_t *pos)
 **            index starts at 0
 ** \returns The json dict parsed from the index
 */
-JSONDict *parse_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
+JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint64_t i = idx == nullptr ? 1 : (*idx) + 1;
+    uint_fast64_t i = idx == nullptr ? 1 : (*idx) + 1;
 
     JSONDict *jd = new JSONDict();
 
     string key = string();
-    uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_dict_buff(b, i);
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_dict_buff(b, i);
     if (nb_elts == 0)
     {
         return jd;
@@ -1219,8 +1224,8 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '{'
-    uint64_t initial_i = i;
-    for (; i < READ_BUFF_MAX_SIZE; ++i)
+    uint_fast64_t initial_i = i;
+    for (; i < READ_BUFF_SIZE; ++i)
     {
         c = b[i];
         if (c == 0 || nb_elts_parsed >= nb_elts)
@@ -1261,7 +1266,7 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
         }
         else if (IS_BOOL_START(c))
         {
-            uint64_t len = parse_boolean_buff(b, &i);
+            uint_fast64_t len = parse_boolean_buff(b, &i);
             if (IS_NOT_BOOLEAN(c, len))
             {
                 continue;
@@ -1303,7 +1308,7 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_MAX_SIZE], uint64_t *idx)
 **            the '{' that begins the current dict
 ** \returns The json dict parsed from the position
 */
-JSONDict *parse_dict(FILE *f, uint64_t *pos)
+JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -1311,7 +1316,7 @@ JSONDict *parse_dict(FILE *f, uint64_t *pos)
     }
 
     JSONDict *jd = new JSONDict();
-    // uint64_t i = *pos;
+    // uint_fast64_t i = *pos;
 
     if (fseek(f, *pos, SEEK_SET) != 0)
     {
@@ -1319,8 +1324,8 @@ JSONDict *parse_dict(FILE *f, uint64_t *pos)
     }
 
     string key = string();
-    uint64_t nb_elts_parsed = 0;
-    uint64_t nb_elts = get_nb_elts_dict(f, *pos);
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_dict(f, *pos);
 
     char c = 0;
     char is_waiting_key = 1;
@@ -1359,7 +1364,7 @@ JSONDict *parse_dict(FILE *f, uint64_t *pos)
         }
         else if (IS_BOOL_START(c))
         {
-            uint64_t len = parse_boolean(f, pos);
+            uint_fast64_t len = parse_boolean(f, pos);
             if (len == 0 || (c == 'f' && len != 5) || (c == 't' && len != 4))
             {
                 continue;
@@ -1408,7 +1413,7 @@ JSON *parse(char *file)
         return nullptr;
     }
 
-    uint64_t offset = 0;
+    uint_fast64_t offset = 0;
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
         fclose(f);
@@ -1419,10 +1424,10 @@ JSON *parse(char *file)
     if (c == '{')
     {
         JSONDict *jd = nullptr;
-        uint64_t nb_chars = get_nb_chars_in_dict(f, offset);
-        if (nb_chars <= READ_BUFF_MAX_SIZE)
+        uint_fast64_t nb_chars = get_nb_chars_in_dict(f, offset);
+        if (nb_chars <= READ_BUFF_SIZE)
         {
-            char b[READ_BUFF_MAX_SIZE] = {};
+            char b[READ_BUFF_SIZE] = {};
             if (fseek(f, offset, SEEK_SET) != 0)
             {
                 fclose(f);
@@ -1442,10 +1447,10 @@ JSON *parse(char *file)
     else if (c == '[')
     {
         JSONArray *ja = nullptr;
-        uint64_t nb_chars = get_nb_chars_in_array(f, offset);
-        if (nb_chars <= READ_BUFF_MAX_SIZE)
+        uint_fast64_t nb_chars = get_nb_chars_in_array(f, offset);
+        if (nb_chars <= READ_BUFF_SIZE)
         {
-            char b[READ_BUFF_MAX_SIZE] = {};
+            char b[READ_BUFF_SIZE] = {};
             if (fseek(f, offset, SEEK_SET) != 0)
             {
                 fclose(f);
