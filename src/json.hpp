@@ -65,9 +65,9 @@ public:
     JSONArray();
     ~JSONArray();
 
-    uint64_t getSize();
+    uint_fast64_t getSize();
     TypedValue **getValues();
-    TypedValue *getValueAt(uint64_t index);
+    TypedValue *getValueAt(uint_fast64_t index);
 
     void addValue(TypedValue *value);
     void printValues();
@@ -89,7 +89,7 @@ public:
     JSONDict();
     ~JSONDict();
 
-    uint64_t getSize();
+    uint_fast64_t getSize();
     Item **getItems();
     Item *getItem(std::string key);
 
@@ -116,13 +116,13 @@ public:
 class IntTypedValue : public TypedValue
 {
 private:
-    int64_t value;
+    int_fast64_t value;
 
 public:
-    IntTypedValue(int64_t value);
+    IntTypedValue(int_fast64_t value);
 
     void printNoFlush();
-    int64_t getValue();
+    int_fast64_t getValue();
 };
 
 class DoubleTypedValue : public TypedValue

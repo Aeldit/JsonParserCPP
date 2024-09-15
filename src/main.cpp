@@ -10,11 +10,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("%s\n", argv[1]);
-
     JSON *j = parse(argv[1]);
     if (j == nullptr)
     {
+        printf("AAAAAAAAAAAAAAAAAA\n");
         return 1;
     }
 

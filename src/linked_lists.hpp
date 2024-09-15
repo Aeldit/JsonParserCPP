@@ -18,7 +18,7 @@ public:
     T *elts[BASE_ARRAY_LEN] = { 0 };
     Link<T> *next = nullptr;
 
-    Link(){};
+    Link() {};
     ~Link()
     {
         for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
@@ -32,9 +32,9 @@ template <class T>
 class LinkedList
 {
 private:
-    uint64_t size = 0;
-    uint64_t insert_idx = 0;
-    uint64_t nb_deletion = 0;
+    uint_fast64_t size = 0;
+    uint_fast64_t insert_idx = 0;
+    uint_fast64_t nb_deletion = 0;
     Link<T> *head = nullptr;
     Link<T> *tail = nullptr;
 
@@ -94,7 +94,7 @@ private:
     }
 
 public:
-    LinkedList(){};
+    LinkedList() {};
     ~LinkedList()
     {
         Link<T> *tmp = head;
@@ -106,13 +106,13 @@ public:
         }
     }
 
-    uint64_t getSize()
+    uint_fast64_t getSize()
     {
         return size;
     }
 
 #ifdef DEBUG
-    uint64_t getNbLinks()
+    uint_fast64_t getNbLinks()
     {
         if (head == nullptr)
         {
@@ -140,7 +140,7 @@ public:
     **                  the element of index 4 is '8'
     ** \returns The element at the given index if it exists, nullptr otherwise
     */
-    T *get(uint64_t index)
+    T *get(uint_fast64_t index)
     {
         if (head == nullptr || index >= size)
         {
@@ -148,7 +148,7 @@ public:
         }
 
         Link<T> *link = head;
-        uint64_t nb_encountered = 0;
+        uint_fast64_t nb_encountered = 0;
         while (link != nullptr)
         {
             for (unsigned char i = 0; i < BASE_ARRAY_LEN; ++i)
@@ -180,7 +180,7 @@ public:
             return nullptr;
         }
 
-        uint64_t local_insert_idx = 0;
+        uint_fast64_t local_insert_idx = 0;
         Link<T> *link = head;
         while (link != nullptr)
         {
@@ -220,7 +220,7 @@ public:
         ++size;
     }
 
-    void remove(uint64_t index)
+    void remove(uint_fast64_t index)
     {
         if (head == nullptr || index >= size)
         {
@@ -228,7 +228,7 @@ public:
         }
 
         Link<T> *link = head;
-        uint64_t nb_encountered = 0;
+        uint_fast64_t nb_encountered = 0;
         bool done = false;
         while (link != nullptr)
         {

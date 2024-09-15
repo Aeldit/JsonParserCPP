@@ -52,12 +52,12 @@ void StringTypedValue::printNoFlush()
 /**************************************
 **             INT VALUE             **
 **************************************/
-IntTypedValue::IntTypedValue(int64_t value)
+IntTypedValue::IntTypedValue(int_fast64_t value)
     : TypedValue(T_INT)
     , value(value)
 {}
 
-int64_t IntTypedValue::getValue()
+int_fast64_t IntTypedValue::getValue()
 {
     return value;
 }
@@ -203,12 +203,12 @@ void StringItem::printNoFlush()
 /**************************************
 **             INT ITEM              **
 **************************************/
-IntItem::IntItem(string key, int64_t value)
+IntItem::IntItem(string key, int_fast64_t value)
     : Item(key, T_INT)
     , value(value)
 {}
 
-int64_t IntItem::getValue()
+int_fast64_t IntItem::getValue()
 {
     return value;
 }
@@ -374,7 +374,7 @@ TypedValue **JSONArray::getValues()
     return values.getAsArray();
 }
 
-TypedValue *JSONArray::getValueAt(uint64_t index)
+TypedValue *JSONArray::getValueAt(uint_fast64_t index)
 {
     return values.get(index);
 }
@@ -400,7 +400,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
     }
     tabs[indent - 1] = '\0';
 
-    uint64_t size = getSize();
+    uint_fast64_t size = getSize();
     // Empty array
     if (size == 0)
     {
@@ -415,7 +415,7 @@ void JSONArray::printValuesIndent(int indent, bool fromDict)
 
     cout << (fromDict ? "" : tabs) << "[\n";
 
-    for (uint64_t i = 0; i < size; ++i)
+    for (uint_fast64_t i = 0; i < size; ++i)
     {
         TypedValue *value = values.get(i);
         if (value == nullptr)
@@ -486,6 +486,16 @@ void JSONDict::addItem(Item *item)
         {
             items.add(item);
         }
+        else
+        {
+#ifdef DEBUG
+            cout << "The item with key '" << item->getKey()
+                 << "' already exists, not adding it and freeing allocated "
+                    "memory"
+                 << endl;
+#endif
+            delete item;
+        }
     }
 }
 
@@ -497,10 +507,10 @@ Item **JSONDict::getItems()
 Item *JSONDict::getItem(string key)
 {
     const char *k_str = key.c_str();
-    uint64_t k_len = key.length();
+    uint_fast64_t k_len = key.length();
 
-    uint64_t size = getSize();
-    for (uint64_t i = 0; i < size; ++i)
+    uint_fast64_t size = getSize();
+    for (uint_fast64_t i = 0; i < size; ++i)
     {
         Item *it = items.get(i);
         if (it != nullptr)
@@ -536,7 +546,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
     }
     tabs[indent - 1] = '\0';
 
-    uint64_t size = getSize();
+    uint_fast64_t size = getSize();
     if (size == 0)
     {
         cout << (fromDict ? "" : tabs) << "{}";
@@ -550,7 +560,7 @@ void JSONDict::printItemsIndent(int indent, bool fromDict)
 
     cout << (fromDict ? "" : tabs) << "{\n";
 
-    for (uint64_t i = 0; i < size; ++i)
+    for (uint_fast64_t i = 0; i < size; ++i)
     {
         Item *it = items.get(i);
         if (it == nullptr)

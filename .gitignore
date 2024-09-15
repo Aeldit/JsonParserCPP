@@ -2,3 +2,4 @@ Makefile.rules
 .vscode/
 .cache/
 json-parser
+tests/

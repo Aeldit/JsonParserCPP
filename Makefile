@@ -16,8 +16,15 @@ json-parser:
 clean:
 	if [ -f "json-parser" ]; then rm json-parser; fi
 
+.PHONY:
+test:
+	$(CC) $(CFLAGS) tests/tests.cpp -o tests/run-tests
+	./tests/run-tests
+
 valgrind-compile: clean
-	$(CC) $(CFLAGS) -DVALGRING_DISABLE_PRINT $(CFILES) -o json-parser
+	$(CC) $(CFLAGS) \
+		-DVALGRING_DISABLE_PRINT \
+		$(CFILES) -o json-parser
 
 valgrind: valgrind-compile
 	valgrind --tool=callgrind --dump-instr=yes \
