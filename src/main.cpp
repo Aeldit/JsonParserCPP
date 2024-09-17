@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     JSON *j = parse(argv[1]);
     if (j == nullptr)
     {
-        printf("AAAAAAAAAAAAAAAAAA\n");
         return 1;
     }
 

@@ -4,7 +4,7 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cmath>
-#include <string>
+#include <stdio.h>
 
 #include "json.hpp"
 
@@ -100,11 +100,11 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos);
 **            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
+String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
     if (idx == nullptr)
     {
-        return string();
+        return nullptr;
     }
 
     // Counts the number of characters until the first one that is an 'end char'
@@ -126,13 +126,13 @@ string parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     uint_fast64_t len = end_idx - initial_i;
     if (len == 0)
     {
-        return string();
+        return nullptr;
     }
 
     char *str = new char[len + 1]();
     if (str == nullptr)
     {
-        return string();
+        return nullptr;
     }
 
     for (uint_fast64_t i = 0; i < len; ++i)
@@ -142,9 +142,7 @@ string parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 
     // + 1 to not read the last '"' when returning in the calling function
     (*idx) += len + 1;
-    string fstr(str);
-    delete[] str;
-    return fstr;
+    return new String(str, len);
 }
 
 /**
@@ -155,11 +153,11 @@ string parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 **            started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
-string parse_string(FILE *f, uint_fast64_t *pos)
+String *parse_string(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
-        return string();
+        return nullptr;
     }
 
     // TODO: Test if + 1 is needed
@@ -182,27 +180,25 @@ string parse_string(FILE *f, uint_fast64_t *pos)
     uint_fast64_t len = end_pos - *pos - 1;
     if (len == 0)
     {
-        return string();
+        return nullptr;
     }
 
     char *str = new char[len + 1]();
     if (str == nullptr)
     {
-        return string();
+        return nullptr;
     }
 
     if (fseek(f, (*pos)++, SEEK_SET) != 0)
     {
-        delete[] str;
-        return string();
+        // delete[] str;
+        return nullptr;
     }
     fread(str, sizeof(char), len, f);
 
     // ++(*pos); // Because otherwise, we end up reading the last '"' of the str
     (*pos) += len; // (len - 1) + 1, (the last '+1' replaces the '++pos')
-    string fstr(str);
-    delete[] str;
-    return fstr;
+    return new String(str, len);
 }
 
 /**
@@ -1224,7 +1220,7 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 
     JSONDict *jd = new JSONDict();
 
-    string key = string();
+    String *key = nullptr;
     uint_fast64_t nb_elts_parsed = 0;
     uint_fast64_t nb_elts = get_nb_elts_dict_buff(b, i);
     if (nb_elts == 0)
@@ -1336,7 +1332,7 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
         return nullptr;
     }
 
-    string key = string();
+    String *key = nullptr;
     uint_fast64_t nb_elts_parsed = 0;
     uint_fast64_t nb_elts = get_nb_elts_dict(f, i);
 

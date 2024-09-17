@@ -4,8 +4,6 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
-#include <string>
-
 #include "linked_lists.hpp"
 #include "types.hpp"
 
@@ -91,7 +89,7 @@ public:
 
     uint_fast64_t getSize();
     Item **getItems();
-    Item *getItem(std::string key);
+    Item *getItem(String *key);
 
     void addItem(Item *item);
     void printItems();
@@ -104,13 +102,14 @@ public:
 class StringTypedValue : public TypedValue
 {
 private:
-    std::string value;
+    String *value;
 
 public:
-    StringTypedValue(std::string value);
+    StringTypedValue(String *value);
+    ~StringTypedValue();
 
     void printNoFlush();
-    std::string getValue();
+    String *getValue();
 };
 
 class IntTypedValue : public TypedValue
@@ -191,13 +190,14 @@ public:
 class StringItem : public Item
 {
 private:
-    std::string value;
+    String *value;
 
 public:
-    StringItem(std::string key, std::string value);
+    StringItem(String *key, String *value);
+    ~StringItem();
 
     void printNoFlush();
-    std::string getValue();
+    String *getValue();
 };
 
 class IntItem : public Item
@@ -206,7 +206,7 @@ private:
     int64_t value;
 
 public:
-    IntItem(std::string key, int64_t value);
+    IntItem(String *key, int64_t value);
 
     void printNoFlush();
     int64_t getValue();
@@ -218,7 +218,7 @@ private:
     double value;
 
 public:
-    DoubleItem(std::string key, double value);
+    DoubleItem(String *key, double value);
 
     void printNoFlush();
     double getValue();
@@ -230,7 +230,7 @@ private:
     bool value;
 
 public:
-    BoolItem(std::string key, bool value);
+    BoolItem(String *key, bool value);
 
     void printNoFlush();
     bool getValue();
@@ -239,7 +239,7 @@ public:
 class NullItem : public Item
 {
 public:
-    NullItem(std::string key);
+    NullItem(String *key);
 
     void printNoFlush();
 };
@@ -250,7 +250,7 @@ private:
     JSONArray *ja;
 
 public:
-    ArrayItem(std::string key, JSONArray *ja_arg);
+    ArrayItem(String *key, JSONArray *ja_arg);
     virtual ~ArrayItem();
 
     void printNoFlush();
@@ -264,7 +264,7 @@ private:
     JSONDict *jd;
 
 public:
-    DictItem(std::string key, JSONDict *jd_arg);
+    DictItem(String *key, JSONDict *jd_arg);
     virtual ~DictItem();
 
     void printNoFlush();

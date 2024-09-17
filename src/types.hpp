@@ -4,7 +4,7 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
-#include <string>
+#include <stdint.h>
 
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
@@ -17,9 +17,39 @@
 #define T_ARR 5
 #define T_DICT 6
 
+#ifndef MAX_STR_LEN
+#    define MAX_STR_LEN UINT_FAST8_MAX
+#endif
+
+#if MAX_STR_LEN <= UINT_FAST8_MAX
+typedef uint_fast8_t uint_strlen_t;
+#elif MAX_STR_LEN <= UINT_FAST16_MAX
+typedef uint_fast16_t uint_strlen_t;
+#elif MAX_STR_LEN <= UINT_FAST32_MAX
+typedef uint_fast32_t uint_strlen_t;
+#else
+typedef uint_fast64_t uint_strlen_t;
+#endif
+
 /*******************************************************************************
 **                                   CLASSES                                  **
 *******************************************************************************/
+class String
+{
+private:
+    char *string;
+    uint_strlen_t length;
+
+public:
+    String(char *str, uint_strlen_t len);
+    ~String();
+
+    const char *str();
+    uint_strlen_t len();
+
+    bool operator==(String s);
+};
+
 /**
 ** \class TypedValue Base class representing a JSONArray's value
 ** \brief The following classes are derived from this one :
@@ -64,13 +94,13 @@ public:
 class Item : public TypedValue
 {
 private:
-    std::string key;
+    String *key;
 
 public:
-    Item(std::string key, unsigned char type);
-    virtual ~Item() = default;
+    Item(String *key, unsigned char type);
+    virtual ~Item();
 
-    std::string getKey();
+    String *getKey();
 
     void printKey();
 };
