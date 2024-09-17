@@ -8,8 +8,6 @@
 
 #include "json.hpp"
 
-using namespace std;
-
 /*******************************************************************************
 **                                 STRUCTURES                                 **
 *******************************************************************************/
@@ -21,11 +19,11 @@ class StrAndLenTuple
 {
 public:
     char *str;
-    uint_fast64_t len;
+    uint_strlen_t len;
     bool is_float;
     bool has_exponent;
 
-    StrAndLenTuple(char *str, uint_fast64_t len, bool is_float,
+    StrAndLenTuple(char *str, uint_strlen_t len, bool is_float,
                    bool has_exponent)
         : str(str)
         , len(len)
@@ -52,7 +50,7 @@ public:
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
 #ifndef READ_BUFF_SIZE
-#    define READ_BUFF_SIZE 1024
+#    define READ_BUFF_SIZE 64
 #endif
 
 #ifndef MAX_NESTED_ARRAYS
@@ -96,8 +94,7 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos);
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param buff The buffer containing the current json file or object
 ** \param idx A pointer to the uint_fast64_t containing the index of the '"'
-*that
-**            started the string we want to parse
+**            that started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
 String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
@@ -149,8 +146,7 @@ String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param f The file stream
 ** \param pos A pointer to the uint_fast64_t containing the position of the '"'
-*that
-**            started the string we want to parse
+**            that started the string we want to parse
 ** \returns An empty string in case of error, the parsed string otherwise
 */
 String *parse_string(FILE *f, uint_fast64_t *pos)
@@ -160,8 +156,8 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         return nullptr;
     }
 
-    // TODO: Test if + 1 is needed
-    uint_fast64_t end_pos = *pos;
+    uint_fast64_t end_pos = *pos + 1;
+    uint_fast64_t initial_i = end_pos;
     char c = 0;
     char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
@@ -177,7 +173,7 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         prev_c = c;
     }
 
-    uint_fast64_t len = end_pos - *pos - 1;
+    uint_strlen_t len = end_pos - initial_i;
     if (len == 0)
     {
         return nullptr;
@@ -189,15 +185,15 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         return nullptr;
     }
 
-    if (fseek(f, (*pos)++, SEEK_SET) != 0)
+    if (fseek(f, *pos, SEEK_SET) != 0)
     {
-        // delete[] str;
+        delete[] str;
         return nullptr;
     }
     fread(str, sizeof(char), len, f);
 
-    // ++(*pos); // Because otherwise, we end up reading the last '"' of the str
-    (*pos) += len; // (len - 1) + 1, (the last '+1' replaces the '++pos')
+    // + 1 to not read the last '"' when returning in the calling function
+    (*pos) += len + 1;
     return new String(str, len);
 }
 
@@ -1104,7 +1100,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
     for (; nb_elts_parsed <= nb_elts; ++i)
     {
         c = fgetc(f);
-        if (c == 0 || c == EOF) //|| nb_elts_parsed >= nb_elts)
+        if (c == 0 || c == EOF)
         {
             break;
         }
@@ -1190,6 +1186,8 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
             }
             else
             {
+                printf("A");
+                ++i;
                 jd = parse_dict(f, &i);
             }
             ja->addValue(new DictTypedValue(jd));
@@ -1318,6 +1316,7 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 */
 JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
 {
+    // FIX:
     if (f == nullptr || pos == nullptr)
     {
         return nullptr;
@@ -1327,19 +1326,32 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
     uint_fast64_t i = *pos;
     uint_fast64_t initial_i = i;
 
+    String *key = nullptr;
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_dict(f, i);
+    if (nb_elts == 0)
+    {
+        return jd;
+    }
+
+    // Sets the reading position back to the first character after the '{'
     if (fseek(f, i, SEEK_SET) != 0)
     {
         return nullptr;
     }
 
-    String *key = nullptr;
-    uint_fast64_t nb_elts_parsed = 0;
-    uint_fast64_t nb_elts = get_nb_elts_dict(f, i);
-
     char c = 0;
     char is_waiting_key = 1;
-    while ((c = fgetc(f)) != EOF && nb_elts_parsed < nb_elts)
+    // We start at 1 because if we entered this function, it means that we
+    // already read a '['
+    for (; nb_elts_parsed <= nb_elts; ++i)
     {
+        c = fgetc(f);
+        if (c == 0 || c == EOF)
+        {
+            break;
+        }
+
         if (c == '"')
         {
             if (is_waiting_key)
@@ -1438,7 +1450,7 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
             is_waiting_key = 1;
         }
 
-        if (fseek(f, i++, SEEK_SET) != 0)
+        if (fseek(f, i, SEEK_SET) != 0)
         {
             break;
         }

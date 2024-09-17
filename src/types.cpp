@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-String::String(char *str, uint_strlen_t len)
+String::String(const char *str, uint_strlen_t len)
     : string(str)
     , length(len)
 {}

@@ -37,11 +37,11 @@ typedef uint_fast64_t uint_strlen_t;
 class String
 {
 private:
-    char *string;
+    const char *string;
     uint_strlen_t length;
 
 public:
-    String(char *str, uint_strlen_t len);
+    String(const char *str, uint_strlen_t len);
     ~String();
 
     const char *str();
