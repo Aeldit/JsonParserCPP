@@ -762,9 +762,10 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos)
 
 /**
 ** \param f The file stream
-** \param pos The position in the file of the character '{' that begins the
-**            current dict
-** \returns The total number of characters in the current dict
+** \param pos The position in the file of the character after the '{' that
+**            begins the current dict
+** \returns The total number of characters in the current dict - 1 (the first
+**          '{' is not counted)
 */
 uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos)
 {
@@ -985,7 +986,7 @@ uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos)
 */
 JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint_fast64_t i = idx == nullptr ? 1 : (*idx) + 1;
+    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
 
     JSONArray *ja = new JSONArray();
 
@@ -1049,11 +1050,13 @@ JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
         }
         else if (c == '[')
         {
+            ++i;
             ja->addValue(new ArrayTypedValue(parse_array_buff(b, &i)));
             ++nb_elts_parsed;
         }
         else if (c == '{')
         {
+            ++i;
             ja->addValue(new DictTypedValue(parse_dict_buff(b, &i)));
             ++nb_elts_parsed;
         }
@@ -1147,7 +1150,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
         }
         else if (c == '[')
         {
-            uint_fast64_t nb_chars = get_nb_chars_in_array(f, *pos);
+            uint_fast64_t nb_chars = get_nb_chars_in_array(f, *pos + 1);
             JSONArray *ja = nullptr;
             if (nb_chars <= READ_BUFF_SIZE)
             {
@@ -1170,7 +1173,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
         }
         else if (c == '{')
         {
-            uint_fast64_t nb_chars = get_nb_chars_in_dict(f, *pos);
+            uint_fast64_t nb_chars = get_nb_chars_in_dict(f, *pos + 1);
             JSONDict *jd = nullptr;
             if (nb_chars <= READ_BUFF_SIZE)
             {
@@ -1213,7 +1216,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
 */
 JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint_fast64_t i = idx == nullptr ? 1 : (*idx) + 1;
+    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
 
     JSONDict *jd = new JSONDict();
 
@@ -1287,11 +1290,13 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
         }
         else if (c == '[')
         {
+            ++i;
             jd->addItem(new ArrayItem(key, parse_array_buff(b, &i)));
             ++nb_elts_parsed;
         }
         else if (c == '{')
         {
+            ++i;
             jd->addItem(new DictItem(key, parse_dict_buff(b, &i)));
             ++nb_elts_parsed;
         }
@@ -1410,7 +1415,6 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
                     break;
                 }
                 fread(b, sizeof(char), nb_chars, f);
-                printf("size = %lu | '%s'\n", nb_chars, b);
                 ja = parse_array_buff(b, nullptr);
                 (*pos) += nb_chars;
             }
@@ -1423,17 +1427,18 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
         }
         else if (c == '{')
         {
-            uint_fast64_t nb_chars = get_nb_chars_in_dict(f, *pos);
+            uint_fast64_t nb_chars = get_nb_chars_in_dict(f, *pos + 1);
             JSONDict *jd = nullptr;
             if (nb_chars <= READ_BUFF_SIZE)
             {
                 char b[READ_BUFF_SIZE] = {};
                 // pos - 1 because we re-read the '{'
-                if (fseek(f, (*pos) - 1, SEEK_SET) != 0)
+                if (fseek(f, *pos, SEEK_SET) != 0)
                 {
                     break;
                 }
                 fread(b, sizeof(char), nb_chars, f);
+                printf("size = %lu | '%s'\n", nb_chars, b);
                 jd = parse_dict_buff(b, nullptr);
                 (*pos) += nb_chars;
             }
