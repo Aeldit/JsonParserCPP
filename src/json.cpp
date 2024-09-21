@@ -5,28 +5,8 @@
 *******************************************************************************/
 #include <iomanip>
 #include <iostream>
-#include <string>
 
 using namespace std;
-
-/*******************************************************************************
-**                               LOCAL FUNCTIONS                              **
-*******************************************************************************/
-/**
-** \returns false if the 2 strings are different, true otherwise.
-**          This function stops as soon as a difference is found.
-*/
-bool stringsEqual(const char *a, uint64_t len, const char *b)
-{
-    for (uint64_t i = 0; i < len; ++i)
-    {
-        if (a[i] != b[i])
-        {
-            return false;
-        }
-    }
-    return true;
-}
 
 /*******************************************************************************
 **                                   VALUES                                   **
@@ -34,19 +14,24 @@ bool stringsEqual(const char *a, uint64_t len, const char *b)
 /**************************************
 **            STRING VALUE           **
 **************************************/
-StringTypedValue::StringTypedValue(string value)
+StringTypedValue::StringTypedValue(String *value)
     : TypedValue(T_STR)
     , value(value)
 {}
 
-string StringTypedValue::getValue()
+StringTypedValue::~StringTypedValue()
+{
+    delete value;
+}
+
+String *StringTypedValue::getValue()
 {
     return value;
 }
 
 void StringTypedValue::printNoFlush()
 {
-    cout << "\"" << value << "\"";
+    cout << "\"" << value->str() << "\"";
 }
 
 /**************************************
@@ -184,12 +169,17 @@ void DictTypedValue::print()
 /**************************************
 **            STRING ITEM            **
 **************************************/
-StringItem::StringItem(string key, string value)
+StringItem::StringItem(String *key, String *value)
     : Item(key, T_STR)
     , value(value)
 {}
 
-string StringItem::getValue()
+StringItem::~StringItem()
+{
+    delete value;
+}
+
+String *StringItem::getValue()
 {
     return value;
 }
@@ -197,13 +187,13 @@ string StringItem::getValue()
 void StringItem::printNoFlush()
 {
     printKey();
-    cout << "\"" << value << "\"";
+    cout << "\"" << value->str() << "\"";
 }
 
 /**************************************
 **             INT ITEM              **
 **************************************/
-IntItem::IntItem(string key, int_fast64_t value)
+IntItem::IntItem(String *key, int_fast64_t value)
     : Item(key, T_INT)
     , value(value)
 {}
@@ -222,7 +212,7 @@ void IntItem::printNoFlush()
 /**************************************
 **           DOUBLE ITEM             **
 **************************************/
-DoubleItem::DoubleItem(string key, double value)
+DoubleItem::DoubleItem(String *key, double value)
     : Item(key, T_DOUBLE)
     , value(value)
 {}
@@ -241,7 +231,7 @@ void DoubleItem::printNoFlush()
 /**************************************
 **             BOOL ITEM             **
 **************************************/
-BoolItem::BoolItem(string key, bool value)
+BoolItem::BoolItem(String *key, bool value)
     : Item(key, T_BOOL)
     , value(value)
 {}
@@ -260,7 +250,7 @@ void BoolItem::printNoFlush()
 /**************************************
 **             NULL ITEM             **
 **************************************/
-NullItem::NullItem(string key)
+NullItem::NullItem(String *key)
     : Item(key, T_NULL)
 {}
 
@@ -273,7 +263,7 @@ void NullItem::printNoFlush()
 /**************************************
 **            ARRAY ITEM             **
 **************************************/
-ArrayItem::ArrayItem(string key, JSONArray *ja_arg)
+ArrayItem::ArrayItem(String *key, JSONArray *ja_arg)
     : Item(key, T_ARR)
     , ja(ja_arg)
 {}
@@ -304,7 +294,7 @@ void ArrayItem::print()
 /**************************************
 **             DICT ITEM             **
 **************************************/
-DictItem::DictItem(string key, JSONDict *jd_arg)
+DictItem::DictItem(String *key, JSONDict *jd_arg)
     : Item(key, T_DICT)
     , jd(jd_arg)
 {}
@@ -504,19 +494,16 @@ Item **JSONDict::getItems()
     return items.getAsArray();
 }
 
-Item *JSONDict::getItem(string key)
+Item *JSONDict::getItem(String *key)
 {
-    const char *k_str = key.c_str();
-    uint_fast64_t k_len = key.length();
-
     uint_fast64_t size = getSize();
     for (uint_fast64_t i = 0; i < size; ++i)
     {
         Item *it = items.get(i);
         if (it != nullptr)
         {
-            string k = it->getKey();
-            if (k_len == k.length() && stringsEqual(k_str, k_len, k.c_str()))
+            String *k = it->getKey();
+            if (key == k)
             {
                 return it;
             }
