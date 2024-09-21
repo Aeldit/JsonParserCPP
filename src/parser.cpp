@@ -508,7 +508,7 @@ uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
         }
     }
     uint_fast64_t len = end_pos - *pos;
-    (*pos) += len - 1;
+    *pos += len - 1;
     return len;
 }
 
