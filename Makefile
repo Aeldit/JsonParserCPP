@@ -6,14 +6,15 @@ CFILES=src/main.cpp \
 	src/parser.cpp \
 	src/types.cpp
 
-ADDITIONAL_FLAGS=
+ADDITIONAL_FLAGS= \
+				 #-DVALGRING_DISABLE_PRINT
 
 all: clean json-parser
 	./json-parser r.json
 
 .PHONY:
 json-parser:
-	$(CC) $(CFLAGS) $(CFILES) -o json-parser
+	$(CC) $(CFLAGS) $(ADDITIONAL_FLAGS) $(CFILES) -o json-parser
 
 clean:
 	if [ -f "json-parser" ]; then rm json-parser; fi
