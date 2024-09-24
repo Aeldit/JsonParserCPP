@@ -111,24 +111,6 @@ public:
         return size;
     }
 
-#ifdef DEBUG
-    uint_fast64_t getNbLinks()
-    {
-        if (head == nullptr)
-        {
-            return 0;
-        }
-        uint64_t nb_links = 0;
-        Link<T> *link = head;
-        while (link != nullptr)
-        {
-            link = link->next;
-            ++nb_links;
-        }
-        return nb_links;
-    }
-#endif
-
     /**
     ** \brief Iterates over the arrays in the linked list and increments the
     **        number of elements encountered when the current element is not

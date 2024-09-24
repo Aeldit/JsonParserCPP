@@ -20,7 +20,7 @@
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
-#define NO_BUFFERED_READING
+// #define NO_BUFFERED_READING
 #ifndef NO_BUFFERED_READING
 #    ifndef READ_BUFF_SIZE
 #        define READ_BUFF_SIZE 1024
@@ -95,115 +95,6 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos);
 /*******************************************************************************
 **                              LOCAL FUNCTIONS                               **
 *******************************************************************************/
-#ifndef NO_BUFFERED_READING
-/**
-** \brief Parses the string starting at 'pos + 1' (first char after the '"')
-** \param buff The buffer containing the current json file or object
-** \param idx A pointer to the uint_fast64_t containing the index of the '"'
-**            that started the string we want to parse
-** \returns An empty string in case of error, the parsed string otherwise
-*/
-String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
-{
-    if (idx == nullptr)
-    {
-        return nullptr;
-    }
-
-    // Counts the number of characters until the first one that is an 'end char'
-    uint_fast64_t end_idx = *idx + 1;
-    uint_fast64_t initial_i = end_idx;
-    char c = 0;
-    char prev_c = 0;
-    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
-    {
-        c = buff[end_idx];
-        if (IS_STRING_END(c))
-        {
-            break;
-        }
-        prev_c = c;
-    }
-
-    // Number of chars
-    uint_fast64_t len = end_idx - initial_i;
-    if (len == 0)
-    {
-        return nullptr;
-    }
-
-    char *str = new char[len + 1]();
-    if (str == nullptr)
-    {
-        return nullptr;
-    }
-
-    for (uint_fast64_t i = 0; i < len; ++i)
-    {
-        str[i] = buff[i + initial_i];
-    }
-
-    // + 1 to not read the last '"' when returning in the calling function
-    (*idx) += len + 1;
-    return new String(str, len);
-}
-#endif
-
-/**
-** \brief Parses the string starting at 'pos + 1' (first char after the '"')
-** \param f The file stream
-** \param pos A pointer to the uint_fast64_t containing the position of the '"'
-**            that started the string we want to parse
-** \returns An empty string in case of error, the parsed string otherwise
-*/
-String *parse_string(FILE *f, uint_fast64_t *pos)
-{
-    if (f == nullptr || pos == nullptr)
-    {
-        return nullptr;
-    }
-
-    uint_fast64_t end_pos = *pos + 1;
-    uint_fast64_t initial_i = end_pos;
-    char c = 0;
-    char prev_c = 0;
-    while ((c = fgetc(f)) != EOF)
-    {
-        if (IS_STRING_END(c))
-        {
-            break;
-        }
-        if (fseek(f, end_pos++, SEEK_SET) != 0)
-        {
-            break;
-        }
-        prev_c = c;
-    }
-
-    uint_strlen_t len = end_pos - initial_i;
-    if (len == 0)
-    {
-        return nullptr;
-    }
-
-    char *str = new char[len + 1]();
-    if (str == nullptr)
-    {
-        return nullptr;
-    }
-
-    if (fseek(f, *pos, SEEK_SET) != 0)
-    {
-        delete[] str;
-        return nullptr;
-    }
-    fread(str, sizeof(char), len, f);
-
-    // + 1 to not read the last '"' when returning in the calling function
-    *pos += len + 1;
-    return new String(str, len);
-}
-
 /**
 ** \brief Takes sl's char array and transforms it into an int64_t.
 **        If the number has an exponent, the exponent is parsed as well and the
@@ -342,6 +233,58 @@ bool has_exponent(char *str, uint_fast64_t len)
 
 #ifndef NO_BUFFERED_READING
 /**
+** \brief Parses the string starting at 'pos + 1' (first char after the '"')
+** \param buff The buffer containing the current json file or object
+** \param idx A pointer to the uint_fast64_t containing the index of the '"'
+**            that started the string we want to parse
+** \returns An empty string in case of error, the parsed string otherwise
+*/
+String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
+{
+    if (idx == nullptr)
+    {
+        return nullptr;
+    }
+
+    // Counts the number of characters until the first one that is an 'end char'
+    uint_fast64_t end_idx = *idx + 1;
+    uint_fast64_t initial_i = end_idx;
+    char c = 0;
+    char prev_c = 0;
+    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
+    {
+        c = buff[end_idx];
+        if (IS_STRING_END(c))
+        {
+            break;
+        }
+        prev_c = c;
+    }
+
+    // Number of chars
+    uint_fast64_t len = end_idx - initial_i;
+    if (len == 0)
+    {
+        return nullptr;
+    }
+
+    char *str = new char[len + 1]();
+    if (str == nullptr)
+    {
+        return nullptr;
+    }
+
+    for (uint_fast64_t i = 0; i < len; ++i)
+    {
+        str[i] = buff[i + initial_i];
+    }
+
+    // + 1 to not read the last '"' when returning in the calling function
+    (*idx) += len + 1;
+    return new String(str, len);
+}
+
+/**
 ** \brief Reads the buffer from the given pos - 1
 ** \param buff The buffer containing the current json file or object
 ** \param idx The index of the second character of the number (the first one
@@ -392,7 +335,439 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     (*idx) += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
+
+/**
+** \returns 5 if false, 4 if true, 0 otherwise
+**/
+uint_fast64_t parse_boolean_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
+{
+    if (idx == nullptr)
+    {
+        return 0;
+    }
+
+    uint_fast64_t end_idx = *idx;
+    char c = 0;
+    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
+    {
+        c = buff[end_idx];
+        if (IS_END_CHAR(c))
+        {
+            break;
+        }
+    }
+    uint_fast64_t len = end_idx - *idx;
+    (*idx) += len - 1;
+    return len;
+}
+
+/**
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character just after the '[' that begins the
+**            current array
+** \returns The number of elements of the current array
+*/
+uint_fast64_t get_nb_elts_array_buff(char buff[READ_BUFF_SIZE],
+                                     uint_fast64_t idx)
+{
+    if (buff[idx] == ']')
+    {
+        return 0;
+    }
+
+    uint_fast64_t nb_elts = 0;
+    char c = 0;
+    char prev_c = 0;
+    nested_arrays_t is_in_array = 1;
+    nested_dicts_t is_in_dict = 0;
+    char is_in_string = 0;
+    char is_backslashing = 0;
+    char comma_encountered = 0;
+    while (idx < READ_BUFF_SIZE)
+    {
+        if (!is_in_array)
+        {
+            break;
+        }
+
+        c = buff[idx];
+        if (c == '\\')
+        {
+            is_backslashing = !is_backslashing;
+        }
+        else if (!comma_encountered && c == ',' && is_in_array == 1)
+        {
+            comma_encountered = 1;
+        }
+
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
+        {
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+            else if (!is_in_dict && is_in_array == 1 && c == ',')
+            {
+                ++nb_elts;
+            }
+        }
+        ++idx;
+
+        if (c != ' ' && c != '\t' && c != '\n')
+        {
+            prev_c = c;
+        }
+    }
+
+    // If there was only one value, there was no ',', so the element wasn't
+    // detected or if at least one element was found, it means that a ',' was
+    // found
+    if ((nb_elts == 0 && prev_c != 0) || (nb_elts >= 1 && comma_encountered))
+    {
+        ++nb_elts;
+    }
+    return nb_elts;
+}
+
+/**
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character just after the '{' that begins the
+**            current dict
+** \returns The number of elements of the current dict
+*/
+uint_fast64_t get_nb_elts_dict_buff(char buff[READ_BUFF_SIZE],
+                                    uint_fast64_t idx)
+{
+    if (idx >= READ_BUFF_SIZE || buff[idx] == '}')
+    {
+        return 0;
+    }
+
+    uint_fast64_t nb_elts = 0;
+    // Used for the case where the dict contains only one element, and so does
+    // not contain a ','
+    uint_fast64_t single_elt_found = 0;
+
+    char c = 0;
+    nested_dicts_t is_in_dict = 1;
+    nested_arrays_t is_in_array = 0;
+    char is_in_string = 0;
+    char is_backslashing = 0;
+    while (idx < READ_BUFF_SIZE)
+    {
+        c = buff[idx];
+        if (!is_in_dict || c == 0)
+        {
+            break;
+        }
+
+        if (c == '\\')
+        {
+            is_backslashing = !is_backslashing;
+        }
+
+        // If we are not in a string or if the string just ended
+        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
+        {
+            if (c == '"')
+            {
+                is_in_string = !is_in_string;
+                single_elt_found = 1;
+            }
+            else if (c == '[')
+            {
+                ++is_in_array;
+            }
+            else if (c == ']')
+            {
+                --is_in_array;
+            }
+            else if (c == '{')
+            {
+                ++is_in_dict;
+            }
+            else if (c == '}')
+            {
+                --is_in_dict;
+            }
+            else if (!is_in_array && is_in_dict == 1 && c == ',')
+            {
+                ++nb_elts;
+            }
+        }
+        ++idx;
+    }
+    return nb_elts == 0 ? single_elt_found : nb_elts + 1;
+}
+
+/**
+** \param buff The buffer containing the object currently being parsed
+** \param idx The index of the character '[' that begins the current array
+** \returns The json array parsed from the position
+*/
+JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
+{
+    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
+
+    JSONArray *ja = new JSONArray();
+
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_array_buff(b, i);
+    if (nb_elts == 0)
+    {
+        return ja;
+    }
+
+    char c = 0;
+    // We start at 1 because if we entered this function, it means that we
+    // already read a '['
+    uint_fast64_t initial_i = i;
+    for (; i < READ_BUFF_SIZE; ++i)
+    {
+        c = b[i];
+        if (c == 0 || nb_elts_parsed >= nb_elts)
+        {
+            break;
+        }
+
+        if (c == '"')
+        {
+            ja->addValue(new StringTypedValue(parse_string_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (IS_NUMBER_START(c))
+        {
+            StrAndLenTuple sl = parse_number_buff(b, &i);
+            if (sl.str == nullptr)
+            {
+                continue;
+            }
+
+            if (sl.is_float)
+            {
+                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
+            }
+            else
+            {
+                ja->addValue(new IntTypedValue(str_to_long(&sl)));
+            }
+            ++nb_elts_parsed;
+        }
+        else if (IS_BOOL_START(c))
+        {
+            uint_fast64_t len = parse_boolean_buff(b, &i);
+            if (IS_NOT_BOOLEAN(c, len))
+            {
+                continue;
+            }
+            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            ++nb_elts_parsed;
+        }
+        else if (c == 'n')
+        {
+            ja->addValue(new NullTypedValue());
+            i += 3;
+            ++nb_elts_parsed;
+        }
+        else if (c == '[')
+        {
+            ++i;
+            ja->addValue(new ArrayTypedValue(parse_array_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (c == '{')
+        {
+            ++i;
+            ja->addValue(new DictTypedValue(parse_dict_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+    }
+    if (idx != nullptr)
+    {
+        (*idx) += i - initial_i - 1;
+    }
+    return ja;
+}
+
+/**
+** \param b The buffer containing the object currently being parsed
+** \param idx A pointer to the index of the character '{' that begins the
+**            current dict.
+**            If the given pointer is a nullptr, it means that the buffer is a
+**            new one created just before calling this function, meaning the
+**            index starts at 0
+** \returns The json dict parsed from the index
+*/
+JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
+{
+    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
+
+    JSONDict *jd = new JSONDict();
+
+    String *key = nullptr;
+    uint_fast64_t nb_elts_parsed = 0;
+    uint_fast64_t nb_elts = get_nb_elts_dict_buff(b, i);
+    if (nb_elts == 0)
+    {
+        return jd;
+    }
+
+    char c = 0;
+    char is_waiting_key = 1;
+    // We start at 1 because if we entered this function, it means that we
+    // already read a '{'
+    uint_fast64_t initial_i = i;
+    for (; i < READ_BUFF_SIZE; ++i)
+    {
+        c = b[i];
+        if (c == 0 || nb_elts_parsed >= nb_elts)
+        {
+            break;
+        }
+
+        if (c == '"')
+        {
+            if (is_waiting_key)
+            {
+                key = parse_string_buff(b, &i);
+                is_waiting_key = 0;
+            }
+            else
+            {
+                jd->addItem(new StringItem(key, parse_string_buff(b, &i)));
+                ++nb_elts_parsed;
+            }
+        }
+        else if (IS_NUMBER_START(c))
+        {
+            StrAndLenTuple sl = parse_number_buff(b, &i);
+            if (sl.str == nullptr)
+            {
+                continue;
+            }
+
+            if (sl.is_float)
+            {
+                jd->addItem(new DoubleItem(key, str_to_double(&sl)));
+            }
+            else
+            {
+                jd->addItem(new IntItem(key, str_to_long(&sl)));
+            }
+            ++nb_elts_parsed;
+        }
+        else if (IS_BOOL_START(c))
+        {
+            uint_fast64_t len = parse_boolean_buff(b, &i);
+            if (IS_NOT_BOOLEAN(c, len))
+            {
+                continue;
+            }
+            jd->addItem(new BoolItem(key, len == 4 ? true : false));
+            ++nb_elts_parsed;
+        }
+        else if (c == 'n')
+        {
+            jd->addItem(new NullItem(key));
+            i += 3;
+            ++nb_elts_parsed;
+        }
+        else if (c == '[')
+        {
+            ++i;
+            jd->addItem(new ArrayItem(key, parse_array_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (c == '{')
+        {
+            ++i;
+            jd->addItem(new DictItem(key, parse_dict_buff(b, &i)));
+            ++nb_elts_parsed;
+        }
+        else if (c == ',')
+        {
+            is_waiting_key = 1;
+        }
+    }
+    if (idx != nullptr)
+    {
+        (*idx) += i - initial_i - 1;
+    }
+    return jd;
+}
 #endif
+
+/**
+** \brief Parses the string starting at 'pos + 1' (first char after the '"')
+** \param f The file stream
+** \param pos A pointer to the uint_fast64_t containing the position of the '"'
+**            that started the string we want to parse
+** \returns An empty string in case of error, the parsed string otherwise
+*/
+String *parse_string(FILE *f, uint_fast64_t *pos)
+{
+    if (f == nullptr || pos == nullptr)
+    {
+        return nullptr;
+    }
+
+    uint_fast64_t end_pos = *pos + 1;
+    uint_fast64_t initial_i = end_pos;
+    char c = 0;
+    char prev_c = 0;
+    while ((c = fgetc(f)) != EOF)
+    {
+        if (IS_STRING_END(c))
+        {
+            break;
+        }
+        if (fseek(f, end_pos++, SEEK_SET) != 0)
+        {
+            break;
+        }
+        prev_c = c;
+    }
+
+    uint_strlen_t len = end_pos - initial_i;
+    if (len == 0)
+    {
+        return nullptr;
+    }
+
+    char *str = new char[len + 1]();
+    if (str == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (fseek(f, *pos, SEEK_SET) != 0)
+    {
+        delete[] str;
+        return nullptr;
+    }
+    fread(str, sizeof(char), len, f);
+
+    // + 1 to not read the last '"' when returning in the calling function
+    *pos += len + 1;
+    return new String(str, len);
+}
 
 /**
 ** \brief Reads the file from the given pos and returns an instance of the
@@ -450,33 +825,6 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
     *pos += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
-
-#ifndef NO_BUFFERED_READING
-/**
-** \returns 5 if false, 4 if true, 0 otherwise
-**/
-uint_fast64_t parse_boolean_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
-{
-    if (idx == nullptr)
-    {
-        return 0;
-    }
-
-    uint_fast64_t end_idx = *idx;
-    char c = 0;
-    for (; end_idx < READ_BUFF_SIZE; ++end_idx)
-    {
-        c = buff[end_idx];
-        if (IS_END_CHAR(c))
-        {
-            break;
-        }
-    }
-    uint_fast64_t len = end_idx - *idx;
-    (*idx) += len - 1;
-    return len;
-}
-#endif
 
 /**
 ** \returns 5 if false, 4 if true, 0 otherwise
@@ -580,93 +928,6 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
     }
     return nb_chars;
 }
-
-#ifndef NO_BUFFERED_READING
-/**
-** \param buff The buffer containing the object currently being parsed
-** \param idx The index of the character just after the '[' that begins the
-**            current array
-** \returns The number of elements of the current array
-*/
-uint_fast64_t get_nb_elts_array_buff(char buff[READ_BUFF_SIZE],
-                                     uint_fast64_t idx)
-{
-    if (buff[idx] == ']')
-    {
-        return 0;
-    }
-
-    uint_fast64_t nb_elts = 0;
-    char c = 0;
-    char prev_c = 0;
-    nested_arrays_t is_in_array = 1;
-    nested_dicts_t is_in_dict = 0;
-    char is_in_string = 0;
-    char is_backslashing = 0;
-    char comma_encountered = 0;
-    while (idx < READ_BUFF_SIZE)
-    {
-        if (!is_in_array)
-        {
-            break;
-        }
-
-        c = buff[idx];
-        if (c == '\\')
-        {
-            is_backslashing = !is_backslashing;
-        }
-        else if (!comma_encountered && c == ',' && is_in_array == 1)
-        {
-            comma_encountered = 1;
-        }
-
-        // If we are not in a string or if the string just ended
-        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
-        {
-            if (c == '"')
-            {
-                is_in_string = !is_in_string;
-            }
-            else if (c == '[')
-            {
-                ++is_in_array;
-            }
-            else if (c == ']')
-            {
-                --is_in_array;
-            }
-            else if (c == '{')
-            {
-                ++is_in_dict;
-            }
-            else if (c == '}')
-            {
-                --is_in_dict;
-            }
-            else if (!is_in_dict && is_in_array == 1 && c == ',')
-            {
-                ++nb_elts;
-            }
-        }
-        ++idx;
-
-        if (c != ' ' && c != '\t' && c != '\n')
-        {
-            prev_c = c;
-        }
-    }
-
-    // If there was only one value, there was no ',', so the element wasn't
-    // detected or if at least one element was found, it means that a ',' was
-    // found
-    if ((nb_elts == 0 && prev_c != 0) || (nb_elts >= 1 && comma_encountered))
-    {
-        ++nb_elts;
-    }
-    return nb_elts;
-}
-#endif
 
 /**
 ** \param f The file stream
@@ -842,79 +1103,6 @@ uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos)
     return nb_chars;
 }
 
-#ifndef NO_BUFFERED_READING
-/**
-** \param buff The buffer containing the object currently being parsed
-** \param idx The index of the character just after the '{' that begins the
-**            current dict
-** \returns The number of elements of the current dict
-*/
-uint_fast64_t get_nb_elts_dict_buff(char buff[READ_BUFF_SIZE],
-                                    uint_fast64_t idx)
-{
-    if (idx >= READ_BUFF_SIZE || buff[idx] == '}')
-    {
-        return 0;
-    }
-
-    uint_fast64_t nb_elts = 0;
-    // Used for the case where the dict contains only one element, and so does
-    // not contain a ','
-    uint_fast64_t single_elt_found = 0;
-
-    char c = 0;
-    nested_dicts_t is_in_dict = 1;
-    nested_arrays_t is_in_array = 0;
-    char is_in_string = 0;
-    char is_backslashing = 0;
-    while (idx < READ_BUFF_SIZE)
-    {
-        c = buff[idx];
-        if (!is_in_dict || c == 0)
-        {
-            break;
-        }
-
-        if (c == '\\')
-        {
-            is_backslashing = !is_backslashing;
-        }
-
-        // If we are not in a string or if the string just ended
-        if (!is_in_string || (is_in_string && c == '"' && !is_backslashing))
-        {
-            if (c == '"')
-            {
-                is_in_string = !is_in_string;
-                single_elt_found = 1;
-            }
-            else if (c == '[')
-            {
-                ++is_in_array;
-            }
-            else if (c == ']')
-            {
-                --is_in_array;
-            }
-            else if (c == '{')
-            {
-                ++is_in_dict;
-            }
-            else if (c == '}')
-            {
-                --is_in_dict;
-            }
-            else if (!is_in_array && is_in_dict == 1 && c == ',')
-            {
-                ++nb_elts;
-            }
-        }
-        ++idx;
-    }
-    return nb_elts == 0 ? single_elt_found : nb_elts + 1;
-}
-#endif
-
 /**
 ** \param f The file stream
 ** \param pos The position in the file of the character just after the '{' that
@@ -994,97 +1182,6 @@ uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos)
     }
     return nb_elts == 0 ? single_elt_found : nb_elts + 1;
 }
-
-#ifndef NO_BUFFERED_READING
-/**
-** \param buff The buffer containing the object currently being parsed
-** \param idx The index of the character '[' that begins the current array
-** \returns The json array parsed from the position
-*/
-JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
-{
-    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
-
-    JSONArray *ja = new JSONArray();
-
-    uint_fast64_t nb_elts_parsed = 0;
-    uint_fast64_t nb_elts = get_nb_elts_array_buff(b, i);
-    if (nb_elts == 0)
-    {
-        return ja;
-    }
-
-    char c = 0;
-    // We start at 1 because if we entered this function, it means that we
-    // already read a '['
-    uint_fast64_t initial_i = i;
-    for (; i < READ_BUFF_SIZE; ++i)
-    {
-        c = b[i];
-        if (c == 0 || nb_elts_parsed >= nb_elts)
-        {
-            break;
-        }
-
-        if (c == '"')
-        {
-            ja->addValue(new StringTypedValue(parse_string_buff(b, &i)));
-            ++nb_elts_parsed;
-        }
-        else if (IS_NUMBER_START(c))
-        {
-            StrAndLenTuple sl = parse_number_buff(b, &i);
-            if (sl.str == nullptr)
-            {
-                continue;
-            }
-
-            if (sl.is_float)
-            {
-                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
-            }
-            else
-            {
-                ja->addValue(new IntTypedValue(str_to_long(&sl)));
-            }
-            ++nb_elts_parsed;
-        }
-        else if (IS_BOOL_START(c))
-        {
-            uint_fast64_t len = parse_boolean_buff(b, &i);
-            if (IS_NOT_BOOLEAN(c, len))
-            {
-                continue;
-            }
-            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
-            ++nb_elts_parsed;
-        }
-        else if (c == 'n')
-        {
-            ja->addValue(new NullTypedValue());
-            i += 3;
-            ++nb_elts_parsed;
-        }
-        else if (c == '[')
-        {
-            ++i;
-            ja->addValue(new ArrayTypedValue(parse_array_buff(b, &i)));
-            ++nb_elts_parsed;
-        }
-        else if (c == '{')
-        {
-            ++i;
-            ja->addValue(new DictTypedValue(parse_dict_buff(b, &i)));
-            ++nb_elts_parsed;
-        }
-    }
-    if (idx != nullptr)
-    {
-        (*idx) += i - initial_i - 1;
-    }
-    return ja;
-}
-#endif
 
 /**
 ** \param f The file stream
@@ -1226,118 +1323,9 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
             break;
         }
     }
-    *pos = i;
+    *pos = i - 1;
     return ja;
 }
-
-#ifndef NO_BUFFERED_READING
-/**
-** \param b The buffer containing the object currently being parsed
-** \param idx A pointer to the index of the character '{' that begins the
-**            current dict.
-**            If the given pointer is a nullptr, it means that the buffer is a
-**            new one created just before calling this function, meaning the
-**            index starts at 0
-** \returns The json dict parsed from the index
-*/
-JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
-{
-    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
-
-    JSONDict *jd = new JSONDict();
-
-    String *key = nullptr;
-    uint_fast64_t nb_elts_parsed = 0;
-    uint_fast64_t nb_elts = get_nb_elts_dict_buff(b, i);
-    if (nb_elts == 0)
-    {
-        return jd;
-    }
-
-    char c = 0;
-    char is_waiting_key = 1;
-    // We start at 1 because if we entered this function, it means that we
-    // already read a '{'
-    uint_fast64_t initial_i = i;
-    for (; i < READ_BUFF_SIZE; ++i)
-    {
-        c = b[i];
-        if (c == 0 || nb_elts_parsed >= nb_elts)
-        {
-            break;
-        }
-
-        if (c == '"')
-        {
-            if (is_waiting_key)
-            {
-                key = parse_string_buff(b, &i);
-                is_waiting_key = 0;
-            }
-            else
-            {
-                jd->addItem(new StringItem(key, parse_string_buff(b, &i)));
-                ++nb_elts_parsed;
-            }
-        }
-        else if (IS_NUMBER_START(c))
-        {
-            StrAndLenTuple sl = parse_number_buff(b, &i);
-            if (sl.str == nullptr)
-            {
-                continue;
-            }
-
-            if (sl.is_float)
-            {
-                jd->addItem(new DoubleItem(key, str_to_double(&sl)));
-            }
-            else
-            {
-                jd->addItem(new IntItem(key, str_to_long(&sl)));
-            }
-            ++nb_elts_parsed;
-        }
-        else if (IS_BOOL_START(c))
-        {
-            uint_fast64_t len = parse_boolean_buff(b, &i);
-            if (IS_NOT_BOOLEAN(c, len))
-            {
-                continue;
-            }
-            jd->addItem(new BoolItem(key, len == 4 ? true : false));
-            ++nb_elts_parsed;
-        }
-        else if (c == 'n')
-        {
-            jd->addItem(new NullItem(key));
-            i += 3;
-            ++nb_elts_parsed;
-        }
-        else if (c == '[')
-        {
-            ++i;
-            jd->addItem(new ArrayItem(key, parse_array_buff(b, &i)));
-            ++nb_elts_parsed;
-        }
-        else if (c == '{')
-        {
-            ++i;
-            jd->addItem(new DictItem(key, parse_dict_buff(b, &i)));
-            ++nb_elts_parsed;
-        }
-        else if (c == ',')
-        {
-            is_waiting_key = 1;
-        }
-    }
-    if (idx != nullptr)
-    {
-        (*idx) += i - initial_i - 1;
-    }
-    return jd;
-}
-#endif
 
 /**
 ** \param f The file stream
@@ -1492,7 +1480,11 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
             break;
         }
     }
-    *pos = i;
+    *pos = i - 1;
+
+    fseek(f, i, SEEK_SET);
+    printf("'%c' ", fgetc(f));
+    fseek(f, i, SEEK_SET);
     return jd;
 }
 
