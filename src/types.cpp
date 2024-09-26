@@ -73,6 +73,6 @@ String *Item::getKey()
 
 void Item::printKey()
 {
-    std::cout << "\"" << key->str() << "\""
+    std::cout << "\"" << (key == nullptr ? "" : key->str()) << "\""
               << ": ";
 }

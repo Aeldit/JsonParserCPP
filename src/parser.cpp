@@ -20,7 +20,7 @@
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
-#define NO_BUFFERED_READING
+// #define NO_BUFFERED_READING
 #ifndef NO_BUFFERED_READING
 #    ifndef READ_BUFF_SIZE
 #        define READ_BUFF_SIZE 1024
@@ -263,7 +263,7 @@ String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
 
     // Number of chars
     uint_strlen_t len =
-        end_pos - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_pos - initial_i;
+        end_idx - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_idx - initial_i;
     if (len == 0)
     {
         return nullptr;
@@ -525,7 +525,7 @@ uint_fast64_t get_nb_elts_dict_buff(char buff[READ_BUFF_SIZE],
 */
 JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
+    uint_fast64_t i = idx == nullptr ? 0 : *idx;
 
     JSONArray *ja = new JSONArray();
 
@@ -602,7 +602,7 @@ JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
     }
     if (idx != nullptr)
     {
-        (*idx) += i - initial_i - 1;
+        *idx += i - initial_i - 1;
     }
     return ja;
 }
@@ -618,7 +618,7 @@ JSONArray *parse_array_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 */
 JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
 {
-    uint_fast64_t i = idx == nullptr ? 0 : (*idx);
+    uint_fast64_t i = idx == nullptr ? 0 : *idx;
 
     JSONDict *jd = new JSONDict();
 
@@ -709,7 +709,7 @@ JSONDict *parse_dict_buff(char b[READ_BUFF_SIZE], uint_fast64_t *idx)
     }
     if (idx != nullptr)
     {
-        (*idx) += i - initial_i - 1;
+        *idx += i - initial_i - 1;
     }
     return jd;
 }
@@ -1274,7 +1274,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
             if (nb_chars <= READ_BUFF_SIZE)
             {
                 char b[READ_BUFF_SIZE] = {};
-                if (fseek(f, *pos, SEEK_SET) != 0)
+                if (fseek(f, i, SEEK_SET) != 0)
                 {
                     break;
                 }
@@ -1301,7 +1301,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
             if (nb_chars <= READ_BUFF_SIZE)
             {
                 char b[READ_BUFF_SIZE] = {};
-                if (fseek(f, *pos, SEEK_SET) != 0)
+                if (fseek(f, i, SEEK_SET) != 0)
                 {
                     break;
                 }
