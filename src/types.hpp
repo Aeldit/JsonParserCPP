@@ -18,12 +18,10 @@
 #define T_DICT 6
 
 #ifndef MAX_STR_LEN
-#    define MAX_STR_LEN UINT_FAST64_MAX
+#    define MAX_STR_LEN UINT_FAST16_MAX
 #endif
 
-#if MAX_STR_LEN <= UINT_FAST8_MAX
-typedef uint_fast8_t uint_strlen_t;
-#elif MAX_STR_LEN <= UINT_FAST16_MAX
+#if MAX_STR_LEN <= UINT_FAST16_MAX
 typedef uint_fast16_t uint_strlen_t;
 #elif MAX_STR_LEN <= UINT_FAST32_MAX
 typedef uint_fast32_t uint_strlen_t;

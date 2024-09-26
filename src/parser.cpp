@@ -262,7 +262,8 @@ String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     }
 
     // Number of chars
-    uint_fast64_t len = end_idx - initial_i;
+    uint_strlen_t len =
+        end_pos - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_pos - initial_i;
     if (len == 0)
     {
         return nullptr;
@@ -745,7 +746,8 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         prev_c = c;
     }
 
-    uint_strlen_t len = end_pos - initial_i;
+    uint_strlen_t len =
+        end_pos - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_pos - initial_i;
     if (len == 0)
     {
         return nullptr;
