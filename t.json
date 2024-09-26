@@ -1,22 +1,69 @@
-{
-  "test": "stringi[nining",
-  "num": 51065.689888564,
-  "boool": true,
-  "empty": {
-    "t": {
+[
+  {
+    "test": "stringi[nining",
+    "num": 51065.689888564,
+    "boool": true,
+    "empty": {
       "t": {
         "t": {
-          "t": {}
+          "t": {
+            "t": {}
+          }
         }
       }
-    }
+    },
+    "dict": {
+      "empty": [[1, [[2], [[]], 3]]],
+      "num": 563,
+      "u": 2e10
+    },
+    "boo": false,
+    "n": null,
+    "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true]
   },
-  "dict": {
-    "empty": [[1, [[2], [[]], 3]]],
-    "num": 563,
-    "u": 2e10
+  {
+    "test": "stringi[nining",
+    "num": 51065.689888564,
+    "boool": true,
+    "empty": {
+      "t": {
+        "t": {
+          "t": {
+            "t": {}
+          }
+        }
+      }
+    },
+    "dict": {
+      "empty": [[1, [[2], [[]], 3]]],
+      "num": 563,
+      "u": 2e10
+    },
+    "boo": false,
+    "n": null,
+    "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true]
   },
-  "boo": false,
-  "n": null,
-  "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true]
-}
+  {
+    "test": "stringi[nining",
+    "num": 51065.689888564,
+    "boool": true,
+    "empty": {
+      "t": {
+        "t": {
+          "t": {
+            "t": {}
+          }
+        }
+      }
+    },
+    "dict": {
+      "empty": [[1, [[2], [[]], 3]]],
+      "num": 563,
+      "u": 2e10
+    },
+    "boo": false,
+    "n": null,
+    "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true],
+    "float": 6.1
+  }
+]
