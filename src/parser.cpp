@@ -20,7 +20,7 @@
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
-// #define NO_BUFFERED_READING
+#define NO_BUFFERED_READING
 #ifndef NO_BUFFERED_READING
 #    ifndef READ_BUFF_SIZE
 #        define READ_BUFF_SIZE 1024
@@ -764,7 +764,7 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
     }
     fread(str, sizeof(char), len, f);
 
-    // + 1 to not read the last '"' when returning in the calling function
+    // +1 to not read the last '"' when returning in the calling function
     *pos += len + 1;
     return new String(str, len);
 }
@@ -1481,10 +1481,6 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
         }
     }
     *pos = i - 1;
-
-    fseek(f, i, SEEK_SET);
-    printf("'%c' ", fgetc(f));
-    fseek(f, i, SEEK_SET);
     return jd;
 }
 

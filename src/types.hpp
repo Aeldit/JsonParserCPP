@@ -18,7 +18,7 @@
 #define T_DICT 6
 
 #ifndef MAX_STR_LEN
-#    define MAX_STR_LEN UINT_FAST8_MAX
+#    define MAX_STR_LEN UINT_FAST64_MAX
 #endif
 
 #if MAX_STR_LEN <= UINT_FAST8_MAX
