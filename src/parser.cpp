@@ -278,7 +278,7 @@ String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     std::memcpy(str, buff + initial_i, len);
 
     // + 1 to not read the last '"' when returning in the calling function
-    (*idx) += len + 1;
+    *idx += len + 1;
     return new String(str, len);
 }
 
@@ -330,7 +330,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
         str[i] = buff[i + initial_i];
     }
 
-    (*idx) += len - 1;
+    *idx += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
 }
 
@@ -355,7 +355,7 @@ uint_fast64_t parse_boolean_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
         }
     }
     uint_fast64_t len = end_idx - *idx;
-    (*idx) += len - 1;
+    *idx += len - 1;
     return len;
 }
 
