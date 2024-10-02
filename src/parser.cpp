@@ -81,7 +81,10 @@ public:
 
     ~StrAndLenTuple()
     {
-        delete[] str;
+        if (str != nullptr)
+        {
+            delete[] str;
+        }
     }
 };
 

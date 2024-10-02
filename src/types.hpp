@@ -87,7 +87,6 @@ public:
 **        - ArrayItem
 **        - DictItem
 ** \param key The key of the item (string)
-** \param type The type of the item's value (see types.h)
 */
 class Item : public TypedValue
 {
