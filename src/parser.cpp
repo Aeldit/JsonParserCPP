@@ -4,6 +4,7 @@
 **                                  INCLUDES                                  **
 *******************************************************************************/
 #include <cmath>
+#include <cstring>
 #include <stdio.h>
 
 #include "json.hpp"
@@ -274,11 +275,7 @@ String *parse_string_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     {
         return nullptr;
     }
-
-    for (uint_fast64_t i = 0; i < len; ++i)
-    {
-        str[i] = buff[i + initial_i];
-    }
+    std::memcpy(str, buff + initial_i, len);
 
     // + 1 to not read the last '"' when returning in the calling function
     (*idx) += len + 1;
