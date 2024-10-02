@@ -324,11 +324,7 @@ StrAndLenTuple parse_number_buff(char buff[READ_BUFF_SIZE], uint_fast64_t *idx)
     {
         return StrAndLenTuple(nullptr, 0, false, false);
     }
-
-    for (uint_fast64_t i = 0; i < len; ++i)
-    {
-        str[i] = buff[i + initial_i];
-    }
+    std::memcpy(str, buff + initial_i, len);
 
     *idx += len - 1;
     return StrAndLenTuple(str, len, is_float(str, len), has_exponent(str, len));
