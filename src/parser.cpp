@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "json.hpp"
 
@@ -21,6 +22,7 @@
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
+// TODO: Fix non buffered reading
 // #define NO_BUFFERED_READING
 #ifndef NO_BUFFERED_READING
 #    ifndef MAX_READ_BUFF_SIZE
@@ -250,25 +252,22 @@ String *parse_string_buff(char *buff, uint_fast64_t *idx)
         return nullptr;
     }
 
-    // Counts the number of characters until the first one that is an 'end char'
-    uint_fast64_t end_idx = *idx + 1;
-    uint_fast64_t initial_i = end_idx;
+    uint_fast64_t start_idx = *idx + 1;
+    uint_fast64_t len = 0;
     char c = 1;
     char prev_c = 0;
+    // Counts the number of characters until the first one that is an 'end char'
     while (c != 0)
     {
-        c = buff[end_idx];
+        c = buff[start_idx + len];
         if (IS_STRING_END(c))
         {
             break;
         }
         prev_c = c;
-        ++end_idx;
+        ++len;
     }
 
-    // Number of chars
-    uint_strlen_t len =
-        end_idx - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_idx - initial_i;
     if (len == 0)
     {
         return nullptr;
@@ -279,7 +278,7 @@ String *parse_string_buff(char *buff, uint_fast64_t *idx)
     {
         return nullptr;
     }
-    std::memcpy(str, buff + initial_i, len);
+    std::memcpy(str, buff + start_idx, len);
 
     // + 1 to not read the last '"' when returning in the calling function
     *idx += len + 1;
@@ -728,8 +727,7 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         return nullptr;
     }
 
-    uint_fast64_t end_pos = *pos + 1;
-    uint_fast64_t initial_i = end_pos;
+    uint_fast64_t len = 0;
     char c = 0;
     char prev_c = 0;
     while ((c = fgetc(f)) != EOF)
@@ -738,15 +736,13 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         {
             break;
         }
-        if (fseek(f, end_pos++, SEEK_SET) != 0)
+        if (fseek(f, len++, SEEK_SET) != 0)
         {
             break;
         }
         prev_c = c;
     }
 
-    uint_strlen_t len =
-        end_pos - initial_i > MAX_STR_LEN ? MAX_STR_LEN : end_pos - initial_i;
     if (len == 0)
     {
         return nullptr;
@@ -1485,6 +1481,12 @@ JSON *parse(char *file)
         return nullptr;
     }
 
+#ifndef NO_BUFFERED_READING
+    struct stat st;
+    stat(file, &st);
+    uint_fast64_t nb_chars = st.st_size;
+#endif
+
     uint_fast64_t offset = 0;
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
@@ -1495,9 +1497,8 @@ JSON *parse(char *file)
     char c = fgetc(f);
     if (c == '{')
     {
-#ifndef NO_BUFFERED_READING
         JSONDict *jd = nullptr;
-        uint_fast64_t nb_chars = get_nb_chars_in_dict(f, offset);
+#ifndef NO_BUFFERED_READING
         if (nb_chars <= MAX_READ_BUFF_SIZE)
         {
             char *b = new char[nb_chars + 1]();
@@ -1515,16 +1516,15 @@ JSON *parse(char *file)
             jd = parse_dict(f, &offset);
         }
 #else
-        JSONDict *jd = parse_dict(f, &offset);
+        jd = parse_dict(f, &offset);
 #endif
         fclose(f);
         return jd == nullptr ? nullptr : jd;
     }
     else if (c == '[')
     {
-#ifndef NO_BUFFERED_READING
         JSONArray *ja = nullptr;
-        uint_fast64_t nb_chars = get_nb_chars_in_array(f, offset);
+#ifndef NO_BUFFERED_READING
         if (nb_chars < MAX_READ_BUFF_SIZE)
         {
             char *b = new char[nb_chars + 1]();
@@ -1542,7 +1542,7 @@ JSON *parse(char *file)
             ja = parse_array(f, &offset);
         }
 #else
-        JSONArray *ja = parse_array(f, &offset);
+        ja = parse_array(f, &offset);
 #endif
         fclose(f);
         return ja == nullptr ? nullptr : ja;
