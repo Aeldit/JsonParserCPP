@@ -25,6 +25,7 @@ test:
 	./tests/run-tests
 
 valgrind-compile: clean
+	./configure
 	$(CC) $(CFLAGS) \
 		-DVALGRING_DISABLE_PRINT \
 		$(CFILES) -o json-parser
