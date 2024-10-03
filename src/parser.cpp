@@ -1252,7 +1252,6 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
         }
         else if (c == '[')
         {
-#ifndef NO_BUFFERED_READING
             uint_fast64_t nb_chars = get_nb_chars_in_array(f, i);
             JSONArray *tmp_ja = nullptr;
             // If there is enough space, we fill a buffer to read from it
@@ -1273,16 +1272,12 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
                 tmp_ja = parse_array(f, &i);
             }
             ja->addValue(new ArrayTypedValue(tmp_ja));
-#else
-            ja->addValue(new ArrayTypedValue(parse_array(f, &i)));
-#endif
             ++nb_elts_parsed;
         }
         else if (c == '{')
         {
-#ifndef NO_BUFFERED_READING
             uint_fast64_t nb_chars = get_nb_chars_in_dict(f, i);
-            JSONDict *jd = nullptr;
+            JSONDict *tmp_jd = nullptr;
             // If there is enough space, we fill a buffer to read from it
             if (nb_chars <= MAX_READ_BUFF_SIZE)
             {
@@ -1292,18 +1287,15 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
                     break;
                 }
                 fread(b, sizeof(char), nb_chars, f);
-                jd = parse_dict_buff(b, nullptr);
+                tmp_jd = parse_dict_buff(b, nullptr);
                 delete[] b;
                 i += nb_chars;
             }
             else
             {
-                jd = parse_dict(f, &i);
+                tmp_jd = parse_dict(f, &i);
             }
-            ja->addValue(new DictTypedValue(jd));
-#else
-            ja->addValue(new DictTypedValue(parse_dict(f, &i)));
-#endif
+            ja->addValue(new DictTypedValue(tmp_jd));
             ++nb_elts_parsed;
         }
 
@@ -1402,9 +1394,8 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
         }
         else if (c == '[')
         {
-#ifndef NO_BUFFERED_READING
             uint_fast64_t nb_chars = get_nb_chars_in_array(f, i);
-            JSONArray *ja = nullptr;
+            JSONArray *tmp_ja = nullptr;
             // If there is enough space, we fill a buffer to read from it
             if (nb_chars <= MAX_READ_BUFF_SIZE)
             {
@@ -1414,23 +1405,19 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
                     break;
                 }
                 fread(b, sizeof(char), nb_chars, f);
-                ja = parse_array_buff(b, nullptr);
+                tmp_ja = parse_array_buff(b, nullptr);
                 delete[] b;
                 i += nb_chars;
             }
             else
             {
-                ja = parse_array(f, &i);
+                tmp_ja = parse_array(f, &i);
             }
-            jd->addItem(new ArrayItem(key, ja));
-#else
-            jd->addItem(new ArrayItem(key, parse_array(f, &i)));
-#endif
+            jd->addItem(new ArrayItem(key, tmp_ja));
             ++nb_elts_parsed;
         }
         else if (c == '{')
         {
-#ifndef NO_BUFFERED_READING
             uint_fast64_t nb_chars = get_nb_chars_in_dict(f, i);
             JSONDict *tmp_jd = nullptr;
             // If there is enough space, we fill a buffer to read from it
@@ -1451,9 +1438,6 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
                 tmp_jd = parse_dict(f, &i);
             }
             jd->addItem(new DictItem(key, tmp_jd));
-#else
-            jd->addItem(new DictItem(key, parse_dict(f, &i)));
-#endif
             ++nb_elts_parsed;
         }
         else if (c == ',')
@@ -1481,11 +1465,9 @@ JSON *parse(char *file)
         return nullptr;
     }
 
-#ifndef NO_BUFFERED_READING
     struct stat st;
     stat(file, &st);
     uint_fast64_t nb_chars = st.st_size;
-#endif
 
     uint_fast64_t offset = 0;
     if (fseek(f, offset++, SEEK_SET) != 0)
@@ -1498,7 +1480,6 @@ JSON *parse(char *file)
     if (c == '{')
     {
         JSONDict *jd = nullptr;
-#ifndef NO_BUFFERED_READING
         if (nb_chars <= MAX_READ_BUFF_SIZE)
         {
             char *b = new char[nb_chars + 1]();
@@ -1515,16 +1496,12 @@ JSON *parse(char *file)
         {
             jd = parse_dict(f, &offset);
         }
-#else
-        jd = parse_dict(f, &offset);
-#endif
         fclose(f);
         return jd == nullptr ? nullptr : jd;
     }
     else if (c == '[')
     {
         JSONArray *ja = nullptr;
-#ifndef NO_BUFFERED_READING
         if (nb_chars < MAX_READ_BUFF_SIZE)
         {
             char *b = new char[nb_chars + 1]();
@@ -1541,9 +1518,6 @@ JSON *parse(char *file)
         {
             ja = parse_array(f, &offset);
         }
-#else
-        ja = parse_array(f, &offset);
-#endif
         fclose(f);
         return ja == nullptr ? nullptr : ja;
     }
