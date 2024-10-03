@@ -1269,6 +1269,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
                 }
                 fread(b, sizeof(char), nb_chars, f);
                 tmp_ja = parse_array_buff(b, nullptr);
+                delete[] b;
                 i += nb_chars;
             }
             else
@@ -1296,6 +1297,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos)
                 }
                 fread(b, sizeof(char), nb_chars, f);
                 jd = parse_dict_buff(b, nullptr);
+                delete[] b;
                 i += nb_chars;
             }
             else
@@ -1417,6 +1419,7 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
                 }
                 fread(b, sizeof(char), nb_chars, f);
                 ja = parse_array_buff(b, nullptr);
+                delete[] b;
                 i += nb_chars;
             }
             else
@@ -1444,6 +1447,7 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos)
                 }
                 fread(b, sizeof(char), nb_chars, f);
                 tmp_jd = parse_dict_buff(b, nullptr);
+                delete[] b;
                 i += nb_chars;
             }
             else
@@ -1504,6 +1508,7 @@ JSON *parse(char *file)
             }
             fread(b, sizeof(char), nb_chars, f);
             jd = parse_dict_buff(b, nullptr);
+            delete[] b;
         }
         else
         {
@@ -1530,6 +1535,7 @@ JSON *parse(char *file)
             }
             fread(b, sizeof(char), nb_chars, f);
             ja = parse_array_buff(b, nullptr);
+            delete[] b;
         }
         else
         {
