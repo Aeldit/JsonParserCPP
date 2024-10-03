@@ -16,26 +16,23 @@
 #define IS_NUMBER_START(c) (('0' <= (c) && (c) <= '9') || (c) == '-')
 #define IS_BOOL_START(c) ((c) == 't' || (c) == 'f')
 
-#define IS_END_CHAR(c) ((c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
+#define IS_END_CHAR(c)                                                         \
+    ((c) == 0 || (c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
 #define IS_STRING_END(c) ((c) == 0 || ((c) == '"' && prev_c != '\\'))
 
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
 
-// TODO: Fix non buffered reading
-// #define NO_BUFFERED_READING
-#ifndef NO_BUFFERED_READING
-#    ifndef MAX_READ_BUFF_SIZE
-#        define MAX_READ_BUFF_SIZE UINT_FAST16_MAX
-#    endif
+#ifndef MAX_READ_BUFF_SIZE
+#    define MAX_READ_BUFF_SIZE (1073741824) // <=> (2 << 30) ~= ~ 1 GB
 #endif
 
 #ifndef MAX_NESTED_ARRAYS
-#    define MAX_NESTED_ARRAYS UINT_FAST8_MAX
+#    define MAX_NESTED_ARRAYS UINT_FAST8_MAX // 255
 #endif
 
 #ifndef MAX_NESTED_DICTS
-#    define MAX_NESTED_DICTS UINT_FAST8_MAX
+#    define MAX_NESTED_DICTS UINT_FAST8_MAX // 255
 #endif
 
 #if MAX_NESTED_ARRAYS <= UINT_FAST8_MAX
@@ -81,6 +78,13 @@ public:
         , has_exponent(has_exponent)
     {}
 
+    StrAndLenTuple()
+        : str(nullptr)
+        , len(0)
+        , is_float(false)
+        , has_exponent(false)
+    {}
+
     ~StrAndLenTuple()
     {
         if (str != nullptr)
@@ -93,9 +97,7 @@ public:
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
-#ifndef NO_BUFFERED_READING
 JSONDict *parse_dict_buff(char *b, uint_fast64_t *pos);
-#endif
 JSONDict *parse_dict(FILE *f, uint_fast64_t *pos);
 
 /*******************************************************************************
@@ -237,7 +239,6 @@ bool has_exponent(char *str, uint_fast64_t len)
     return false;
 }
 
-#ifndef NO_BUFFERED_READING
 /**
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
 ** \param buff The buffer containing the current json file or object
@@ -254,10 +255,10 @@ String *parse_string_buff(char *buff, uint_fast64_t *idx)
 
     uint_fast64_t start_idx = *idx + 1;
     uint_fast64_t len = 0;
-    char c = 1;
+    char c = 0;
     char prev_c = 0;
     // Counts the number of characters until the first one that is an 'end char'
-    while (c != 0)
+    while (1)
     {
         c = buff[start_idx + len];
         if (IS_STRING_END(c))
@@ -298,14 +299,14 @@ StrAndLenTuple parse_number_buff(char *buff, uint_fast64_t *idx)
 {
     if (idx == nullptr)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     // Counts the number of characters until the first one that is an 'end char'
     uint_fast64_t end_idx = *idx;
     uint_fast64_t initial_i = end_idx;
-    char c = 1;
-    while (c != 0)
+    char c = 0;
+    while (1)
     {
         c = buff[end_idx];
         if (IS_END_CHAR(c))
@@ -319,14 +320,14 @@ StrAndLenTuple parse_number_buff(char *buff, uint_fast64_t *idx)
     uint_fast64_t len = end_idx - initial_i;
     if (len == 0)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     // Puts the value in the form of a char array
     char *str = new char[len + 1]();
     if (str == nullptr)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
     std::memcpy(str, buff + initial_i, len);
 
@@ -345,8 +346,8 @@ uint_fast64_t parse_boolean_buff(char *buff, uint_fast64_t *idx)
     }
 
     uint_fast64_t end_idx = *idx;
-    char c = 1;
-    while (c != 0)
+    char c = 0;
+    while (1)
     {
         c = buff[end_idx];
         if (IS_END_CHAR(c))
@@ -374,21 +375,21 @@ uint_fast64_t get_nb_elts_array_buff(char *buff, uint_fast64_t idx)
     }
 
     uint_fast64_t nb_elts = 0;
-    char c = 1;
-    char prev_c = 0;
     nested_arrays_t is_in_array = 1;
     nested_dicts_t is_in_dict = 0;
+    char c = 0;
+    char prev_c = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
     char comma_encountered = 0;
-    while (c != 0)
+    while (1)
     {
-        if (!is_in_array)
+        c = buff[idx];
+        if (!is_in_array || c == 0)
         {
             break;
         }
 
-        c = buff[idx];
         if (c == '\\')
         {
             is_backslashing = !is_backslashing;
@@ -452,7 +453,7 @@ uint_fast64_t get_nb_elts_array_buff(char *buff, uint_fast64_t idx)
 */
 uint_fast64_t get_nb_elts_dict_buff(char *buff, uint_fast64_t idx)
 {
-    if (/*idx >= READ_BUFF_SIZE ||*/ buff[idx] == '}')
+    if (idx >= MAX_READ_BUFF_SIZE || buff[idx] == '}')
     {
         return 0;
     }
@@ -462,12 +463,12 @@ uint_fast64_t get_nb_elts_dict_buff(char *buff, uint_fast64_t idx)
     // not contain a ','
     uint_fast64_t single_elt_found = 0;
 
-    char c = 1;
     nested_dicts_t is_in_dict = 1;
     nested_arrays_t is_in_array = 0;
     char is_in_string = 0;
     char is_backslashing = 0;
-    while (c != 0)
+    char c = 0;
+    while (1)
     {
         c = buff[idx];
         if (!is_in_dict || c == 0)
@@ -532,11 +533,11 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx)
         return ja;
     }
 
-    char c = 1;
+    char c = 0;
     // We start at 1 because if we entered this function, it means that we
     // already read a '['
     uint_fast64_t initial_i = i;
-    while (c != 0)
+    while (1)
     {
         c = b[i];
         if (c == 0 || nb_elts_parsed >= nb_elts)
@@ -627,12 +628,12 @@ JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx)
         return jd;
     }
 
-    char c = 1;
+    char c = 0;
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '{'
     uint_fast64_t initial_i = i;
-    while (c != 0)
+    while (1)
     {
         c = b[i];
         if (c == 0 || nb_elts_parsed >= nb_elts)
@@ -711,7 +712,6 @@ JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx)
     }
     return jd;
 }
-#endif
 
 /**
 ** \brief Parses the string starting at 'pos + 1' (first char after the '"')
@@ -779,7 +779,7 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
 {
     if (f == nullptr || pos == nullptr)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     // Obtains the length of the value
@@ -787,7 +787,7 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
     uint_fast64_t end_pos = *pos - 1;
     if (fseek(f, end_pos++, SEEK_SET) != 0)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     char c = 0;
@@ -806,7 +806,7 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
     uint_fast64_t len = end_pos - *pos;
     if (len == 0)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     // Puts the value in the form of a char array
@@ -814,7 +814,7 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
     // If the allocation failed or if we couldn't set the pos in the file
     if (str == nullptr || fseek(f, *pos - 1, SEEK_SET) != 0)
     {
-        return StrAndLenTuple(nullptr, 0, false, false);
+        return StrAndLenTuple();
     }
 
     fread(str, sizeof(char), len, f);
