@@ -212,7 +212,6 @@ bool is_float(char *str, uint_fast64_t len)
         return false;
     }
 
-    // TODO: See if std has a function that does this faster
     for (uint_fast64_t i = 0; i < len; ++i)
     {
         if (str[i] == '.')
@@ -567,7 +566,7 @@ uint_fast64_t get_nb_elts_dict_buff(char *buff, uint_fast64_t idx, char *err)
 */
 JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, char *err)
 {
-    uint_fast64_t i = idx == nullptr ? 0 : *idx;
+    uint_fast64_t i = idx == nullptr ? 0 : *idx + 1;
 
     uint_fast64_t nb_elts_parsed = 0;
     uint_fast64_t nb_elts = get_nb_elts_array_buff(b, i, err);
@@ -635,7 +634,6 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, char *err)
         }
         else if (c == '[')
         {
-            ++i;
             JSONArray *tmp_ja = parse_array_buff(b, &i, err);
             if (tmp_ja == nullptr)
             {
@@ -647,7 +645,6 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, char *err)
         }
         else if (c == '{')
         {
-            ++i;
             JSONDict *tmp_jd = parse_dict_buff(b, &i, err);
             if (tmp_jd == nullptr)
             {
@@ -666,7 +663,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, char *err)
     }
     if (idx != nullptr)
     {
-        *idx += i - initial_i - 1;
+        *idx += i - initial_i;
     }
     return ja;
 }
@@ -682,7 +679,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, char *err)
 */
 JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, char *err)
 {
-    uint_fast64_t i = idx == nullptr ? 0 : *idx;
+    uint_fast64_t i = idx == nullptr ? 0 : *idx + 1;
 
     uint_fast64_t nb_elts_parsed = 0;
     uint_fast64_t nb_elts = get_nb_elts_dict_buff(b, i, err);
@@ -760,7 +757,6 @@ JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, char *err)
         }
         else if (c == '[')
         {
-            ++i;
             JSONArray *tmp_ja = parse_array_buff(b, &i, err);
             if (tmp_ja == nullptr)
             {
@@ -772,7 +768,6 @@ JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, char *err)
         }
         else if (c == '{')
         {
-            ++i;
             JSONDict *tmp_jd = parse_dict_buff(b, &i, err);
             if (tmp_jd == nullptr)
             {
@@ -795,7 +790,7 @@ JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, char *err)
     }
     if (idx != nullptr)
     {
-        *idx += i - initial_i - 1;
+        *idx += i - initial_i;
     }
     return jd;
 }
