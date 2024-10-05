@@ -44,25 +44,21 @@ Valgrind rules :
 
 You can change some defines directly at compilation time, depending on your use of this parser
 
-#### READ_BUFF_SIZE
+#### MAX_READ_BUFF_SIZE
 
-Defines the size of the local buffers that are used when using buffered reading (defaults to 1024)
+Defines the maximum size of the allocated buffer that is used to store the file (defaults to 2 << 30)
 
 #### MAX_NESTED_ARRAYS
 
 Defines the maximum number of nested arrays (defaults to `UINT_FAST8_MAX`)
 
-If you want to change this, you can use the following additional flags :
-- `-DMAX_NESTED_ARRAYS=UINT_FAST16_MAX`
-- `-DMAX_NESTED_ARRAYS=UINT_FAST32_MAX`
-- `-DMAX_NESTED_ARRAYS=UINT_FAST64_MAX`
+If you want to change this, you can use the following additional flag
+`-DMAX_NESTED_ARRAYS=<your_value>`
 
 #### MAX_NESTED_DICTS
 
 Defines the maximum number of nested dict objects (defaults to `UINT_FAST8_MAX`)
 
-If you want to change this, you can use the following additional flags :
-- `-DMAX_NESTED_DICTS=UINT_FAST16_MAX`
-- `-DMAX_NESTED_DICTS=UINT_FAST32_MAX`
-- `-DMAX_NESTED_DICTS=UINT_FAST64_MAX`
+If you want to change this, you can use the following additional flags
+`-DMAX_NESTED_DICTS=<your_value>`
 
