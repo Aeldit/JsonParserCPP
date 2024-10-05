@@ -861,10 +861,13 @@ uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
 ** \param f The file stream
 ** \param pos The position in the file of the character after the '[' that
 **            begins the current array
+** \param err A pointer to a char that will be updated if an error occurs
+**            (we return the number of chars, so we can't use a number to
+**            indicate an error)
 ** \returns The total number of characters in the current array - 1 (the first
 **          '[' is not counted)
 */
-uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
+uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos, char *err)
 {
     if (f == nullptr)
     {
@@ -900,6 +903,15 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
             }
             else if (c == '[')
             {
+                if (is_in_array == MAX_NESTED_ARRAYS)
+                {
+#ifdef DEBUG
+                    printf("Max number of nested arrays reached, aborting "
+                           "parsing\n");
+#endif
+                    *err = 1;
+                    break;
+                }
                 ++is_in_array;
             }
             else if (c == ']')
@@ -908,6 +920,15 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
             }
             else if (c == '{')
             {
+                if (is_in_array == MAX_NESTED_DICTS)
+                {
+#ifdef DEBUG
+                    printf("Max number of nested dicts reached, aborting "
+                           "parsing\n");
+#endif
+                    *err = 1;
+                    break;
+                }
                 ++is_in_dict;
             }
             else if (c == '}')
@@ -917,7 +938,6 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos)
         }
         ++nb_chars;
 
-        // TODO: Check for nested dicts in arrays and vice-versa
         if (!is_in_array)
         {
             break;
