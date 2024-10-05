@@ -46,7 +46,7 @@ You can change some defines directly at compilation time, depending on your use 
 
 #### MAX_READ_BUFF_SIZE
 
-Defines the maximum size of the allocated buffer that is used to store the file (defaults to 2 << 30)
+Defines the maximum size of the allocated buffer that is used to store the file (defaults to `2 << 30`, which is roughly equals to 1GB)
 
 #### MAX_NESTED_ARRAYS
 
