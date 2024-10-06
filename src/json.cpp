@@ -350,12 +350,33 @@ uint64_t JSONArray::getSize()
     return values.getSize();
 }
 
-void JSONArray::addValue(TypedValue *value)
+uint_fast16_t JSONArray::addValue(TypedValue *value)
 {
-    if (value != nullptr)
+    if (value == nullptr)
     {
-        values.add(value);
+        return ERR_NULL_VALUE;
     }
+
+    if (IS_STRING(value) && ((StringTypedValue *)value)->getValue() == nullptr)
+    {
+        delete value;
+        return ERR_NULL_STR;
+    }
+
+    if (IS_ARR(value) && ((ArrayTypedValue *)value)->getValue() == nullptr)
+    {
+        delete value;
+        return ERR_NULL_ARR;
+    }
+
+    if (IS_DICT(value) && ((DictTypedValue *)value)->getValue() == nullptr)
+    {
+        delete value;
+        return ERR_NULL_DICT;
+    }
+
+    values.add(value);
+    return 0;
 }
 
 TypedValue **JSONArray::getValues()
@@ -466,53 +487,53 @@ uint64_t JSONDict::getSize()
     return items.getSize();
 }
 
-char JSONDict::addItem(Item *item)
+uint_fast16_t JSONDict::addItem(Item *item)
 {
-    if (item != nullptr)
+    if (item == nullptr)
     {
-        if (item->getKey() == nullptr)
-        {
-            delete item;
-            return ERR_NULL_KEY;
-        }
-
-        if (IS_STRING(item) && ((StringItem *)item)->getValue() == nullptr)
-        {
-            delete item;
-            return ERR_NULL_STR;
-        }
-
-        if (IS_ARR(item) && ((ArrayItem *)item)->getValue() == nullptr)
-        {
-            delete item;
-            return ERR_NULL_ARR;
-        }
-
-        if (IS_DICT(item) && ((DictItem *)item)->getValue() == nullptr)
-        {
-            delete item;
-            return ERR_NULL_DICT;
-        }
-
-        // If an item with the same key already exists we don't add the item
-        if (getItem(item->getKey()) == nullptr)
-        {
-            items.add(item);
-        }
-        else
-        {
-#ifdef DEBUG
-            cout << "The item with key '" << item->getKey()->str()
-                 << "' already exists, not adding it and freeing allocated "
-                    "memory. (Existing item : '"
-                 << item->getKey()->str() << ": ";
-            getItem(item->getKey())->print();
-            cout << endl;
-#endif
-            delete item;
-            return ERR_ITEM_EXISTS;
-        }
+        return ERR_NULL_ITEM;
     }
+
+    if (item->getKey() == nullptr)
+    {
+        delete item;
+        return ERR_NULL_KEY;
+    }
+
+    if (IS_STRING(item) && ((StringItem *)item)->getValue() == nullptr)
+    {
+        delete item;
+        return ERR_NULL_STR;
+    }
+
+    if (IS_ARR(item) && ((ArrayItem *)item)->getValue() == nullptr)
+    {
+        delete item;
+        return ERR_NULL_ARR;
+    }
+
+    if (IS_DICT(item) && ((DictItem *)item)->getValue() == nullptr)
+    {
+        delete item;
+        return ERR_NULL_DICT;
+    }
+
+    // If an item with the same key already exists we don't add the item
+    if (getItem(item->getKey()) != nullptr)
+    {
+#ifdef DEBUG
+        cout << "The item with key '" << item->getKey()->str()
+             << "' already exists, not adding it and freeing allocated "
+                "memory. (Existing item : '"
+             << item->getKey()->str() << ": ";
+        getItem(item->getKey())->print();
+        cout << endl;
+#endif
+        delete item;
+        return ERR_ITEM_EXISTS;
+    }
+
+    items.add(item);
     return 0;
 }
 

@@ -104,8 +104,8 @@ public:
 /*******************************************************************************
 **                           FUNCTIONS DECLARATIONS                           **
 *******************************************************************************/
-JSONDict *parse_dict_buff(char *b, uint_fast64_t *pos, uint_fast8_t *err);
-JSONDict *parse_dict(FILE *f, uint_fast64_t *pos, uint_fast8_t *err);
+JSONDict *parse_dict_buff(char *b, uint_fast64_t *pos, uint_fast16_t *err);
+JSONDict *parse_dict(FILE *f, uint_fast64_t *pos, uint_fast16_t *err);
 
 /*******************************************************************************
 **                              LOCAL FUNCTIONS                               **
@@ -247,7 +247,7 @@ bool has_exponent(char *str, uint_fast64_t len)
 }
 
 bool max_nested_arrays_reached(uint_nested_arrays_t is_in_array,
-                               uint_fast8_t *err)
+                               uint_fast16_t *err)
 {
     if (is_in_array == MAX_NESTED_ARRAYS)
     {
@@ -261,7 +261,8 @@ bool max_nested_arrays_reached(uint_nested_arrays_t is_in_array,
     return false;
 }
 
-bool max_nested_dicts_reached(uint_nested_dicts_t is_in_dict, uint_fast8_t *err)
+bool max_nested_dicts_reached(uint_nested_dicts_t is_in_dict,
+                              uint_fast16_t *err)
 {
     if (is_in_dict == MAX_NESTED_DICTS)
     {
@@ -404,7 +405,7 @@ uint_fast64_t parse_boolean_buff(char *buff, uint_fast64_t *idx)
 ** \returns The number of elements of the current array
 */
 uint_fast64_t get_nb_elts_array_buff(char *buff, uint_fast64_t idx,
-                                     uint_fast8_t *err)
+                                     uint_fast16_t *err)
 {
     if (buff[idx] == ']')
     {
@@ -497,7 +498,7 @@ uint_fast64_t get_nb_elts_array_buff(char *buff, uint_fast64_t idx,
 ** \returns The number of elements of the current dict
 */
 uint_fast64_t get_nb_elts_dict_buff(char *buff, uint_fast64_t idx,
-                                    uint_fast8_t *err)
+                                    uint_fast16_t *err)
 {
     if (idx >= MAX_READ_BUFF_SIZE || buff[idx] == '}')
     {
@@ -574,7 +575,7 @@ uint_fast64_t get_nb_elts_dict_buff(char *buff, uint_fast64_t idx,
 ** \param idx The index of the character '[' that begins the current array
 ** \returns The json array parsed from the position
 */
-JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast8_t *err)
+JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
 {
     uint_fast64_t i = idx == nullptr ? 0 : *idx + 1;
 
@@ -687,7 +688,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast8_t *err)
 **            index starts at 0
 ** \returns The json dict parsed from the index
 */
-JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, uint_fast8_t *err)
+JSONDict *parse_dict_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
 {
     uint_fast64_t i = idx == nullptr ? 0 : *idx + 1;
 
@@ -938,7 +939,7 @@ uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
 **          '[' is not counted)
 */
 uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos,
-                                    uint_fast8_t *err)
+                                    uint_fast16_t *err)
 {
     if (f == nullptr || err == nullptr)
     {
@@ -1008,7 +1009,7 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos,
 **            begins the current array
 ** \returns The number of elements of the current array
 */
-uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
+uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast16_t *err)
 {
     if (f == nullptr || err == nullptr)
     {
@@ -1109,7 +1110,7 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 **          '{' is not counted)
 */
 uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos,
-                                   uint_fast8_t *err)
+                                   uint_fast16_t *err)
 {
     if (f == nullptr || err == nullptr)
     {
@@ -1179,7 +1180,7 @@ uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos,
 **            begins the current dict
 ** \returns The number of elements of the current dict
 */
-uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
+uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos, uint_fast16_t *err)
 {
     if (f == nullptr || err == nullptr)
     {
@@ -1256,7 +1257,7 @@ uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 **            the current array
 ** \returns The json array parsed from the position
 */
-JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
+JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -1286,7 +1287,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            ja->addValue(new StringTypedValue(parse_string(f, &i)));
+            *err |= ja->addValue(new StringTypedValue(parse_string(f, &i)));
             ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
@@ -1299,11 +1300,11 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
 
             if (sl.is_float)
             {
-                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
+                *err |= ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
             }
             else
             {
-                ja->addValue(new IntTypedValue(str_to_long(&sl)));
+                *err |= ja->addValue(new IntTypedValue(str_to_long(&sl)));
             }
             ++nb_elts_parsed;
         }
@@ -1314,12 +1315,12 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
             {
                 continue;
             }
-            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            *err |= ja->addValue(new BoolTypedValue(len == 4 ? true : false));
             ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
-            ja->addValue(new NullTypedValue());
+            *err |= ja->addValue(new NullTypedValue());
             i += 3;
             ++nb_elts_parsed;
         }
@@ -1351,11 +1352,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
                 tmp_ja = parse_array(f, &i, err);
             }
 
-            if (tmp_ja == nullptr)
-            {
-                break;
-            }
-            ja->addValue(new ArrayTypedValue(tmp_ja));
+            *err |= ja->addValue(new ArrayTypedValue(tmp_ja));
             ++nb_elts_parsed;
         }
         else if (c == '{')
@@ -1386,11 +1383,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
                 tmp_jd = parse_dict(f, &i, err);
             }
 
-            if (tmp_jd == nullptr)
-            {
-                break;
-            }
-            ja->addValue(new DictTypedValue(tmp_jd));
+            *err |= ja->addValue(new DictTypedValue(tmp_jd));
             ++nb_elts_parsed;
         }
     }
@@ -1409,7 +1402,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
 **            '{' that begins the current dict
 ** \returns The json dict parsed from the position
 */
-JSONDict *parse_dict(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
+JSONDict *parse_dict(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
 {
     if (f == nullptr || pos == nullptr)
     {
@@ -1595,7 +1588,7 @@ JSON *parse(char *file)
     stat(file, &st);
     uint_fast64_t nb_chars = st.st_size;
 
-    uint_fast8_t err = 0;
+    uint_fast16_t err = 0;
     char c = fgetc(f);
     if (c == '{')
     {

@@ -81,7 +81,7 @@ void Item::printKey()
 /*******************************************************************************
 **                                 FUNCTIONS                                  **
 *******************************************************************************/
-void print_err_bits(uint_fast8_t err)
+void print_err_bits(uint_fast16_t err)
 {
     std::cout << (ERR_FSEEK & err ? 1 : 0) << " : ERR_FSEEK\n"
               << (ERR_NULL_KEY & err ? 1 : 0) << " : ERR_NULL_KEY\n"
@@ -93,5 +93,7 @@ void print_err_bits(uint_fast8_t err)
               << " : ERR_MAX_NESTED_ARRAYS_REACHED\n"
               << (ERR_MAX_NESTED_DICTS_REACHED & err ? 1 : 0)
               << " : ERR_MAX_NESTED_DICTS_REACHED\n"
+              << (ERR_NULL_VALUE & err ? 1 : 0) << " : ERR_NULL_VALUE\n"
+              << (ERR_NULL_ITEM & err ? 1 : 0) << " : ERR_NULL_ITEM\n"
               << std::endl;
 }

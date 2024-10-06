@@ -25,6 +25,8 @@
 #define ERR_ITEM_EXISTS (1 << 5)
 #define ERR_MAX_NESTED_ARRAYS_REACHED (1 << 6)
 #define ERR_MAX_NESTED_DICTS_REACHED (1 << 7)
+#define ERR_NULL_VALUE (1 << 8)
+#define ERR_NULL_ITEM (1 << 9)
 
 #ifndef MAX_STR_LEN
 #    define MAX_STR_LEN UINT_FAST16_MAX
@@ -114,6 +116,6 @@ public:
 /*******************************************************************************
 **                                 FUNCTIONS                                  **
 *******************************************************************************/
-void print_err_bits(uint_fast8_t err);
+void print_err_bits(uint_fast16_t err);
 
 #endif // !JSON_TYPES_H
