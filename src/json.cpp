@@ -466,10 +466,34 @@ uint64_t JSONDict::getSize()
     return items.getSize();
 }
 
-void JSONDict::addItem(Item *item)
+char JSONDict::addItem(Item *item)
 {
     if (item != nullptr)
     {
+        if (item->getKey() == nullptr)
+        {
+            delete item;
+            return ERR_NULL_KEY;
+        }
+
+        if (IS_STRING(item) && ((StringItem *)item)->getValue() == nullptr)
+        {
+            delete item;
+            return ERR_NULL_STR;
+        }
+
+        if (IS_ARR(item) && ((ArrayItem *)item)->getValue() == nullptr)
+        {
+            delete item;
+            return ERR_NULL_ARR;
+        }
+
+        if (IS_DICT(item) && ((DictItem *)item)->getValue() == nullptr)
+        {
+            delete item;
+            return ERR_NULL_DICT;
+        }
+
         // If an item with the same key already exists we don't add the item
         if (getItem(item->getKey()) == nullptr)
         {
@@ -486,8 +510,10 @@ void JSONDict::addItem(Item *item)
             cout << endl;
 #endif
             delete item;
+            return ERR_ITEM_EXISTS;
         }
     }
+    return 0;
 }
 
 Item **JSONDict::getItems()

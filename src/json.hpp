@@ -91,7 +91,7 @@ public:
     Item **getItems();
     Item *getItem(String *key);
 
-    void addItem(Item *item);
+    char addItem(Item *item);
     void printItems();
     void printItemsIndent(int indent, bool fromDict);
 };
