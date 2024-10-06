@@ -18,10 +18,17 @@
 
 #define IS_END_CHAR(c)                                                         \
     ((c) == 0 || (c) == ',' || (c) == '\n' || (c) == ']' || (c) == '}')
+
 #define IS_STRING_END(c) ((c) == 0 || ((c) == '"' && prev_c != '\\'))
 
 #define IS_NOT_BOOLEAN(c, l)                                                   \
     ((l) == 0 || ((c) == 'f' && (l) != 5) || ((c) == 't' && (l) != 4))
+
+/**
+** \def Used by the functions that read the file using fseef() and fgetc()
+**      inside while loops
+*/
+#define SET_AND_GET_CHAR(p) (!fseek(f, p++, SEEK_SET) && (c = fgetc(f)) != EOF)
 
 #ifndef MAX_READ_BUFF_SIZE
 #    define MAX_READ_BUFF_SIZE 1 //(1073741824) // <=> (2 << 30) ~= ~ 1 GB
@@ -816,13 +823,8 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
     uint_fast64_t initial_i = i;
     char c = 0;
     char prev_c = 0;
-    while (1)
+    while (SET_AND_GET_CHAR(i) && !IS_STRING_END(c))
     {
-        if (fseek(f, i++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF
-            || IS_STRING_END(c))
-        {
-            break;
-        }
         prev_c = c;
     }
 
@@ -844,7 +846,6 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         return nullptr;
     }
     fread(str, sizeof(char), len, f);
-    printf("str = '%s'\n", str);
 
     // +1 to not read the last '"' when returning in the calling function
     *pos += len + 1;
@@ -872,13 +873,9 @@ StrAndLenTuple parse_number(FILE *f, uint_fast64_t *pos)
     uint_fast64_t end_pos = *pos - 1;
 
     char c = 0;
-    while (1)
+    // end_pos is incremented for each character found to be part of a number
+    while (SET_AND_GET_CHAR(end_pos) && !IS_END_CHAR(c))
     {
-        if (fseek(f, end_pos++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF
-            || IS_END_CHAR(c))
-        {
-            break;
-        }
     }
 
     uint_fast64_t len = end_pos - *pos;
@@ -919,22 +916,11 @@ uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
 
     // -1 because we already read the first character
     uint_fast64_t end_pos = *pos - 1;
-    if (fseek(f, end_pos++, SEEK_SET) != 0)
-    {
-        return 0;
-    }
 
     char c = 0;
-    while ((c = fgetc(f)) != EOF)
+    // end_pos is incremented for each character found to be part of a boolean
+    while (SET_AND_GET_CHAR(end_pos) && !IS_END_CHAR(c))
     {
-        if (IS_END_CHAR(c))
-        {
-            break;
-        }
-        if (fseek(f, end_pos++, SEEK_SET) != 0)
-        {
-            break;
-        }
     }
     uint_fast64_t len = end_pos - *pos;
     *pos += len - 1;
@@ -954,7 +940,7 @@ uint_fast64_t parse_boolean(FILE *f, uint_fast64_t *pos)
 uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos,
                                     uint_fast8_t *err)
 {
-    if (f == nullptr)
+    if (f == nullptr || err == nullptr)
     {
         return 0;
     }
@@ -967,13 +953,8 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos,
     char is_backslashing = 0;
 
     char c = 0;
-    while ((c = fgetc(f)) != EOF)
+    while (SET_AND_GET_CHAR(pos))
     {
-        if (fseek(f, pos++, SEEK_SET) != 0)
-        {
-            break;
-        }
-
         if (c == '\\')
         {
             is_backslashing = !is_backslashing;
@@ -1029,12 +1010,7 @@ uint_fast64_t get_nb_chars_in_array(FILE *f, uint_fast64_t pos,
 */
 uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 {
-    if (f == nullptr)
-    {
-        return 0;
-    }
-
-    if (fseek(f, pos++, SEEK_SET) != 0)
+    if (f == nullptr || err == nullptr)
     {
         return 0;
     }
@@ -1049,7 +1025,7 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 
     char c = 0;
     char prev_c = 0;
-    while ((c = fgetc(f)) != EOF)
+    while (SET_AND_GET_CHAR(pos))
     {
         if (!is_in_array)
         {
@@ -1109,11 +1085,6 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
             }
         }
 
-        if (fseek(f, pos++, SEEK_SET) != 0)
-        {
-            break;
-        }
-
         if (c != ' ' && c != '\t' && c != '\n')
         {
             prev_c = c;
@@ -1140,7 +1111,7 @@ uint_fast64_t get_nb_elts_array(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos,
                                    uint_fast8_t *err)
 {
-    if (f == nullptr)
+    if (f == nullptr || err == nullptr)
     {
         return 0;
     }
@@ -1153,13 +1124,8 @@ uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos,
     char is_backslashing = 0;
 
     char c = 0;
-    while (1)
+    while (SET_AND_GET_CHAR(pos))
     {
-        if (fseek(f, pos++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF)
-        {
-            break;
-        }
-
         if (c == '\\')
         {
             is_backslashing = !is_backslashing;
@@ -1215,7 +1181,7 @@ uint_fast64_t get_nb_chars_in_dict(FILE *f, uint_fast64_t pos,
 */
 uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
 {
-    if (f == nullptr)
+    if (f == nullptr || err == nullptr)
     {
         return 0;
     }
@@ -1231,13 +1197,8 @@ uint_fast64_t get_nb_elts_dict(FILE *f, uint_fast64_t pos, uint_fast8_t *err)
     char single_elt_found = 0;
 
     char c = 0;
-    while (1)
+    while (SET_AND_GET_CHAR(pos))
     {
-        if (fseek(f, pos++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF)
-        {
-            break;
-        }
-
         if (c == '\\')
         {
             is_backslashing = !is_backslashing;
@@ -1320,16 +1281,8 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
     }
 
     char c = 0;
-    // We start at 1 because if we entered this function, it means that we
-    // already read a '['
-    while (1)
+    while (SET_AND_GET_CHAR(i) && nb_elts_parsed < nb_elts && c != 0)
     {
-        if (fseek(f, i++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF || c == 0
-            || nb_elts_parsed >= nb_elts)
-        {
-            break;
-        }
-
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
@@ -1441,7 +1394,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
             ++nb_elts_parsed;
         }
     }
-    if (err)
+    if (*err)
     {
         delete ja;
         return nullptr;
@@ -1484,14 +1437,8 @@ JSONDict *parse_dict(FILE *f, uint_fast64_t *pos, uint_fast8_t *err)
     char is_waiting_key = 1;
     // We start at 1 because if we entered this function, it means that we
     // already read a '['
-    while (1)
+    while (SET_AND_GET_CHAR(i) && nb_elts_parsed < nb_elts && c != 0)
     {
-        if (fseek(f, i++, SEEK_SET) != 0 || (c = fgetc(f)) == EOF || c == 0
-            || nb_elts_parsed >= nb_elts)
-        {
-            break;
-        }
-
         if (c == '"')
         {
             if (is_waiting_key)
