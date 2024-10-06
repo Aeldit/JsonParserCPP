@@ -33,6 +33,7 @@ bool String::operator==(String s)
     const char *b = s.str();
     for (uint_strlen_t i = 0; i < length; ++i)
     {
+        // TODO: Test while (length--)
         if (a[i] != b[i])
         {
             return false;
