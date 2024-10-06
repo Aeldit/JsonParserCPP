@@ -821,7 +821,6 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
     }
 
     uint_fast64_t i = *pos;
-    uint_fast64_t initial_i = i;
     char c = 0;
     char prev_c = 0;
     while (SET_AND_GET_CHAR(i) && !IS_STRING_END(c))
@@ -829,7 +828,7 @@ String *parse_string(FILE *f, uint_fast64_t *pos)
         prev_c = c;
     }
 
-    uint_strlen_t len = i - initial_i - 1 > MAX_STR_LEN ? 0 : i - initial_i - 1;
+    uint_strlen_t len = i - *pos - 1 > MAX_STR_LEN ? 0 : i - *pos - 1;
     if (len == 0)
     {
         return nullptr;
@@ -1386,9 +1385,15 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
             *err |= ja->addValue(new DictTypedValue(tmp_jd));
             ++nb_elts_parsed;
         }
+
+        if (*err)
+        {
+            break;
+        }
     }
     if (*err)
     {
+        print_err_bits(*err);
         delete ja;
         return nullptr;
     }
