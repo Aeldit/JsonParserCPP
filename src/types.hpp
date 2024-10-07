@@ -17,6 +17,17 @@
 #define T_ARR 5
 #define T_DICT 6
 
+#define ERR_FSEEK (1 << 0)
+#define ERR_NULL_KEY (1 << 1)
+#define ERR_NULL_STR (1 << 2)
+#define ERR_NULL_ARR (1 << 3)
+#define ERR_NULL_DICT (1 << 4)
+#define ERR_ITEM_EXISTS (1 << 5)
+#define ERR_MAX_NESTED_ARRAYS_REACHED (1 << 6)
+#define ERR_MAX_NESTED_DICTS_REACHED (1 << 7)
+#define ERR_NULL_VALUE (1 << 8)
+#define ERR_NULL_ITEM (1 << 9)
+
 #ifndef MAX_STR_LEN
 #    define MAX_STR_LEN UINT_FAST16_MAX
 #endif
@@ -101,5 +112,10 @@ public:
 
     void printKey();
 };
+
+/*******************************************************************************
+**                                 FUNCTIONS                                  **
+*******************************************************************************/
+void print_err_bits(uint_fast16_t err);
 
 #endif // !JSON_TYPES_H

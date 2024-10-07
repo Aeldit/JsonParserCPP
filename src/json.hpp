@@ -67,7 +67,7 @@ public:
     TypedValue **getValues();
     TypedValue *getValueAt(uint_fast64_t index);
 
-    void addValue(TypedValue *value);
+    uint_fast16_t addValue(TypedValue *value);
     void printValues();
     void printValuesIndent(int indent, bool fromDict);
 };
@@ -91,7 +91,7 @@ public:
     Item **getItems();
     Item *getItem(String *key);
 
-    void addItem(Item *item);
+    uint_fast16_t addItem(Item *item);
     void printItems();
     void printItemsIndent(int indent, bool fromDict);
 };
