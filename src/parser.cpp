@@ -31,7 +31,7 @@
 #define SET_AND_GET_CHAR(p) (!fseek(f, p++, SEEK_SET) && (c = fgetc(f)) != EOF)
 
 #ifndef MAX_READ_BUFF_SIZE
-#    define MAX_READ_BUFF_SIZE 1 //(1073741824) // <=> (2 << 30) ~= ~ 1 GB
+#    define MAX_READ_BUFF_SIZE (1073741824) // <=> (2 << 30) ~= ~ 1 GB
 #endif
 
 #ifndef MAX_NESTED_ARRAYS
