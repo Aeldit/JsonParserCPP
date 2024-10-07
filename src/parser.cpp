@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 
 #include "json.hpp"
+#include "validator.hpp"
 
 /*******************************************************************************
 **                                   MACROS                                   **
@@ -30,36 +31,16 @@
 */
 #define SET_AND_GET_CHAR(p) (!fseek(f, p++, SEEK_SET) && (c = fgetc(f)) != EOF)
 
+#define EXIT_ON_INVALID_JSON(is_in_dict)                                       \
+    if (!json_valid_buff(b, file_size, is_in_dict))                            \
+    {                                                                          \
+        fclose(f);                                                             \
+        printf("The json file '%s' is malformed; aborting parsing.\n", file);  \
+        return nullptr;                                                        \
+    }
+
 #ifndef MAX_READ_BUFF_SIZE
 #    define MAX_READ_BUFF_SIZE (1073741824) // <=> (2 << 30) ~= ~ 1 GB
-#endif
-
-#ifndef MAX_NESTED_ARRAYS
-#    define MAX_NESTED_ARRAYS UINT_FAST8_MAX // 255
-#endif
-
-#ifndef MAX_NESTED_DICTS
-#    define MAX_NESTED_DICTS UINT_FAST8_MAX // 255
-#endif
-
-#if MAX_NESTED_ARRAYS <= UINT_FAST8_MAX
-typedef uint_fast8_t uint_nested_arrays_t;
-#elif MAX_NESTED_ARRAYS <= UINT_FAST16_MAX
-typedef uint_fast16_t uint_nested_arrays_t;
-#elif MAX_NESTED_ARRAYS <= UINT_FAST32_MAX
-typedef uint_fast32_t uint_nested_arrays_t;
-#else
-typedef uint_fast64_t uint_nested_arrays_t;
-#endif
-
-#if MAX_NESTED_DICTS <= UINT_FAST8_MAX
-typedef uint_fast8_t uint_nested_dicts_t;
-#elif MAX_NESTED_DICTS <= UINT_FAST16_MAX
-typedef uint_fast16_t uint_nested_dicts_t;
-#elif MAX_NESTED_DICTS <= UINT_FAST32_MAX
-typedef uint_fast32_t uint_nested_dicts_t;
-#else
-typedef uint_fast64_t uint_nested_dicts_t;
 #endif
 
 /*******************************************************************************
@@ -1582,6 +1563,7 @@ JSON *parse(char *file)
     }
 
     uint_fast64_t offset = 0;
+    // If we can't set the cursor in the file, we exit
     if (fseek(f, offset++, SEEK_SET) != 0)
     {
         fclose(f);
@@ -1591,44 +1573,25 @@ JSON *parse(char *file)
     // Obtains the number of characters in the file
     struct stat st;
     stat(file, &st);
-    uint_fast64_t nb_chars = st.st_size;
+    uint_fast64_t file_size = st.st_size;
 
     uint_fast16_t err = 0;
     char c = fgetc(f);
-    if (c == '{')
-    {
-        JSONDict *jd = nullptr;
-        if (nb_chars < MAX_READ_BUFF_SIZE)
-        {
-            char *b = new char[nb_chars + 1]();
-            if (fseek(f, offset, SEEK_SET) != 0)
-            {
-                fclose(f);
-                return nullptr;
-            }
-            fread(b, sizeof(char), nb_chars, f);
-            jd = parse_dict_buff(b, nullptr, &err);
-            delete[] b;
-        }
-        else
-        {
-            jd = parse_dict(f, &offset, &err);
-        }
-        fclose(f);
-        return jd;
-    }
-    else if (c == '[')
+    if (c == '[')
     {
         JSONArray *ja = nullptr;
-        if (nb_chars < MAX_READ_BUFF_SIZE)
+        if (file_size < MAX_READ_BUFF_SIZE)
         {
-            char *b = new char[nb_chars + 1]();
+            char *b = new char[file_size + 1]();
             if (fseek(f, offset, SEEK_SET) != 0)
             {
                 fclose(f);
                 return nullptr;
             }
-            fread(b, sizeof(char), nb_chars, f);
+            fread(b, sizeof(char), file_size, f);
+
+            EXIT_ON_INVALID_JSON(false)
+
             ja = parse_array_buff(b, nullptr, &err);
             delete[] b;
         }
@@ -1638,6 +1601,31 @@ JSON *parse(char *file)
         }
         fclose(f);
         return ja;
+    }
+    else if (c == '{')
+    {
+        JSONDict *jd = nullptr;
+        if (file_size < MAX_READ_BUFF_SIZE)
+        {
+            char *b = new char[file_size + 1]();
+            if (fseek(f, offset, SEEK_SET) != 0)
+            {
+                fclose(f);
+                return nullptr;
+            }
+            fread(b, sizeof(char), file_size, f);
+
+            EXIT_ON_INVALID_JSON(true)
+
+            jd = parse_dict_buff(b, nullptr, &err);
+            delete[] b;
+        }
+        else
+        {
+            jd = parse_dict(f, &offset, &err);
+        }
+        fclose(f);
+        return jd;
     }
     fclose(f);
     return nullptr;
