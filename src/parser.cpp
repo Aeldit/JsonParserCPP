@@ -31,10 +31,11 @@
 */
 #define SET_AND_GET_CHAR(p) (!fseek(f, p++, SEEK_SET) && (c = fgetc(f)) != EOF)
 
-#define EXIT_ON_INVALID_JSON(is_in_dict)                                       \
-    if (!json_valid_buff(b, file_size, is_in_dict))                            \
+#define EXIT_ON_INVALID_JSON(is_dict)                                          \
+    if (!json_valid_buff(b, file_size, is_dict))                               \
     {                                                                          \
         fclose(f);                                                             \
+        delete[] b;                                                            \
         printf("The json file '%s' is malformed; aborting parsing.\n", file);  \
         return nullptr;                                                        \
     }
