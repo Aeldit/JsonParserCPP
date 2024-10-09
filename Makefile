@@ -4,7 +4,8 @@ CC=g++
 CFILES=src/main.cpp \
 	src/json.cpp \
 	src/parser.cpp \
-	src/types.cpp
+	src/types.cpp \
+	src/validator.cpp
 
 ADDITIONAL_FLAGS= \
 				 #-DVALGRING_DISABLE_PRINT

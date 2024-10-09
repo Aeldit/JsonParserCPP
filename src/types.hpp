@@ -40,6 +40,34 @@ typedef uint_fast32_t uint_strlen_t;
 typedef uint_fast64_t uint_strlen_t;
 #endif
 
+#ifndef MAX_NESTED_ARRAYS
+#    define MAX_NESTED_ARRAYS UINT_FAST8_MAX // 255
+#endif
+
+#ifndef MAX_NESTED_DICTS
+#    define MAX_NESTED_DICTS UINT_FAST8_MAX // 255
+#endif
+
+#if MAX_NESTED_ARRAYS <= UINT_FAST8_MAX
+typedef uint_fast8_t uint_nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= UINT_FAST16_MAX
+typedef uint_fast16_t uint_nested_arrays_t;
+#elif MAX_NESTED_ARRAYS <= UINT_FAST32_MAX
+typedef uint_fast32_t uint_nested_arrays_t;
+#else
+typedef uint_fast64_t uint_nested_arrays_t;
+#endif
+
+#if MAX_NESTED_DICTS <= UINT_FAST8_MAX
+typedef uint_fast8_t uint_nested_dicts_t;
+#elif MAX_NESTED_DICTS <= UINT_FAST16_MAX
+typedef uint_fast16_t uint_nested_dicts_t;
+#elif MAX_NESTED_DICTS <= UINT_FAST32_MAX
+typedef uint_fast32_t uint_nested_dicts_t;
+#else
+typedef uint_fast64_t uint_nested_dicts_t;
+#endif
+
 /*******************************************************************************
 **                                   CLASSES                                  **
 *******************************************************************************/
