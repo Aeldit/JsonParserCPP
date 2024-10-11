@@ -17,25 +17,21 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
     char is_backslashing = 0;
 
     // 1 = key | 2 = key + : | 3 = key + : + value
+    // This variable is used to check for missing keys or values in json objects
+    // It is set to 1 once the key is encountered, to 2 when the ':' is
+    // encountered and to 3 when the final value is encountered
     char elts_encountered = 0;
-    uint_fast64_t nb_correct_elts = 0;
-
-    // Used for dicts that are not associated with a key
-    // char dict_has_key = 0;
+    char string_encountered = 0;
 
     char c = 0;
+    char prev_c = 0;
+    // TODO: Fix missing commas not being detected
     while (len--)
     {
         // Gets the current char and makes the pointer point to the next one
         c = *b++;
         printf("%c", c);
 
-        if (!nb_dicts && elts_encountered)
-        {
-            elts_encountered = 0;
-        }
-
-        // TODO: Check for missing key/value in key:value pairs
         if (c == '\\' && !is_backslashing)
         {
             is_backslashing = !is_backslashing;
@@ -46,15 +42,11 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             if (is_in_string)
             {
                 ++nb_quotes;
+                string_encountered = 1;
+                printf("#");
             }
             else
             {
-                if (nb_dicts
-                    && (elts_encountered == 0 || elts_encountered == 2))
-                {
-                    printf("#");
-                    ++elts_encountered;
-                }
                 --nb_quotes;
             }
             is_backslashing = 0;
@@ -65,14 +57,29 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
         }
         else if (!is_in_string)
         {
+            if (c == ' ' || c == '\n' || c == '\t')
+            {
+                continue;
+            }
+
+            // Key or string element encountered
+            if (string_encountered)
+            {
+                elts_encountered = elts_encountered == 2 ? 3 : 1;
+                string_encountered = 0;
+            }
+            // Other type of element encountered
+            else if (elts_encountered == 2
+                     && (('0' <= c && c <= '9') || c == 't' || c == 'f'
+                         || c == 'n' || c == '[' || c == '{'))
+            {
+                elts_encountered = 3;
+                printf("#");
+            }
+
             if (c == '[')
             {
                 ++nb_arrays;
-                if (elts_encountered == 2)
-                {
-                    printf("#");
-                    ++elts_encountered;
-                }
             }
             else if (c == ']')
             {
@@ -81,10 +88,9 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             else if (c == '{')
             {
                 ++nb_dicts;
-                if (elts_encountered == 2)
+                if (elts_encountered && elts_encountered != 3)
                 {
-                    printf("#");
-                    ++elts_encountered;
+                    return false;
                 }
             }
             else if (c == '}')
@@ -93,35 +99,24 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             }
             else if (c == ':')
             {
+                if (elts_encountered != 1)
+                {
+                    return false;
+                }
+                elts_encountered = 2;
                 printf("#");
-                ++elts_encountered;
             }
-            else if ((c == ',' || c == '}' || c == '\n') && nb_dicts)
+            else if (c == ',' && prev_c != '}' && prev_c != ']')
             {
-                printf(" %d", elts_encountered);
-                if (elts_encountered != 3)
+                if (elts_encountered > 1 && elts_encountered != 3)
                 {
                     return false;
                 }
                 elts_encountered = 0;
-                ++nb_correct_elts;
-            }
-            else if (('0' <= c && c <= '9') || c == 'n' || c == 't' || c == 'f')
-            {
-                if (elts_encountered == 2)
-                {
-                    printf("#");
-                    ++elts_encountered;
-                }
-            }
-            else if ((c == '}' || c == '\n' || c == ' ')
-                     && elts_encountered == 3)
-            {
-                elts_encountered = 0;
             }
         }
+        prev_c = c;
     }
-    printf("\n");
     return nb_arrays == 0 && nb_dicts == 0 && nb_quotes == 0;
 }
 
