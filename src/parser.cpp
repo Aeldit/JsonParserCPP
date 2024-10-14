@@ -113,21 +113,23 @@ int_fast64_t str_to_long(StrAndLenTuple *sl)
     uint_fast64_t exponent = 0;
     char is_negative = str[0] == '-' ? -1 : 1;
     char is_in_exponent = 0;
+    char c = 0;
     for (uint_fast64_t i = 0; i < len; ++i)
     {
-        if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
+        c = str[i];
+        if (sl->has_exponent && (c == 'e' || c == 'E'))
         {
             is_in_exponent = 1;
         }
-        else if ('0' <= str[i] && str[i] <= '9')
+        else if ('0' <= c && c <= '9')
         {
             if (is_in_exponent)
             {
-                exponent = exponent * 10 + str[i] - '0';
+                exponent = exponent * 10 + c - '0';
             }
             else
             {
-                res = res * 10 + str[i] - '0';
+                res = res * 10 + c - '0';
             }
         }
     }
@@ -162,30 +164,32 @@ double str_to_double(StrAndLenTuple *sl)
     char is_negative = str[0] == '-' ? -1 : 1;
     char dot_reached = 0;
     char is_in_exponent = 0;
+    char c = 0;
     for (uint_fast64_t i = 0; i < len; ++i)
     {
-        if (str[i] == '.')
+        c = str[i];
+        if (c == '.')
         {
             dot_reached = 1;
         }
-        else if (sl->has_exponent && (str[i] == 'e' || str[i] == 'E'))
+        else if (sl->has_exponent && (c == 'e' || c == 'E'))
         {
             is_in_exponent = 1;
         }
-        else if ('0' <= str[i] && str[i] <= '9')
+        else if ('0' <= c && c <= '9')
         {
             if (is_in_exponent)
             {
-                exponent = exponent * 10 + str[i] - '0';
+                exponent = exponent * 10 + c - '0';
             }
             else if (dot_reached)
             {
-                dot_res = dot_res * 10 + str[i] - '0';
+                dot_res = dot_res * 10 + c - '0';
                 nb_digits_dot *= 10;
             }
             else
             {
-                res = res * 10 + str[i] - '0';
+                res = res * 10 + c - '0';
             }
         }
     }
@@ -1591,7 +1595,7 @@ JSON *parse(char *file)
             }
             fread(b, sizeof(char), file_size, f);
 
-            EXIT_ON_INVALID_JSON(false)
+            // EXIT_ON_INVALID_JSON(false)
 
             ja = parse_array_buff(b, nullptr, &err);
             delete[] b;
