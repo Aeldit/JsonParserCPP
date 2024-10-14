@@ -20,7 +20,7 @@
     "boo": false,
     "n": null,
     "arr": ["testing", 546884, null, false, [1], [1, 2, 3, 5], true]
-  },
+  }
   {
     "test": "stringi[nining",
     "num": 51065.689888564,
