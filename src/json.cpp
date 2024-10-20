@@ -550,8 +550,7 @@ Item *JSONDict::getItem(String *key)
         Item *it = items.get(i);
         if (it != nullptr)
         {
-            String *k = it->getKey();
-            if (key == k)
+            if (key == it->getKey())
             {
                 return it;
             }
