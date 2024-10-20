@@ -31,9 +31,13 @@ bool String::operator==(String s)
 
     const char *a = string;
     const char *b = s.str();
+    if (a == nullptr || b == nullptr)
+    {
+        return false;
+    }
+
     for (uint_strlen_t i = 0; i < length; ++i)
     {
-        // TODO: Test while (length--)
         if (a[i] != b[i])
         {
             return false;
