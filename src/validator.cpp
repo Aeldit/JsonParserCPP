@@ -9,6 +9,8 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
         return false;
     }
 
+    // These 3 check if the number of array square brackets / dict curly
+    // brackets / quotes are even
     uint_nested_arrays_t nb_arrays = is_dict ? 0 : 1;
     uint_nested_dicts_t nb_dicts = is_dict ? 1 : 0;
     uint_nested_dicts_t nb_quotes = 0;
@@ -25,7 +27,7 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
 
     char c = 0;
     char prev_c = 0;
-    // TODO: Fix missing commas not being detected
+    // TODO: Check for missing commas
     while (len--)
     {
         // Gets the current char and makes the pointer point to the next one
@@ -43,7 +45,6 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             {
                 ++nb_quotes;
                 string_encountered = 1;
-                printf("#");
             }
             else
             {
@@ -74,7 +75,6 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
                          || c == 'n' || c == '[' || c == '{'))
             {
                 elts_encountered = 3;
-                printf("#");
             }
 
             if (c == '[')
@@ -88,6 +88,7 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             else if (c == '{')
             {
                 ++nb_dicts;
+                // Key:value pairs check
                 if (elts_encountered && elts_encountered != 3)
                 {
                     return false;
@@ -99,15 +100,16 @@ bool json_valid_buff(char *b, uint_fast64_t len, bool is_dict)
             }
             else if (c == ':')
             {
+                // Key:value pairs check
                 if (elts_encountered != 1)
                 {
                     return false;
                 }
                 elts_encountered = 2;
-                printf("#");
             }
             else if (c == ',' && prev_c != '}' && prev_c != ']')
             {
+                // Key:value pairs check
                 if (elts_encountered > 1 && elts_encountered != 3)
                 {
                     return false;

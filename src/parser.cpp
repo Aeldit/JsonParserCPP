@@ -1595,7 +1595,7 @@ JSON *parse(char *file)
             }
             fread(b, sizeof(char), file_size, f);
 
-            // EXIT_ON_INVALID_JSON(false)
+            EXIT_ON_INVALID_JSON(false)
 
             ja = parse_array_buff(b, nullptr, &err);
             delete[] b;
