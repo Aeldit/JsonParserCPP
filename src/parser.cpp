@@ -635,7 +635,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
 
         if (c == '"')
         {
-            ja->addValue(new StringTypedValue(parse_string_buff(b, &i)));
+            ja->addValue(new StringValue(parse_string_buff(b, &i)));
             ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
@@ -648,11 +648,11 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
 
             if (sl.is_float)
             {
-                ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
+                ja->addValue(new DoubleValue(str_to_double(&sl)));
             }
             else
             {
-                ja->addValue(new IntTypedValue(str_to_long(&sl)));
+                ja->addValue(new IntValue(str_to_long(&sl)));
             }
             ++nb_elts_parsed;
         }
@@ -663,12 +663,12 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
             {
                 continue;
             }
-            ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            ja->addValue(new BoolValue(len == 4 ? true : false));
             ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
-            ja->addValue(new NullTypedValue());
+            ja->addValue(new NullValue());
             i += 3;
             ++nb_elts_parsed;
         }
@@ -680,7 +680,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
                 *err = 1;
                 break;
             }
-            ja->addValue(new ArrayTypedValue(tmp_ja));
+            ja->addValue(new ArrayValue(tmp_ja));
             ++nb_elts_parsed;
         }
         else if (c == '{')
@@ -691,7 +691,7 @@ JSONArray *parse_array_buff(char *b, uint_fast64_t *idx, uint_fast16_t *err)
                 *err = 1;
                 break;
             }
-            ja->addValue(new DictTypedValue(tmp_jd));
+            ja->addValue(new DictValue(tmp_jd));
             ++nb_elts_parsed;
         }
         ++i;
@@ -1319,7 +1319,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
         // If we are not in a string or if the string just ended
         if (c == '"')
         {
-            *err |= ja->addValue(new StringTypedValue(parse_string(f, &i)));
+            *err |= ja->addValue(new StringValue(parse_string(f, &i)));
             ++nb_elts_parsed;
         }
         else if (IS_NUMBER_START(c))
@@ -1332,11 +1332,11 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
 
             if (sl.is_float)
             {
-                *err |= ja->addValue(new DoubleTypedValue(str_to_double(&sl)));
+                *err |= ja->addValue(new DoubleValue(str_to_double(&sl)));
             }
             else
             {
-                *err |= ja->addValue(new IntTypedValue(str_to_long(&sl)));
+                *err |= ja->addValue(new IntValue(str_to_long(&sl)));
             }
             ++nb_elts_parsed;
         }
@@ -1347,12 +1347,12 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
             {
                 continue;
             }
-            *err |= ja->addValue(new BoolTypedValue(len == 4 ? true : false));
+            *err |= ja->addValue(new BoolValue(len == 4 ? true : false));
             ++nb_elts_parsed;
         }
         else if (c == 'n')
         {
-            *err |= ja->addValue(new NullTypedValue());
+            *err |= ja->addValue(new NullValue());
             i += 3;
             ++nb_elts_parsed;
         }
@@ -1385,7 +1385,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
                 tmp_ja = parse_array(f, &i, err);
             }
 
-            *err |= ja->addValue(new ArrayTypedValue(tmp_ja));
+            *err |= ja->addValue(new ArrayValue(tmp_ja));
             ++nb_elts_parsed;
         }
         else if (c == '{')
@@ -1417,7 +1417,7 @@ JSONArray *parse_array(FILE *f, uint_fast64_t *pos, uint_fast16_t *err)
                 tmp_jd = parse_dict(f, &i, err);
             }
 
-            *err |= ja->addValue(new DictTypedValue(tmp_jd));
+            *err |= ja->addValue(new DictValue(tmp_jd));
             ++nb_elts_parsed;
         }
 

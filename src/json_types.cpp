@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "json_types.hpp"
 
 #include <iostream>
 
@@ -46,23 +46,23 @@ bool String::operator==(String s)
     return true;
 }
 
-TypedValue::TypedValue(unsigned char type)
+Value::Value(unsigned char type)
     : type(type)
 {}
 
-unsigned char TypedValue::getType()
+unsigned char Value::getType()
 {
     return type;
 }
 
-void TypedValue::print()
+void Value::print()
 {
     printNoFlush();
     std::cout.flush();
 }
 
 Item::Item(String *key, unsigned char type)
-    : TypedValue(type)
+    : Value(type)
     , key(key)
 {}
 

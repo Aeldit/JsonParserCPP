@@ -60,25 +60,25 @@ public:
 };
 
 /**
-** \class TypedValue Base class representing a JSONArray's value
+** \class Value Base class representing a JSONArray's value
 ** \brief The following classes are derived from this one :
-**        - StringTypedValue
-**        - IntTypedValue
-**        - DoubleTypedValue
-**        - BoolTypedValue
-**        - NullTypedValue
-**        - ArrayTypedValue
-**        - DictTypedValue
-** \param type The type of the value (see types.h)
+**        - StringValue
+**        - IntValue
+**        - DoubleValue
+**        - BoolValue
+**        - NulValue
+**        - ArrayValue
+**        - DictValue
+** \param type The type of the value (T_<TYPE>)
 */
-class TypedValue
+class Value
 {
 private:
     unsigned char type;
 
 public:
-    TypedValue(unsigned char type);
-    virtual ~TypedValue() = default;
+    Value(unsigned char type);
+    virtual ~Value() = default;
 
     unsigned char getType();
 
@@ -99,7 +99,7 @@ public:
 **        - DictItem
 ** \param key The key of the item (string)
 */
-class Item : public TypedValue
+class Item : public Value
 {
 private:
     String *key;

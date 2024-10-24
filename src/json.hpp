@@ -4,20 +4,19 @@
 /*******************************************************************************
 **                                  INCLUDES                                  **
 *******************************************************************************/
+#include "json_types.hpp"
 #include "linked_lists.hpp"
-#include "types.hpp"
 
 /*******************************************************************************
 **                              DEFINES / MACROS                              **
 *******************************************************************************/
-#define IS_STRING(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_STR)
-#define IS_INT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_INT)
-#define IS_DOUBLE(v)                                                           \
-    (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DOUBLE)
-#define IS_BOOL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_BOOL)
-#define IS_NULL(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_NULL)
-#define IS_ARR(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_ARR)
-#define IS_DICT(v) (dynamic_cast<TypedValue *>(v) && (v)->getType() == T_DICT)
+#define IS_STRING(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_STR)
+#define IS_INT(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_INT)
+#define IS_DOUBLE(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_DOUBLE)
+#define IS_BOOL(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_BOOL)
+#define IS_NULL(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_NULL)
+#define IS_ARR(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_ARR)
+#define IS_DICT(v) (dynamic_cast<Value *>(v) && (v)->getType() == T_DICT)
 
 #define IS_JSON_ARRAY(j) (dynamic_cast<JSON *>(j) && (j)->isArray())
 
@@ -52,22 +51,22 @@ public:
 ** \param size The number of values inside the array
 ** \param insert_idx The index where the next value will be added
 ** \param values An array of TypedValues pointers (only contains objects of
-**               classes that are derived from the TypedValue class)
+**               classes that are derived from the Value class)
 */
 class JSONArray : public JSON
 {
 private:
-    LinkedList<TypedValue> values;
+    LinkedList<Value> values;
 
 public:
     JSONArray();
     ~JSONArray();
 
     uint_fast64_t getSize();
-    TypedValue **getValues();
-    TypedValue *getValueAt(uint_fast64_t index);
+    Value **getValues();
+    Value *getValueAt(uint_fast64_t index);
 
-    uint_fast16_t addValue(TypedValue *value);
+    uint_fast16_t addValue(Value *value);
     void printValues();
     void printValuesIndent(int indent, bool fromDict);
 };
@@ -99,85 +98,85 @@ public:
 /**************************************
 **           TYPED VALUES            **
 **************************************/
-class StringTypedValue : public TypedValue
+class StringValue : public Value
 {
 private:
     String *value;
 
 public:
-    StringTypedValue(String *value);
-    ~StringTypedValue();
+    StringValue(String *value);
+    ~StringValue();
 
     void printNoFlush();
     String *getValue();
 };
 
-class IntTypedValue : public TypedValue
+class IntValue : public Value
 {
 private:
     int_fast64_t value;
 
 public:
-    IntTypedValue(int_fast64_t value);
+    IntValue(int_fast64_t value);
 
     void printNoFlush();
     int_fast64_t getValue();
 };
 
-class DoubleTypedValue : public TypedValue
+class DoubleValue : public Value
 {
 private:
     double value;
 
 public:
-    DoubleTypedValue(double value);
+    DoubleValue(double value);
 
     void printNoFlush();
     double getValue();
 };
 
-class BoolTypedValue : public TypedValue
+class BoolValue : public Value
 {
 private:
     bool value;
 
 public:
-    BoolTypedValue(bool value);
+    BoolValue(bool value);
 
     void printNoFlush();
     bool getValue();
 };
 
-class NullTypedValue : public TypedValue
+class NullValue : public Value
 {
 public:
-    NullTypedValue();
+    NullValue();
 
     void printNoFlush();
 };
 
-class ArrayTypedValue : public TypedValue
+class ArrayValue : public Value
 {
 private:
     JSONArray *ja;
 
 public:
-    ArrayTypedValue(JSONArray *ja_arg);
-    virtual ~ArrayTypedValue();
+    ArrayValue(JSONArray *ja_arg);
+    virtual ~ArrayValue();
 
     void printNoFlush();
     void print();
     JSONArray *getValue();
 };
 
-class DictTypedValue : public TypedValue
+class DictValue : public Value
 {
 private:
     JSONDict *jd;
 
 public:
-    DictTypedValue(JSONDict *jd_arg);
-    virtual ~DictTypedValue();
+    DictValue(JSONDict *jd_arg);
+    virtual ~DictValue();
 
     void printNoFlush();
     void print();
