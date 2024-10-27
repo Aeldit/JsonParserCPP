@@ -9,30 +9,25 @@ CFILES=src/main.cpp \
 ADDITIONAL_FLAGS= \
 				 #-DVALGRING_DISABLE_PRINT
 
-all: clean json-parser
-	./json-parser r.json
+all: clean json-parser-cpp
+	./json-parser-cpp r.json
 
 .PHONY:
-json-parser:
-	$(CC) $(CFLAGS) $(ADDITIONAL_FLAGS) $(CFILES) -o json-parser
+json-parser-cpp:
+	$(CC) $(CFLAGS) $(ADDITIONAL_FLAGS) $(CFILES) -o json-parser-cpp
 
 clean:
-	if [ -f "json-parser" ]; then rm json-parser; fi
-
-.PHONY:
-test:
-	$(CC) $(CFLAGS) tests/tests.cpp -o tests/run-tests
-	./tests/run-tests
+	if [ -f "json-parser-cpp" ]; then rm json-parser-cpp; fi
 
 valgrind-compile: clean
 	$(CC) $(CFLAGS) \
 		-DVALGRING_DISABLE_PRINT \
-		$(CFILES) -o json-parser
+		$(CFILES) -o json-parser-cpp
 
 valgrind: valgrind-compile
 	valgrind --tool=callgrind --dump-instr=yes \
-		--simulate-cache=yes --collect-jumps=yes ./json-parser big.json
+		--simulate-cache=yes --collect-jumps=yes ./json-parser-cpp big.json
 
 leaks: valgrind-compile
 	valgrind --leak-check=full --show-leak-kinds=all \
-         --track-origins=yes ./json-parser r.json
+         --track-origins=yes ./json-parser-cpp r.json

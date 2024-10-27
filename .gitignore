@@ -1,5 +1,5 @@
 Makefile.rules
 .vscode/
 .cache/
-json-parser
+json-parser-cpp
 tests/
