@@ -1,5 +1,6 @@
-# JSON Parser C++
+# The C version of the parser is 2 to 4 times faster than the C++ version (without the optimizations, juste changing the language) so I decided to make this parser only in pure C and archive this repo
 
+# JSON Parser C++
 
 ![json-parser-cpp](https://raw.githubusercontent.com/Aeldit/Aeldit/e5cba7b19560c64d7677915d44ac5e4c80e8ce48/github_profile/jsonparser-cpp.svg)
 
